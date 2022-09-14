@@ -27,11 +27,18 @@ if (!function_exists('side_menu')) {
 				'title' => 'Report',
 				'url' => 'javascript:;',
 				'caret' => true,
-				'sub_menu' => [[
-					'url' => route('report-doku'),
-					'title' => 'Doku',
-					'route-name' => 'report-doku'
-				]]
+				'sub_menu' => [
+					[
+						'url' => route('report-doku'),
+						'title' => 'Doku',
+						'route-name' => 'report-doku'
+					],
+					[
+						'url' => route('report-pengguna'),
+						'title' => 'Pengguna Baru',
+						'route-name' => 'report-pengguna'
+					],
+				]
 			];
 		}
 
@@ -45,17 +52,17 @@ if (!function_exists('side_menu')) {
 				'caret' => true,
 				'sub_menu' => [
 					[
-						'url' => route('customer-detail','cust='.request()->get('cust')),
+						'url' => route('customer-detail', 'cust=' . request()->get('cust')),
 						'title' => 'Data Pengguna',
 						'route-name' => 'customer-detail'
-					], 
+					],
 					[
-						'url' => route('customer-cupkg','cust='.request()->get('cust')),
+						'url' => route('customer-cupkg', 'cust=' . request()->get('cust')),
 						'title' => 'Acount Teknis',
 						'route-name' => 'customer-cupkg'
-					], 
+					],
 					[
-						'url' => route('customer-porfoma','cust='.request()->get('cust')),
+						'url' => route('customer-porfoma', 'cust=' . request()->get('cust')),
 						'title' => 'Porfoma',
 						'route-name' => 'customer-porfoma'
 					]

@@ -29,6 +29,7 @@ Route::middleware(['cek_login'])->group(function () {
     Route::get('/cust_porfoma', 'App\Http\Controllers\CustomerController@porfoma')->name('customer-porfoma');
     Route::get('/customer_audit', 'App\Http\Controllers\CustomerController@audit')->name('customer-audit');
     Route::get('/report_doku', 'App\Http\Controllers\ReportDokuController@index')->name('report-doku');
+    Route::get('/report_pengguna', 'App\Http\Controllers\ReportController@penggunaBaru')->name('report-pengguna');
  
    
 });
