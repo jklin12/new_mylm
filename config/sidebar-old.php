@@ -20,6 +20,21 @@ if (!function_exists('side_menu')) {
 				]]
 			];
 		}
+		$menuReport = [];
+		if (Auth::user()->level > 5) {
+			$menuReport = [
+				'icon' => 'fas fa-chart-line',
+				'title' => 'Report',
+				'url' => 'javascript:;',
+				'caret' => true,
+				'sub_menu' => [[
+					'url' => route('report-doku'),
+					'title' => 'Doku',
+					'route-name' => 'report-doku'
+				]]
+			];
+		}
+
 		$menuPengguna = [];
 		$route = Route::current();
 		if ($route->getName() == 'customer-detail') {
@@ -55,6 +70,7 @@ if (!function_exists('side_menu')) {
 				'route-name' => 'customer-index'
 			];
 		}
+
 		$menu = [
 			'menu' => [
 				[
@@ -65,6 +81,7 @@ if (!function_exists('side_menu')) {
 					'route-name' => '/'
 				],
 				$menuPengguna,
+				$menuReport,
 				$menuFinance
 
 			]

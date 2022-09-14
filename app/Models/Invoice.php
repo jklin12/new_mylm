@@ -13,7 +13,8 @@ class Invoice extends Model
     protected $primaryKey = 'inv_number';
 
     public $incrementing = false;
+    
+    protected $fillable  = ['inv_number', 'cust_number', 'sp_code', 'inv_type', 'inv_due', 'inv_post', 'inv_paid', 'inv_status', 'inv_start', 'inv_end', 'inv_info', 'inv_pay_method', 'pi_number', 'sp_nom'];
 
-    const CREATED_AT = 'inv_post';
-    const UPDATED_AT = 'inv_updated';
+    public $timestamps = false;
 }

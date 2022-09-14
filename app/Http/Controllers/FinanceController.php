@@ -51,12 +51,12 @@ class FinanceController extends Controller
         $arrPiNumber  = [];
         $newArrayPi = [];
         foreach ($sheet_data as $key => $value) {
-            if ($key >= 100 && $key <= 120) {
+            if ($key > 9) {
                 $arrPiNumber[] = $value[4];
                 $newArrayPi[$value[4]] = $value;
             }
         }
-        print_r($arrPiNumber);die;
+        //print_r($arrPiNumber);die;
         $piData = InvoicePorfoma::selectRaw('t_invoice_porfoma.*,t_invoice.inv_number as nomor_invoice')->whereIn('t_invoice_porfoma.inv_number', $arrPiNumber)->leftJoin('t_invoice', 't_invoice_porfoma.inv_number', '=', 't_invoice.pi_number')->get();
 
         $susunReport  = [];
@@ -65,7 +65,7 @@ class FinanceController extends Controller
             $susunReport[$value->inv_number]['cust_number'] = $value->cust_number;
             $susunReport[$value->inv_number]['pi_number'] = $value->inv_number;
             $susunReport[$value->inv_number]['pi_status'] = $value->inv_status == 1 ? 'lunas' : 'selain lunas';
-            $status = 'gagal';
+            $status = 'Gagal';
             $message = 'Invoice Sudah ada ' . $value->nomor_invoice;
             $nomorInv = $value->nomor_invoice;
 
@@ -74,19 +74,19 @@ class FinanceController extends Controller
                 $updateDataPi['inv_pay_method'] = $newArrayPi[$value->inv_number][2] == 'Alfa-VA' ? '13' : '12';
                 $updateDataPi['inv_paid'] = date('Y-m-d H:m:i');
                 $updateDataPi['inv_info'] = 'Di bayar dengan ' . $newArrayPi[$value->inv_number][2] . '  pada ' . Carbon::parse($newArrayPi[$value->inv_number][3])->isoFormat('dddd, D MMMM Y');
-                print_r($updateDataPi);
-                //InvoicePorfoma::where('inv_number',$value->inv_number)->update($updateDataPi);
+                //print_r($updateDataPi);
+                InvoicePorfoma::where('inv_number',$value->inv_number)->update($updateDataPi);
             }
 
             if (!$value->nomor_invoice) {
                 $lastInvoice = Invoice::where('cust_number', $value->cust_number)->whereRaw('MONTH(inv_post) = ' . date('m'))->whereRaw('YEAR(inv_post) =' . date('Y'))->orderBy('inv_post', 'desc')->first();
                 //echo ($lastInvoice->inv_number);die;
                 $newNum = 1;
-                if ($lastInvoice->inv_number) {
+                if (isset($lastInvoice->inv_number)) {
                     $lastNum = substr($lastInvoice->inv_number, -2);
                     $newNum =   sprintf('%02d', $lastNum + 1);
                 }
-                $newInvNumber = 'INV' . $value->cust_number . date('mY') . sprintf('%02d', $newNum);
+                $newInvNumber = 'INV' . $value->cust_number . date('my') . sprintf('%02d', $newNum);
                 $nomorInv = $newInvNumber;
 
                 $insertInv['inv_number'] = $newInvNumber;
@@ -99,12 +99,14 @@ class FinanceController extends Controller
                 $insertInv['inv_status'] = 1;
                 $insertInv['inv_start'] = $value->inv_start;
                 $insertInv['inv_end'] = $value->inv_end;
-                $insertInv['inv_info'] = 'Di bayar dengan ' . $newArrayPi[$value->inv_number][2] . '  pada ' . Carbon::parse($newArrayPi[$value->inv_number][3])->isoFormat('dddd, D MMMM Y') . '<br>Digenerate otomatis pada ' . Carbon::parse(date('Y-m-d H:m:i'))->isoFormat('dddd, D MMMM Y H:mm');
+                $insertInv['inv_info'] = 'Di bayar dengan ' . $newArrayPi[$value->inv_number][2] . '  pada ' . Carbon::parse($newArrayPi[$value->inv_number][3])->isoFormat('dddd, D MMMM Y') . '\n Digenerate otomatis pada ' . Carbon::parse(date('Y-m-d H:m:i'))->isoFormat('dddd, D MMMM Y H:mm');
                 $insertInv['inv_pay_method'] = $newArrayPi[$value->inv_number][2] == 'Alfa-VA' ? '13' : '12';
                 $insertInv['pi_number'] = $value->inv_number;
                 $insertInv['sp_nom'] = $value->sp_nom;
+                $insertInv['inv_receipt'] = 0;
+                
 
-                //$qInsertInv = Invoice::create($insertInv);
+                $qInsertInv = Invoice::create($insertInv);
 
                 $invItem = DB::table('t_inv_item_porfoma')->where('inv_number', $value->inv_number)->get();
                 $insertInvItem = [];
@@ -117,7 +119,7 @@ class FinanceController extends Controller
                 }
                 //print_r($insertInvItem);
                 //print_r($insertInv);die;
-                //$qInsertInvItem = DB::insert($insertInvItem);
+                $qInsertInvItem = DB::table('t_inv_item')->insert($insertInvItem);
 
                 $status = 'Sukses';
                 $message = 'Generate Invoice sukses dengan nomor ' . $nomorInv;
@@ -126,7 +128,7 @@ class FinanceController extends Controller
             $susunReport[$value->inv_number]['inv_number'] = $nomorInv;
             $susunReport[$value->inv_number]['inv_message'] = $message;
         }
-        print_r($susunReport);die;
+        //print_r($susunReport);die;
         $export = $this->downloadExcel(array_values($susunReport));
 
         if ($export['status']) {

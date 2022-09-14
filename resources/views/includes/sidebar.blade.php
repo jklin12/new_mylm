@@ -2,7 +2,7 @@
 $sidebarClass = (!empty($sidebarTransparent)) ? 'sidebar-transparent' : '';
 @endphp
 <!-- begin #sidebar -->
-<div id="sidebar" class="sidebar {{ $sidebarClass }} ">
+<div id="sidebar" class="sidebar {{ $sidebarClass }} " style="background-color: #fff;">
 	<!-- begin sidebar scrollbar -->
 	<div data-scrollbar="true" data-height="100%">
 		@if (!$sidebarSearch)
