@@ -1,0 +1,113 @@
+a {
+    color: #b64260
+}
+
+a:focus,
+a:hover {
+    color: #cc0d65
+}
+
+.header .navbar-nav>li>a .label {
+    -webkit-box-shadow: none !important;
+    box-shadow: none !important
+}
+
+.header.navbar-default .navbar-brand i {
+    color: #b64260
+}
+
+.header.navbar-default .navbar-nav>li>a .label {
+    background: #b64260
+}
+
+.header.navbar-inverse {
+    background: #b64260
+}
+
+@media (max-width:767.98px) {
+    .header.navbar-inverse .navbar-nav {
+        border-color: #ff4098
+    }
+}
+
+.header.navbar-inverse .navbar-nav>li>a .label {
+    background: #1f2225
+}
+
+.sidebar .nav>li>a .label.label-theme {
+    background: #0078ff;
+    color: #fff
+}
+
+.gradient-enabled .sidebar .nav>li>a .label.label-theme {
+    background: -webkit-linear-gradient(to bottom, #1a86ff 0, #006ce6 100%);
+    background: -moz-linear-gradient(to bottom, #1a86ff 0, #006ce6 100%);
+    background: -o-linear-gradient(to bottom, #1a86ff 0, #006ce6 100%);
+    background: linear-gradient(to bottom, #1a86ff 0, #006ce6 100%)
+}
+
+.sidebar .nav>li.active>a {
+    background: #b64260
+}
+
+.gradient-enabled .sidebar .nav>li.active>a {
+    background: -webkit-linear-gradient(to bottom, #ff2a8c 0, #f60071 100%);
+    background: -moz-linear-gradient(to bottom, #ff2a8c 0, #f60071 100%);
+    background: -o-linear-gradient(to bottom, #ff2a8c 0, #f60071 100%);
+    background: linear-gradient(to bottom, #ff2a8c 0, #f60071 100%)
+}
+
+.sidebar .nav>li.active>a .badge,
+.sidebar .nav>li.active>a .label {
+    color: #fff;
+    background: rgba(0, 0, 0, .65)
+}
+
+.gradient-enabled .sidebar .nav>li.active>a .badge,
+.gradient-enabled .sidebar .nav>li.active>a .label {
+    color: #fff;
+    background: rgba(0, 0, 0, .65)
+}
+
+.sidebar .sub-menu>li.active>a {
+    color: #b64260
+}
+
+.top-menu .nav>li.active>a {
+    background: #b64260
+}
+
+.float-sub-menu-container .float-sub-menu li.active:after {
+    border-color: #b64260;
+    background: #b64260
+}
+
+.bg-theme {
+    background-color: #b64260 !important
+}
+
+.label-theme {
+    background-color: #b64260
+}
+
+.text-theme {
+    color: #b64260
+}
+
+.page-with-light-sidebar .sidebar .sub-menu>li.active:after {
+    border-color: #b64260
+}
+
+.coming-soon .brand .logo {
+    background: #b64260
+}
+
+.todolist>li.active>a i:before {
+    content: '\f14a';
+    color: #b64260
+}
+
+.todolist>li.active>a:focus i:before,
+.todolist>li.active>a:hover i:before {
+    color: #b64260
+}
