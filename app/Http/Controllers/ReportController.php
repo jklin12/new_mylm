@@ -9,10 +9,10 @@ use Illuminate\Support\Facades\DB;
 class ReportController extends Controller
 {
     var $arrPop = ['Bogor Valley', 'LIFEMEDIA', 'HABITAT', 'SINDUADI', 'GREENNET', 'X-LIFEMEDIA', 'LDP LIFEMEDIA', 'LDP X-LIFEMEDIA', 'JIP', 'Jogja Tronik', 'LDP JIP'];
-
+    var $arrStatus = [1 => 'Registrasi', 'Instalasi', 'Setup', 'Sistem Aktif', 'Tidak Aktif', 'Trial', 'Sewa Khusus', 'Blokir', 'Ekslusif', 'CSR'];
     public function penggunaBaru(Request $request)
     {
-        $title = "Pertambahan Pengguna Baru";
+        $title = "Report Pengguna Lifemedia";
         $subTitle = '';
 
         $year = $request->has('tahun') ? $request->input('tahun') : date('Y');
@@ -101,6 +101,68 @@ class ReportController extends Controller
             $susundrilldownAm[$key]['data'] = array_values($value['data']);
         }
 
+        $allPengguna = DB::table('t_customer')
+            ->selectRaw('COUNT(t_customer.cust_number) as total, cupkg_status')
+            ->leftJoin('trel_cust_pkg', 't_customer.cust_number', '=', 'trel_cust_pkg.cust_number')
+            ->where('cupkg_status', '!=', '7')
+            ->where('cupkg_status', '!=', '9')
+            ->where('cupkg_status', '!=', '10')
+            //->whereRaw("YEAR(created) = '" . $year . "'")
+            ->groupBy('cupkg_status')
+            ->orderBy('total')
+            ->get();
+
+        $totalPengguna = 0;
+        $penggunaByStatus = [];
+        foreach ($allPengguna as $key => $value) {
+            $totalPengguna += $value->total;
+            $penggunaByStatus[$key]['total'] = $value->total;
+            $penggunaByStatus[$key]['status'] = $this->arrStatus[$value->cupkg_status];
+        }
+
+        $custBySpcode = DB::table('t_customer')
+            ->selectRaw('COUNT(t_customer.cust_number) as total, sp_code')
+            ->leftJoin('trel_cust_pkg', 't_customer.cust_number', '=', 'trel_cust_pkg.cust_number')
+            ->where('cupkg_status', '!=', '7')
+            ->where('cupkg_status', '!=', '9')
+            ->where('cupkg_status', '!=', '10')
+            //->whereRaw("YEAR(created) = '" . $year . "'")
+            ->groupBy('sp_code')
+            ->orderBy('total')
+            ->get();
+        //print_r($custBySpcode);die;
+        $susunSpcode = [];
+        $spCodejumalh = [];
+        foreach ($custBySpcode as $key => $value) {
+            $susunSpcode[$key]['name'] = $value->sp_code;
+            $susunSpcode[$key]['y'] = $value->total;
+            $spCodejumalh[] = $value->total;
+        }
+        $max = max(array_keys($spCodejumalh));
+
+        $susunSpcode[$max]['sliced'] = true;
+        $susunSpcode[$max]['selected'] = true;
+        //dd($susunSpcode);
+
+        $custByPop = DB::table('t_customer')
+            ->selectRaw('COUNT(t_customer.cust_number) as total, cust_pop')
+            ->leftJoin('trel_cust_pkg', 't_customer.cust_number', '=', 'trel_cust_pkg.cust_number')
+            ->where('cupkg_status', '!=', '7')
+            ->where('cupkg_status', '!=', '9')
+            ->where('cupkg_status', '!=', '10')
+            //->whereRaw("YEAR(created) = '" . $year . "'")
+            ->groupBy('cust_pop')
+            ->orderBy('total')
+            ->get();
+
+            $susunCustPop = [];
+             
+            foreach ($custByPop as $key => $value) {
+                $susunCustPop[$key]['name'] = $this->arrPop[$value->cust_pop];
+                $susunCustPop[$key]['y'] = $value->total;
+            
+            }
+           
         $load['title'] = $title;
         $load['sub_title'] = $subTitle;
         $load['year'] = $year;
@@ -110,7 +172,18 @@ class ReportController extends Controller
 
         $load['monthlyChartAm'] = json_encode(array_values($susunChartAm));
         $load['drilldownDataAm'] = json_encode(array_values($susundrilldownAm));
+        $load['chartSpcode']= json_encode($susunSpcode);
+        $load['chartPop']= json_encode($susunCustPop);
+
+        $load['totalPengguna'] = $totalPengguna;
+        $load['penggunaByStatus'] = $penggunaByStatus;
+        
 
         return view('pages/report/pengguna-index', $load);
+    }
+
+    private function precentage($value, $total)
+    {
+        return round(($value / $total) * 100, 2);
     }
 }

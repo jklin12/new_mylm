@@ -28,13 +28,10 @@ class DashboardController extends Controller
         $load['curentDate'] = $curentDate;
         $load['compareDate'] = $compareDate;
 
-        $curentRevenue = DB::table('t_pay_request')->select([DB::raw('SUM(amount) as total'), DB::raw('count(inv_number) as total_pi')])
-            ->where('insert_date', '>=', $curentDateStart . ' 00:00:00')
-            ->where('insert_date', '<=', $curentDateEnd . ' 00:00:00')
-            ->where('inv_status', 1)
-            //->where('result_msg', 'SUCCESS')
-            ->leftJoin('t_invoice_porfoma', 't_pay_request.inv_numb', '=', 't_invoice_porfoma.inv_number')
-            //->groupBy('inv_numb')
+        $curentRevenue = DB::table('t_pay_request')->select([DB::raw('SUM(amount) as total'), DB::raw('count(id_pay_req) as total_pi')])
+            ->whereRaw("DATE_FORMAT(insert_date,'%Y-%m-%d') >= '" .$curentDateStart."'" )
+            ->whereRaw("DATE_FORMAT(insert_date,'%Y-%m-%d') <= '" .$curentDateEnd."'" )
+             ->where('result_msg', 'SUCCESS')
             ->first();
 
         //print_r($curentRevenue);die;

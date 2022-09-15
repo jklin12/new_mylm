@@ -3,6 +3,12 @@
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
+if (!function_exists('precentage')) {
+	function precentage($value, $total)
+    {
+        return round(($value / $total) * 100, 2);
+    }
+}
 if (!function_exists('side_menu')) {
 	function side_menu()
 	{
@@ -35,7 +41,7 @@ if (!function_exists('side_menu')) {
 					],
 					[
 						'url' => route('report-pengguna'),
-						'title' => 'Pengguna Baru',
+						'title' => 'Pengguna',
 						'route-name' => 'report-pengguna'
 					],
 				]
