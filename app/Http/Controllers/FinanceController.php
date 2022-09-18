@@ -79,10 +79,11 @@ class FinanceController extends Controller
             }
 
             if (!$value->nomor_invoice) {
+                //echo $value->cust_number;
                 $lastInvoice = Invoice::where('cust_number', $value->cust_number)->whereRaw('MONTH(inv_post) = ' . date('m'))->whereRaw('YEAR(inv_post) =' . date('Y'))->orderBy('inv_post', 'desc')->first();
-                //echo ($lastInvoice->inv_number);die;
+                //print_r($lastInvoice);die;
                 $newNum = 1;
-                if (isset($lastInvoice->inv_number)) {
+                if ($lastInvoice) {
                     $lastNum = substr($lastInvoice->inv_number, -2);
                     $newNum =   sprintf('%02d', $lastNum + 1);
                 }

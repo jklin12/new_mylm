@@ -3,12 +3,72 @@
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
+if (!function_exists('arrCustStatus')) {
+	function arrCustStatus($index)
+	{
+		$return = ['status belum ada ','dark'];
+		$arrSpk = [
+			4 => ['Sistem Aktif','green'],
+			5 => ['Tidak Aktif','danger'],
+			8 => ['Blocking','warning'],
+		];
+
+		if (isset($arrSpk[$index])) {
+			$return = $arrSpk[$index];
+		} else {
+			$return = ['status belum ada ','dark'];
+		}
+		return $return;
+	}
+}
+if (!function_exists('arrPiStatus')) {
+	function arrPiStatus($index)
+	{
+		$return = ['status belum ada ','dark'];
+		$arrSpk = [
+			0 => ['Belum Bayar','danger'],
+			1 => ['Lunas','green'],
+			1 => ['Exxpired','warning'],
+		];
+
+		if (isset($arrSpk[$index])) {
+			$return = $arrSpk[$index];
+		} else {
+			$return = ['status belum ada ','dark'];
+		}
+		return $return;
+	}
+}
+
+if (!function_exists('spkVal')) {
+	function spkVal($index)
+	{
+		$arrSpk = ['Tunggu', 'Pelaksanaan', 'OK', 'Batal', 'Reschedule'];
+
+		if (isset($arrSpk[$index])) {
+			return $arrSpk[$index];
+		} else {
+			return false;
+		}
+	}
+}
 if (!function_exists('precentage')) {
 	function precentage($value, $total)
-    {
-        return round(($value / $total) * 100, 2);
-    }
+	{
+		return round(($value / $total) * 100, 2);
+	}
 }
+
+if (!function_exists('SchRp')) {
+	function SchRp($num)
+	{
+		if (!$num)
+			return '-';
+		$format = number_format($num, 0, '', '.');
+		return $format;
+	}
+}
+
 if (!function_exists('side_menu')) {
 	function side_menu()
 	{
@@ -44,9 +104,36 @@ if (!function_exists('side_menu')) {
 						'title' => 'Pengguna',
 						'route-name' => 'report-pengguna'
 					],
+					[
+						'url' => route('report-porfoma'),
+						'title' => 'Porfoma',
+						'route-name' => 'report-porfoma'
+					],
+					[
+						'url' => route('report-spk'),
+						'title' => 'SPK',
+						'route-name' => 'report-spk'
+					],
 				]
 			];
 		}
+		$menuDoku = [];
+		//if (Auth::user()->level > 5) {
+		$menuDoku = [
+			'icon' => 'fa fa-dollar-sign',
+			'title' => 'Doku',
+			'url' => 'javascript:;',
+			'caret' => true,
+			'sub_menu' => [
+				[
+					'url' => route('pay-request'),
+					'title' => 'Payment Request',
+					'route-name' => 'pay-request'
+				],
+
+			]
+		];
+		//}
 
 		$menuPengguna = [];
 		$route = Route::current();
@@ -57,6 +144,12 @@ if (!function_exists('side_menu')) {
 				'url' => 'javascript:;',
 				'caret' => true,
 				'sub_menu' => [
+					[
+						'title' => 'All Pengguna',
+						//'label' => 'NEW',
+						'url' => route('customer-index'),
+						'route-name' => 'customer-index'
+					],
 					[
 						'url' => route('customer-detail', 'cust=' . request()->get('cust')),
 						'title' => 'Data Pengguna',
@@ -95,6 +188,7 @@ if (!function_exists('side_menu')) {
 				],
 				$menuPengguna,
 				$menuReport,
+				$menuDoku,
 				$menuFinance
 
 			]
