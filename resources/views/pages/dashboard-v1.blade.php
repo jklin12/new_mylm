@@ -56,7 +56,7 @@
 						</div>
 						<!-- begin total-sales -->
 						<div class="d-flex mb-1">
-							<h2 class="mb-0">RP<span data-animation="number" data-value="{{ ($curentTotal->total) }}">0.00</span></h2>
+							<h2 class="mb-0">Rp. <span data-animation="number" data-value="{{ ($curentTotal->total) }}">0.00</span></h2>
 							<div class="ml-auto mt-n1 mb-n1">
 								<div id="total-sales-sparkline"></div>
 							</div>
@@ -301,7 +301,7 @@
 
 	var handleDateRangeFilter = function() {
 		$('#daterange-filter span').html(moment('{{$curentDate["dateStart"]}}').format('D MMMM YYYY') + ' - ' + moment('{{$curentDate["dateEnd"]}}').format('D MMMM YYYY'));
-		//$('#daterange-prev-date').html(moment('{{$compareDate["dateStart"]}}').format('D MMMM') + ' - ' + moment('{{$compareDate["dateEnd"]}}').format('D MMMM YYYY'));
+	
 
 		$('#daterange-filter').daterangepicker({
 			format: 'MM/DD/YYYY',
@@ -342,9 +342,9 @@
 				firstDay: 1
 			}
 		}, function(start, end, label) {
-			$('#daterange-filter span').html(start.format('D MMMM YYYY') + ' - ' + end.format('D MMMM YYYY'));
-			$('#filter-date-start').val(start.format('YYYY-MM-D'));
-			$('#filter-date-end').val(end.format('YYYY-MM-D'));
+			$('#daterange-filter span').html(start.format('DD MMMM YYYY') + ' - ' + end.format('DD MMMM YYYY'));
+			$('#filter-date-start').val(start.format('YYYY-MM-DD'));
+			$('#filter-date-end').val(end.format('YYYY-MM-DD'));
 			$('#filter-form').submit();
 		});
 	};

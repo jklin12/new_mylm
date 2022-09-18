@@ -19,14 +19,9 @@ class DashboardController extends Controller
 
         $curentDate['dateEnd'] = $curentDateEnd;
         $curentDate['dateStart'] = $curentDateStart;
-
-        $compareDateStart = date('Y-m-d', strtotime('-30 days', strtotime($curentDateStart)));
-        $compareDateEnd = date('Y-m-d', strtotime('-30 days', strtotime($curentDateEnd)));
-
-        $compareDate['dateStart'] = $compareDateStart;
-        $compareDate['dateEnd'] = $compareDateEnd;
+       
         $load['curentDate'] = $curentDate;
-        $load['compareDate'] = $compareDate;
+        //print_r($curentDate);die;
 
         $curentRevenue = DB::table('t_pay_request')->select([DB::raw('SUM(amount) as total'), DB::raw('count(id_pay_req) as total_pi')])
             ->whereRaw("DATE_FORMAT(insert_date,'%Y-%m-%d') >= '" .$curentDateStart."'" )
@@ -38,8 +33,8 @@ class DashboardController extends Controller
 
         $piData = DB::table('t_invoice_porfoma')
             ->select([DB::raw('count(inv_number) as total_pi'), DB::raw('SUM(CASE WHEN inv_status = 1 THEN 1 ELSE 0 END) as total_pi_lunas'), DB::raw('SUM(CASE WHEN inv_status = 0 THEN 1 ELSE 0 END) as total_pi_tidak_lunas'), DB::raw('SUM(CASE WHEN inv_status = 2 THEN 1 ELSE 0 END) as total_pi_expired')])
-            ->where('inv_start', '>=', $curentDateStart)
-            ->where('inv_start', '<=', $curentDateEnd)
+            ->where('inv_post', '>=', $curentDateStart)
+            ->where('inv_post', '<=', $curentDateEnd)
             ->first();
 
         //print_r($piData);die;

@@ -14,6 +14,8 @@ class Customer extends Model
     public $incrementing = false;
     public $timestamps = false;
 
+    const CREATED_AT = 'created';
+    protected $fillable = ['cust_number,cust_name,cust_address,cust_phone'];
     /*public function custPackage()
     {
         return $this->hasMany(CustPackage::class,'cust_number');

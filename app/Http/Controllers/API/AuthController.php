@@ -36,9 +36,9 @@ class AuthController extends Controller
         $user = User::where('username', $request['username'])->firstOrFail();
 
         $token = $user->createToken('auth_token')->plainTextToken;
-
+        $token = explode('|',$token);
         return response()
-            ->json(['status' => true, 'message' => 'Suthentication Success', 'token' => $token, 'token_type' => 'Bearer',]);
+            ->json(['status' => true, 'message' => 'Suthentication Success', 'token' => $token[1], 'token_type' => 'Bearer',]);
     }
 
     public function logout()

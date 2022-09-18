@@ -18,13 +18,12 @@ class AkunSeeder extends Seeder
     {
         $user = [
             [
-                'username' => 'qontak_dev',
-                'name' => 'Qontak Dev',
-                'email' => 'qontak_dev@mail.com',
-                'password' => bcrypt('qontak_dev'),
-                'api_token' => Str::random(60),
-            ],
-            
+                'username' => 'aida',
+                'name' => 'aida',
+                'email' => 'aida@lifemedia.id',
+                'password' => bcrypt('aida'),
+                'level' => 8,
+            ], 
         ];
 
         foreach ($user as $key => $value) {

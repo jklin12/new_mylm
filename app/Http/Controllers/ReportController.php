@@ -10,6 +10,8 @@ class ReportController extends Controller
 {
     var $arrPop = ['Bogor Valley', 'LIFEMEDIA', 'HABITAT', 'SINDUADI', 'GREENNET', 'X-LIFEMEDIA', 'LDP LIFEMEDIA', 'LDP X-LIFEMEDIA', 'JIP', 'Jogja Tronik', 'LDP JIP'];
     var $arrStatus = [1 => 'Registrasi', 'Instalasi', 'Setup', 'Sistem Aktif', 'Tidak Aktif', 'Trial', 'Sewa Khusus', 'Blokir', 'Ekslusif', 'CSR'];
+
+
     public function penggunaBaru(Request $request)
     {
         $title = "Report Pengguna Lifemedia";
@@ -155,14 +157,13 @@ class ReportController extends Controller
             ->orderBy('total')
             ->get();
 
-            $susunCustPop = [];
-             
-            foreach ($custByPop as $key => $value) {
-                $susunCustPop[$key]['name'] = $this->arrPop[$value->cust_pop];
-                $susunCustPop[$key]['y'] = $value->total;
-            
-            }
-           
+        $susunCustPop = [];
+
+        foreach ($custByPop as $key => $value) {
+            $susunCustPop[$key]['name'] = $this->arrPop[$value->cust_pop];
+            $susunCustPop[$key]['y'] = $value->total;
+        }
+
         $load['title'] = $title;
         $load['sub_title'] = $subTitle;
         $load['year'] = $year;
@@ -172,12 +173,12 @@ class ReportController extends Controller
 
         $load['monthlyChartAm'] = json_encode(array_values($susunChartAm));
         $load['drilldownDataAm'] = json_encode(array_values($susundrilldownAm));
-        $load['chartSpcode']= json_encode($susunSpcode);
-        $load['chartPop']= json_encode($susunCustPop);
+        $load['chartSpcode'] = json_encode($susunSpcode);
+        $load['chartPop'] = json_encode($susunCustPop);
 
         $load['totalPengguna'] = $totalPengguna;
         $load['penggunaByStatus'] = $penggunaByStatus;
-        
+
 
         return view('pages/report/pengguna-index', $load);
     }
@@ -185,5 +186,111 @@ class ReportController extends Controller
     private function precentage($value, $total)
     {
         return round(($value / $total) * 100, 2);
+    }
+    public function porfoma(Request $request)
+    {
+        $filter =  $request->input('filter');
+        $xplodeFilter = explode('-', $filter);
+
+        $year = isset($xplodeFilter[1]) && $xplodeFilter[1] ? $xplodeFilter[1] : date('Y');
+        $month = isset($xplodeFilter[0]) && $xplodeFilter[0] ? $xplodeFilter[0] : date('m');
+
+        $title = "Report Porfoma Lifemedia";
+        $subTitle = 'Bulan ' . Carbon::parse($year . '-' . $month . '-01')->isoFormat('MMMM YY');;
+
+        $porfomaLunas = DB::table('t_invoice_porfoma')
+            ->selectRaw('sum(t_inv_item_porfoma.ii_amount) as amount,t_invoice_porfoma.inv_number')
+            ->leftJoin('t_inv_item_porfoma', function ($join) {
+                $join->on('t_invoice_porfoma.inv_number', '=', 't_inv_item_porfoma.inv_number')->where('ii_recycle', '<>', 1);;
+            })
+            ->whereRaw("MONTH(inv_start) = '" . $month . "'")
+            ->whereRaw("YEAR(inv_start) = '" . $year . "'")
+            ->where('inv_status', '1')
+            //->groupBy('t_invoice_porfoma.inv_number')
+            ->first();
+
+        $porfomaStatus = DB::table('t_invoice_porfoma')
+            ->select([DB::raw('count(inv_number) as total_pi'), DB::raw('SUM(CASE WHEN inv_status = 1 THEN 1 ELSE 0 END) as total_pi_lunas'), DB::raw('SUM(CASE WHEN inv_status = 0 THEN 1 ELSE 0 END) as total_pi_tidak_lunas'), DB::raw('SUM(CASE WHEN inv_status = 2 THEN 1 ELSE 0 END) as total_pi_expired')])
+            ->whereRaw("MONTH(inv_post) = '" . $month . "'")
+            ->whereRaw("YEAR(inv_post) = '" . $year . "'")
+            //->where('inv_status', '1')
+            //->groupBy('inv_status')
+            ->first();
+        //dd($porfomaStatus);
+
+        $porfomaChart = DB::table('t_invoice_porfoma')
+            ->select([DB::raw('count(inv_number) as total_pi'), DB::raw('SUM(CASE WHEN inv_status = 1 THEN 1 ELSE 0 END) as total_pi_lunas'), DB::raw('SUM(CASE WHEN inv_status = 0 THEN 1 ELSE 0 END) as total_pi_tidak_lunas'), DB::raw("SUM(CASE WHEN wa_sent != '0000-00-00 00:00:00' OR wa_sent != NULL THEN 1 ELSE 0 END) as pi_terkirim"), DB::raw("DATE_FORMAT(inv_post,'%Y-%m-%d') as tanggal")])
+            ->whereRaw("MONTH(inv_post) = '" . $month . "'")
+            ->whereRaw("YEAR(inv_post) = '" . $year . "'")
+            //->where('inv_status', '1')
+            ->groupByRaw("DATE_FORMAT(inv_post,'%Y-%m-%d')")
+            ->orderBy('inv_post')
+            ->get();
+        //dd($porfomaChart);
+        $susunChart = [];
+        $chartValue[0]['name'] = 'Total Porfoma';
+        $chartValue[1]['name'] = 'Porfoma Lunas';
+        $chartValue[2]['name'] = 'Porfoma Belum Lunas';
+        $chartValue[3]['name'] = 'Porfoma Terkirim';
+        foreach ($porfomaChart as $key => $value) {
+            $chartLabel[] = Carbon::parse($value->tanggal)->isoFormat(' D MMM YY');
+            $chartValue[0]['data'][$key] = intval($value->total_pi);
+            $chartValue[1]['data'][$key] = intval($value->total_pi_lunas);
+            $chartValue[2]['data'][$key] = intval($value->total_pi_tidak_lunas);
+            $chartValue[3]['data'][$key] = intval($value->pi_terkirim);
+        }
+        $susunChart['label'] = json_encode($chartLabel);
+        $susunChart['value'] = json_encode($chartValue);
+
+        $load['title'] = $title;
+        $load['sub_title'] = $subTitle;
+        $load['year'] = $year;
+        $load['month'] =  Carbon::parse($year . '-' . $month . '-01')->isoFormat('MMMM');;
+        $load['porfomaLunas'] = $porfomaLunas;
+        $load['piData'] =  $porfomaStatus;
+        $load['pi_lunas'] =  $this->precentage($porfomaStatus->total_pi_lunas, $porfomaStatus->total_pi);
+        $load['pi_belum_lunas'] =  $this->precentage($porfomaStatus->total_pi_tidak_lunas, $porfomaStatus->total_pi);
+        $load['pi_expired'] =  $this->precentage($porfomaStatus->total_pi_expired, $porfomaStatus->total_pi);
+        $load['porfomaChart'] = $susunChart;
+
+        return view('pages/report/porfoma-index', $load);
+    }
+    public function spk(Request $request)
+    {
+
+        $filter =  $request->input('filter');
+        $xplodeFilter = explode('-', $filter);
+
+        $year = isset($xplodeFilter[1]) && $xplodeFilter[1] ? $xplodeFilter[1] : date('Y');
+        $month = isset($xplodeFilter[0]) && $xplodeFilter[0] ? $xplodeFilter[0] : date('m');
+
+        $title = "Report Surat Perintah Kerja";
+        $subTitle = 'Bulan ' . Carbon::parse($year . '-' . $month . '-01')->isoFormat('MMMM YY');
+
+        $spkBlocking = DB::table('t_field_task')
+            //->selectRaw('count(ft_number) as jumlah,ft_status')
+            ->select([DB::raw('count(ft_number) as total_spk'), DB::raw('SUM(CASE WHEN ft_status = 0 THEN 1 ELSE 0 END) as spk_tunggu'), DB::raw('SUM(CASE WHEN ft_status = 2 THEN 1 ELSE 0 END) as spk_ok'), DB::raw('SUM(CASE WHEN ft_status = 3 THEN 1 ELSE 0 END) as spk_batal')])
+            ->whereRaw("MONTH(ft_received) = '" . $month . "'")
+            ->whereRaw("YEAR(ft_received) = '" . $year . "'")
+            ->where('ft_type', '9')
+            //->where('ft_type', '5')
+            ->first();
+
+        $spkPencabutan = DB::table('t_field_task')
+            //->selectRaw('count(ft_number) as jumlah,ft_status')
+            ->select([DB::raw('count(ft_number) as total_spk'), DB::raw('SUM(CASE WHEN ft_status = 0 THEN 1 ELSE 0 END) as spk_tunggu'), DB::raw('SUM(CASE WHEN ft_status = 1 THEN 1 ELSE 0 END) as spk_pelaksanaan'),DB::raw('SUM(CASE WHEN ft_status = 2 THEN 1 ELSE 0 END) as spk_ok'), DB::raw('SUM(CASE WHEN ft_status = 3 THEN 1 ELSE 0 END) as spk_batal')])
+            ->whereRaw("MONTH(ft_received) = '" . $month . "'")
+            ->whereRaw("YEAR(ft_received) = '" . $year . "'")
+            ->where('ft_type', '5')
+            ->first();
+
+        $load['title'] = $title;
+        $load['sub_title'] = $subTitle;
+        $load['year'] = $year;
+        $load['month'] =  Carbon::parse($year . '-' . $month . '-01')->isoFormat('MMMM');
+        $load['spk_blocking'] = $spkBlocking;
+        $load['spk_pencabutan'] = $spkPencabutan;
+
+        return view('pages/report/spk-index', $load);
     }
 }

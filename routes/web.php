@@ -24,12 +24,20 @@ Route::get('logout', 'App\Http\Controllers\AuthController@logout')->name('logout
 
 Route::middleware(['cek_login'])->group(function () {
     Route::get('/cust', 'App\Http\Controllers\CustomerController@index')->name('customer-index');
+    Route::get('/cust_list', 'App\Http\Controllers\CustomerController@list')->name('customer-list');
+
     Route::get('/cust_detail', 'App\Http\Controllers\CustomerController@detail')->name('customer-detail');
     Route::get('/cust_cupkg', 'App\Http\Controllers\CustomerController@cupkg')->name('customer-cupkg');
     Route::get('/cust_porfoma', 'App\Http\Controllers\CustomerController@porfoma')->name('customer-porfoma');
     Route::get('/customer_audit', 'App\Http\Controllers\CustomerController@audit')->name('customer-audit');
+    
     Route::get('/report_doku', 'App\Http\Controllers\ReportDokuController@index')->name('report-doku');
     Route::get('/report_pengguna', 'App\Http\Controllers\ReportController@penggunaBaru')->name('report-pengguna');
+    Route::get('/report_porfoma', 'App\Http\Controllers\ReportController@porfoma')->name('report-porfoma');
+    Route::get('/report_spk', 'App\Http\Controllers\ReportController@spk')->name('report-spk');
+    
+    Route::get('/payment_request', 'App\Http\Controllers\DokuController@paymentRequest')->name('pay-request');
+    Route::get('/payment_request_list', 'App\Http\Controllers\DokuController@paymentRequestList')->name('pay-request-list');
  
    
 });
