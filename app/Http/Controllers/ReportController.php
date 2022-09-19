@@ -14,7 +14,7 @@ class ReportController extends Controller
 
     public function penggunaBaru(Request $request)
     {
-        $title = "Report Pengguna Lifemedia";
+        $title = "Report Pelanggan Lifemedia";
         $subTitle = '';
 
         $year = $request->has('tahun') ? $request->input('tahun') : date('Y');
@@ -103,7 +103,7 @@ class ReportController extends Controller
             $susundrilldownAm[$key]['data'] = array_values($value['data']);
         }
 
-        $allPengguna = DB::table('t_customer')
+        $allPelanggan = DB::table('t_customer')
             ->selectRaw('COUNT(t_customer.cust_number) as total, cupkg_status')
             ->leftJoin('trel_cust_pkg', 't_customer.cust_number', '=', 'trel_cust_pkg.cust_number')
             ->where('cupkg_status', '!=', '7')
@@ -114,12 +114,12 @@ class ReportController extends Controller
             ->orderBy('total')
             ->get();
 
-        $totalPengguna = 0;
-        $penggunaByStatus = [];
-        foreach ($allPengguna as $key => $value) {
-            $totalPengguna += $value->total;
-            $penggunaByStatus[$key]['total'] = $value->total;
-            $penggunaByStatus[$key]['status'] = $this->arrStatus[$value->cupkg_status];
+        $totalPelanggan = 0;
+        $PelangganByStatus = [];
+        foreach ($allPelanggan as $key => $value) {
+            $totalPelanggan += $value->total;
+            $PelangganByStatus[$key]['total'] = $value->total;
+            $PelangganByStatus[$key]['status'] = $this->arrStatus[$value->cupkg_status];
         }
 
         $custBySpcode = DB::table('t_customer')
@@ -176,8 +176,8 @@ class ReportController extends Controller
         $load['chartSpcode'] = json_encode($susunSpcode);
         $load['chartPop'] = json_encode($susunCustPop);
 
-        $load['totalPengguna'] = $totalPengguna;
-        $load['penggunaByStatus'] = $penggunaByStatus;
+        $load['totalPelanggan'] = $totalPelanggan;
+        $load['PelangganByStatus'] = $PelangganByStatus;
 
 
         return view('pages/report/pengguna-index', $load);

@@ -15,8 +15,8 @@ class CustomerController extends Controller
     var $arrStatus = [1 => 'Registrasi', 'Instalasi', 'Setup', 'Sistem Aktif', 'Tidak Aktif', 'Trial', 'Sewa Khusus', 'Blokir', 'Ekslusif', 'CSR'];
     public function index(Request $request)
     {
-        $title = 'Data Pengguna';
-        $subTitle = 'Data seluruh pengguna lifemedia';
+        $title = 'Data Pelanggan';
+        $subTitle = 'Data seluruh Pelanggan lifemedia';
 
         $load['title'] = $title;
         $load['sub_title'] = $subTitle;
@@ -69,7 +69,7 @@ class CustomerController extends Controller
 
     public function detail(Request $request)
     {
-        $title = 'Detail Pengguna ' . $request->input('cust');
+        $title = 'Detail Pelanggan ' . $request->input('cust');
         $subTitle = '';
         $name = Route::currentRouteName();
 

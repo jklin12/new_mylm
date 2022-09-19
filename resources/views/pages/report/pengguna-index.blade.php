@@ -15,13 +15,13 @@
             <div class="card-body">
                 <!-- begin title -->
                 <div class="mb-3 text-grey">
-                    <b class="mb-3">Total Pengguna</b>
-                    <span class="ml-2"><i class="fa fa-info-circle" data-toggle="popover" data-trigger="hover" data-title="Total Pengguna" data-placement="top" data-content="Total Pengguna Kecuali Sewa Khusus, Ekslusif dan CSR" data-original-title="" title=""></i></span>
+                    <b class="mb-3">Total Pelanggan</b>
+                    <span class="ml-2"><i class="fa fa-info-circle" data-toggle="popover" data-trigger="hover" data-title="Total Pelanggan" data-placement="top" data-content="Total Pelanggan Kecuali Sewa Khusus, Ekslusif dan CSR" data-original-title="" title=""></i></span>
                 </div>
                 <!-- end title -->
                 <!-- begin conversion-rate -->
                 <div class="d-flex align-items-center mb-1">
-                    <h2 class="text-white mb-0"><span data-animation="number" data-value="{{$totalPengguna}}">0</span></h2>
+                    <h2 class="text-white mb-0"><span data-animation="number" data-value="{{$totalPelanggan}}">0</span></h2>
                     <div class="ml-auto">
                         <div id="conversion-rate-sparkline"></div>
                     </div>
@@ -30,7 +30,7 @@
                 <!-- begin percentage -->
 
                 <!-- end percentage -->
-                @foreach($penggunaByStatus as $value)
+                @foreach($PelangganByStatus as $value)
                 <!-- begin info-row -->
                 <div class="d-flex mb-2">
                     <div class="d-flex align-items-center">
@@ -39,7 +39,7 @@
                     </div>
                     <div class="d-flex align-items-center ml-auto">
                         <div class="text-grey f-s-11"><span data-animation="number" data-value="{{ $value['total'] }}">0</span></div>
-                        <div class="width-50 text-right pl-2 f-w-600"><span data-animation="number" data-value="@php echo precentage($value['total'],$totalPengguna) @endphp">0</span>%</div>
+                        <div class="width-50 text-right pl-2 f-w-600"><span data-animation="number" data-value="@php echo precentage($value['total'],$totalPelanggan) @endphp">0</span>%</div>
                     </div>
                 </div>
                 <!-- end info-row -->
@@ -73,7 +73,7 @@
 <div class="panel panel-inverse mb-3">
 
     <div class="panel-body">
-        <div id="pengguna-chart" class="widget-chart-full-width nvd3-inverse-mode"></div>
+        <div id="Pelanggan-chart" class="widget-chart-full-width nvd3-inverse-mode"></div>
     </div>
 </div>
 
@@ -104,7 +104,7 @@
             type: 'pie'
         },
         title: {
-            text: 'Jenis Layanan Pengguna, 2020'
+            text: 'Jenis Layanan Pelanggan, 2020'
         },
         tooltip: {
             pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
@@ -136,7 +136,7 @@
         },
         title: {
             align: 'left',
-            text: 'Pop Pengguna, <?php echo  $year ?>'
+            text: 'Pop Pelanggan, <?php echo  $year ?>'
         },
 
         accessibility: {
@@ -178,13 +178,13 @@
         }],
 
     });
-    Highcharts.chart('pengguna-chart', {
+    Highcharts.chart('Pelanggan-chart', {
         chart: {
             type: 'column'
         },
         title: {
             align: 'left',
-            text: 'Pertambahan Pengguna Baru, <?php echo  $year ?>'
+            text: 'Pertambahan Pelanggan Baru, <?php echo  $year ?>'
         },
         subtitle: {
             align: 'left',
@@ -242,7 +242,7 @@
         },
         title: {
             align: 'left',
-            text: 'Pengguna Baru Berdasarkan AM <?php echo $year ?>'
+            text: 'Pelanggan Baru Berdasarkan AM <?php echo $year ?>'
         },
         subtitle: {
             align: 'left',
