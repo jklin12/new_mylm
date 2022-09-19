@@ -14,6 +14,8 @@ use PhpOffice\PhpSpreadsheet\IOFactory;
 
 class FinanceController extends Controller
 {
+    var $arrStatus = [1 => 'Registrasi', 'Instalasi', 'Setup', 'Sistem Aktif', 'Tidak Aktif', 'Trial', 'Sewa Khusus', 'Blokir', 'Ekslusif', 'CSR'];
+
     public function index(Request $request)
     {
         //$user = auth()->user();
@@ -25,7 +27,7 @@ class FinanceController extends Controller
         $load['sub_title'] = $subTitle;
 
         $datas = ImportInvoiceResult::latest()->get();
-        $load['datas']= $datas;
+        $load['datas'] = $datas;
         return view('pages/generateInv', $load);
     }
 
@@ -44,7 +46,7 @@ class FinanceController extends Controller
         $fileName = rand() . $file->getClientOriginalName();
         $file->move('files/statement', $fileName);
 
-        $fullPath ='files/statement/' . $fileName;
+        $fullPath = 'files/statement/' . $fileName;
         $reader     = new \PhpOffice\PhpSpreadsheet\Reader\Xlsx();
         $spreadsheet     = $reader->load($fullPath);
         $sheet_data     = $spreadsheet->getActiveSheet()->toArray();
@@ -57,12 +59,19 @@ class FinanceController extends Controller
             }
         }
         //print_r($arrPiNumber);die;
-        $piData = InvoicePorfoma::selectRaw('t_invoice_porfoma.*,t_invoice.inv_number as nomor_invoice')->whereIn('t_invoice_porfoma.inv_number', $arrPiNumber)->leftJoin('t_invoice', 't_invoice_porfoma.inv_number', '=', 't_invoice.pi_number')->get();
+        $piData = InvoicePorfoma::selectRaw('t_invoice_porfoma.*,t_invoice.inv_number as nomor_invoice,cupkg_status')
+            ->whereIn('t_invoice_porfoma.inv_number', $arrPiNumber)
+            ->leftJoin('t_invoice', 't_invoice_porfoma.inv_number', '=', 't_invoice.pi_number')
+            ->leftJoin('trel_cust_pkg', function ($join) {
+                $join->on('t_invoice_porfoma.cust_number', '=', 'trel_cust_pkg.cust_number')->on('trel_cust_pkg._nomor', '=', 't_invoice_porfoma.sp_nom');
+            })
+            ->get();
 
         $susunReport  = [];
         foreach ($piData as $key => $value) {
             //echo $value->inv_number.'||'.$value->inv_status.'<br>';
             $susunReport[$value->inv_number]['cust_number'] = $value->cust_number;
+            $susunReport[$value->inv_number]['cupkg_status'] = $value->cupkg_status ? $this->arrStatus[$value->cupkg_status] : '';
             $susunReport[$value->inv_number]['pi_number'] = $value->inv_number;
             $susunReport[$value->inv_number]['pi_status'] = $value->inv_status == 1 ? 'lunas' : 'selain lunas';
             $status = 'Gagal';
@@ -75,7 +84,7 @@ class FinanceController extends Controller
                 $updateDataPi['inv_paid'] = date('Y-m-d H:m:i');
                 $updateDataPi['inv_info'] = 'Di bayar dengan ' . $newArrayPi[$value->inv_number][2] . '  pada ' . Carbon::parse($newArrayPi[$value->inv_number][3])->isoFormat('dddd, D MMMM Y');
                 //print_r($updateDataPi);
-                InvoicePorfoma::where('inv_number',$value->inv_number)->update($updateDataPi);
+                InvoicePorfoma::where('inv_number', $value->inv_number)->update($updateDataPi);
             }
 
             if (!$value->nomor_invoice) {
@@ -105,7 +114,7 @@ class FinanceController extends Controller
                 $insertInv['pi_number'] = $value->inv_number;
                 $insertInv['sp_nom'] = $value->sp_nom;
                 $insertInv['inv_receipt'] = 0;
-                
+
 
                 $qInsertInv = Invoice::create($insertInv);
 
@@ -145,7 +154,6 @@ class FinanceController extends Controller
             //return Response()->download($filepath);
         } else {
             $request->session()->flash('erorr', 'Import Data Gagal!');
-            
         }
 
         return redirect(route('generateInv'));
@@ -157,7 +165,7 @@ class FinanceController extends Controller
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
 
-        $arrTitle = ['Nomor Pelanggan', 'Nomor PI', 'Status PI', 'Status Generate', 'Nomor Invoice', 'Pesan'];
+        $arrTitle = ['Nomor Pelanggan', 'Status Pelanggan', 'Nomor PI', 'Status PI', 'Status Generate', 'Nomor Invoice', 'Pesan'];
         $alphas = range('A', 'Z');
         $dateExport = Carbon::parse(date('Y-m-d H:m:i'))->isoFormat('dddd, D MMMM Y H:mm');
 
