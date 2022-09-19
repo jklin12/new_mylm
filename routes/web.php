@@ -39,6 +39,10 @@ Route::middleware(['cek_login'])->group(function () {
     Route::get('/payment_request', 'App\Http\Controllers\DokuController@paymentRequest')->name('pay-request');
     Route::get('/payment_request_list', 'App\Http\Controllers\DokuController@paymentRequestList')->name('pay-request-list');
     Route::get('/payment_request_detail', 'App\Http\Controllers\DokuController@paymentRequestDetail')->name('pay-request-detail');
+    Route::get('/payment/void_request', 'App\Http\Controllers\DokuController@voidRequest')->name('void-request');
+    Route::get('/payment/cek_request', 'App\Http\Controllers\DokuController@cekRequest')->name('cek-request');
+    Route::get('/payment/update', 'App\Http\Controllers\DokuController@updateRequest')->name('update-request');
  
+    Route::get('/mikrotik_cek_status', 'App\Http\Controllers\MikrotikController@cekStatus')->name('cek-status-pppoe');;
    
 });

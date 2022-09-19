@@ -180,7 +180,7 @@
 					<div class="card-body">
 						<!-- begin title -->
 						<div class="mb-3 text-grey">
-							<b class="mb-3">PENGGUNA BARU</b>
+							<b class="mb-3">Pelanggan BARU</b>
 							<span class="ml-2"><i class="fa fa-info-circle" data-toggle="popover" data-trigger="hover" data-title="Store Sessions" data-placement="top" data-content="Number of sessions on your online store. A session is a period of continuous activity from a visitor." data-original-title="" title=""></i></span>
 						</div>
 						<!-- end title -->
@@ -211,7 +211,7 @@
 						<div class="d-flex mb-2">
 							<div class="d-flex align-items-center">
 								<i class="fa fa-circle text-blue f-s-8 mr-2"></i>
-								Belum ada pengguna baru
+								Belum ada Pelanggan baru
 							</div>
 
 						</div>

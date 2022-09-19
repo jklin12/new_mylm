@@ -38,7 +38,7 @@
                 <!-- begin title -->
                 <div class="mb-3 text-grey">
                     <b class="mb-3">Total SPK Blocking</b>
-                    <span class="ml-2"><i class="fa fa-info-circle" data-toggle="popover" data-trigger="hover" data-title="Total Pengguna" data-placement="top" data-content="Total Porforma Status Bayar" data-original-title="" title=""></i></span>
+                    <span class="ml-2"><i class="fa fa-info-circle" data-toggle="popover" data-trigger="hover" data-title="Total Pelanggan" data-placement="top" data-content="Total Porforma Status Bayar" data-original-title="" title=""></i></span>
                 </div>
                 <!-- end title -->
                 <!-- begin conversion-rate -->
@@ -99,7 +99,7 @@
                 <!-- begin title -->
                 <div class="mb-3 text-grey">
                     <b class="mb-3">Total SPK Pencabutan</b>
-                    <span class="ml-2"><i class="fa fa-info-circle" data-toggle="popover" data-trigger="hover" data-title="Total Pengguna" data-placement="top" data-content="Total Porforma Status Bayar" data-original-title="" title=""></i></span>
+                    <span class="ml-2"><i class="fa fa-info-circle" data-toggle="popover" data-trigger="hover" data-title="Total Pelanggan" data-placement="top" data-content="Total Porforma Status Bayar" data-original-title="" title=""></i></span>
                 </div>
                 <!-- end title -->
                 <!-- begin conversion-rate -->

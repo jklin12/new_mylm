@@ -101,7 +101,7 @@ if (!function_exists('side_menu')) {
 					],
 					[
 						'url' => route('report-pengguna'),
-						'title' => 'Pengguna',
+						'title' => 'Pelanggan',
 						'route-name' => 'report-pengguna'
 					],
 					[
@@ -135,24 +135,24 @@ if (!function_exists('side_menu')) {
 		];
 		//}
 
-		$menuPengguna = [];
+		$menuPelanggan = [];
 		$route = Route::current();
 		if ($route->getName() == 'customer-detail') {
-			$menuPengguna = [
+			$menuPelanggan = [
 				'icon' => 'fa fa-users',
-				'title' => 'Pengguna',
+				'title' => 'Pelanggan',
 				'url' => 'javascript:;',
 				'caret' => true,
 				'sub_menu' => [
 					[
-						'title' => 'All Pengguna',
+						'title' => 'All Pelanggan',
 						//'label' => 'NEW',
 						'url' => route('customer-index'),
 						'route-name' => 'customer-index'
 					],
 					[
 						'url' => route('customer-detail', 'cust=' . request()->get('cust')),
-						'title' => 'Data Pengguna',
+						'title' => 'Data Pelanggan',
 						'route-name' => 'customer-detail'
 					],
 					[
@@ -168,9 +168,9 @@ if (!function_exists('side_menu')) {
 				]
 			];
 		} else {
-			$menuPengguna = [
+			$menuPelanggan = [
 				'icon' => 'fa fa-users',
-				'title' => 'Pengguna',
+				'title' => 'Pelanggan',
 				//'label' => 'NEW',
 				'url' => route('customer-index'),
 				'route-name' => 'customer-index'
@@ -186,7 +186,7 @@ if (!function_exists('side_menu')) {
 					'url' => '/',
 					'route-name' => '/'
 				],
-				$menuPengguna,
+				$menuPelanggan,
 				$menuReport,
 				$menuDoku,
 				$menuFinance
