@@ -28,7 +28,7 @@ if (!function_exists('arrPiStatus')) {
 		$arrSpk = [
 			0 => ['Belum Bayar','danger'],
 			1 => ['Lunas','green'],
-			1 => ['Exxpired','warning'],
+			2 => ['Expired','warning'],
 		];
 
 		if (isset($arrSpk[$index])) {

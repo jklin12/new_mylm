@@ -38,6 +38,7 @@ Route::middleware(['cek_login'])->group(function () {
     
     Route::get('/payment_request', 'App\Http\Controllers\DokuController@paymentRequest')->name('pay-request');
     Route::get('/payment_request_list', 'App\Http\Controllers\DokuController@paymentRequestList')->name('pay-request-list');
+    Route::get('/payment_request_detail', 'App\Http\Controllers\DokuController@paymentRequestDetail')->name('pay-request-detail');
  
    
 });

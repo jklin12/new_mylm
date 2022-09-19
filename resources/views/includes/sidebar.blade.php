@@ -66,6 +66,7 @@ $sidebarClass = (!empty($sidebarTransparent)) ? 'sidebar-transparent' : '';
 			}
 
 			foreach (side_menu()['menu'] as $key => $menu) {
+			if($menu){
 			$GLOBALS['parent_active'] = '';
 
 			$hasSub = (!empty($menu['sub_menu'])) ? 'has-sub' : '';
@@ -98,6 +99,7 @@ $sidebarClass = (!empty($sidebarTransparent)) ? 'sidebar-transparent' : '';
 				'. $subMenu .'
 			</li>
 			';
+			}
 			}
 			@endphp
 			<!-- begin sidebar minify button -->
