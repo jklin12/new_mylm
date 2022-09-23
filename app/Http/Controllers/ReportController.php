@@ -219,12 +219,12 @@ class ReportController extends Controller
         //dd($porfomaStatus);
 
         $porfomaChart = DB::table('t_invoice_porfoma')
-            ->select([DB::raw('count(inv_number) as total_pi'), DB::raw('SUM(CASE WHEN inv_status = 1 THEN 1 ELSE 0 END) as total_pi_lunas'), DB::raw('SUM(CASE WHEN inv_status = 0 THEN 1 ELSE 0 END) as total_pi_tidak_lunas'), DB::raw("SUM(CASE WHEN wa_sent != '0000-00-00 00:00:00' OR wa_sent != NULL THEN 1 ELSE 0 END) as pi_terkirim"), DB::raw("DATE_FORMAT(inv_post,'%Y-%m-%d') as tanggal")])
-            ->whereRaw("MONTH(inv_post) = '" . $month . "'")
-            ->whereRaw("YEAR(inv_post) = '" . $year . "'")
+            ->select([DB::raw('count(inv_number) as total_pi'), DB::raw('SUM(CASE WHEN inv_status = 1 THEN 1 ELSE 0 END) as total_pi_lunas'), DB::raw('SUM(CASE WHEN inv_status = 0 THEN 1 ELSE 0 END) as total_pi_tidak_lunas'), DB::raw("SUM(CASE WHEN wa_sent_number != '' THEN 1 ELSE 0 END) as pi_terkirim"), DB::raw("inv_start as tanggal")])
+            ->whereRaw("MONTH(inv_start) = '" . $month . "'")
+            ->whereRaw("YEAR(inv_start) = '" . $year . "'")
             //->where('inv_status', '1')
-            ->groupByRaw("DATE_FORMAT(inv_post,'%Y-%m-%d')")
-            ->orderBy('inv_post')
+            ->groupByRaw("inv_start")
+            ->orderBy('inv_start')
             ->get();
         //dd($porfomaChart);
         $susunChart = [];
