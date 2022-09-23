@@ -99,6 +99,15 @@ class FinanceController extends Controller
                 $newInvNumber = 'INV' . $value->cust_number . date('my') . sprintf('%02d', $newNum);
                 $nomorInv = $newInvNumber;
 
+                $reCheckInv = Invoice::find($newInvNumber);
+                
+                if (isset($reCheckInv->inv_number) && $reCheckInv->inv_number) {
+                    $lastNum = substr($reCheckInv->inv_number, -2);
+                    $newNum =   sprintf('%02d', $lastNum + 1);
+                    $newInvNumber = 'INV' . $value->cust_number . date('my') . sprintf('%02d', $newNum);
+                    $nomorInv = $newInvNumber;
+                }
+
                 $insertInv['inv_number'] = $newInvNumber;
                 $insertInv['cust_number'] = $value->cust_number;
                 $insertInv['sp_code'] = $value->sp_code;

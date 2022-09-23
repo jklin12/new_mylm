@@ -309,6 +309,7 @@ class DokuController extends Controller
                     $postVal['sp_code'] = $query->sp_code;
                     $postVal['sp_nom'] = $query->sp_nom;
                     $postVal['ft_recycle'] = 2;
+                    $postVal['ft_reactive'] = 1;
                     $postVal['ft_desc'] = 'SPK Setup Genertae by doku at ' . Carbon::parse(date('Y-m-d H:m:i'))->isoFormat('D MMMM Y, HH:mm');
 
                     //print_r($postVal);
@@ -330,6 +331,10 @@ class DokuController extends Controller
                         DB::table('trel_cust_pkg')
                             ->where('cust_number', $query->cust_number)
                             ->update(['cupkg_status' => 4]);
+                    }else{
+                        DB::table('trel_cust_pkg')
+                            ->where('cust_number', $query->cust_number)
+                            ->update(['cupkg_status' => 3]);
                     }
                 }
             }
