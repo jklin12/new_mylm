@@ -7,14 +7,18 @@
     "require": {
         "php": "^8.0.2",
         "evilfreelancer/routeros-api-php": "^1.4",
+        "glhd/aire": "^2.6",
+        "glhd/aire-bootstrap": "^2.1",
         "guzzlehttp/guzzle": "^7.5",
+        "kris/laravel-form-builder": "^1.51",
         "laravel/framework": "^9.19",
         "laravel/sanctum": "^3.0",
         "laravel/tinker": "^2.7",
         "maatwebsite/excel": "^3.1",
         "phpoffice/phpspreadsheet": "^1.24",
         "psr/simple-cache": "^2.0",
-        "yajra/laravel-datatables": "^9.0"
+        "yajra/laravel-datatables": "^9.0",
+        "yajra/laravel-datatables-buttons": "^9.0"
     },
     "require-dev": {
         "fakerphp/faker": "^1.9.1",

@@ -130,6 +130,16 @@ if (!function_exists('side_menu')) {
 					'title' => 'Payment Request',
 					'route-name' => 'pay-request'
 				],
+				[
+					'url' => route('send-invoice-form'),
+					'title' => 'Kirim Invoice',
+					'route-name' => 'send-invoice-form'
+				],
+				[
+					'url' => route('bukti_tf.index'),
+					'title' => 'Bukti Transfer',
+					'route-name' => 'bukti_tf.index'
+				],
 
 			]
 		];
