@@ -9,6 +9,7 @@ use DataTables;
 use Illuminate\Support\Facades\Http;
 use \RouterOS\Client;
 use \RouterOS\Query;
+use Kris\LaravelFormBuilder\FormBuilder;
 
 class DokuController extends Controller
 {
@@ -20,6 +21,14 @@ class DokuController extends Controller
     var $sharedKey = 'Zjv828WzoQGJ';
 
     var $payChannel = [32 => 'CIMB', 33 => 'Danamon', 34 => 'BRI', 35 => 'Alfamart', 38 => 'BNI', 41 => 'Mandiri'];
+
+    var $baseUrl = 'https://service-chat.qontak.com/api/open/v1/';
+    var $token = 'MtJTjHbFwDO3CHCKnshWujjdovWCx_d8LmPOA2BRd7c';
+    var $chanelId = 'f08493be-7d5e-4e08-8c30-30d31557b7f0';
+    //var $messageId = 'f4d9b5fa-ced8-4edd-a22f-b9c5887b2551';
+    var $messageId = 'f209655f-c572-41db-b291-baf0559007ee';
+
+
     public function paymentRequest()
     {
         $title = 'Data Request Pembayaran';
@@ -331,7 +340,7 @@ class DokuController extends Controller
                         DB::table('trel_cust_pkg')
                             ->where('cust_number', $query->cust_number)
                             ->update(['cupkg_status' => 4]);
-                    }else{
+                    } else {
                         DB::table('trel_cust_pkg')
                             ->where('cust_number', $query->cust_number)
                             ->update(['cupkg_status' => 3]);
@@ -419,6 +428,175 @@ class DokuController extends Controller
         }
 
         return $status;
+    }
+
+    public function sendInvForm(FormBuilder $formBuilder)
+    {
+
+        $title = 'Kirim Invoice';
+        $subTitle = '* isi nomor telfon jika tujuan tidak sesuai CCBS';
+
+        $load['title'] = $title;
+        $load['sub_title'] = $subTitle;
+
+        return view('pages.doku.sendInvForm', $load);
+    }
+
+    public function sendInv(Request $request)
+    {
+        $request->validate(
+            [
+                'form_inv' => 'required',
+            ],
+            [
+                'form_inv.required' => 'Nomor Invoice tidak boleh kosong'
+            ]
+        );
+
+        $query = DB::table('t_invoice_porfoma')
+            ->selectRaw('t_invoice_porfoma.sp_nom,t_invoice_porfoma.inv_number, t_invoice_porfoma.inv_status,inv_start,inv_end,trel_cust_pkg.sp_code,t_customer.cust_number,t_customer.cust_name,t_customer.cust_email,t_customer.cust_address,t_customer.cust_city,t_customer.cust_prov,t_customer.cust_zip,t_customer.cust_hp ,cupkg_status,_nomor,sum(t_inv_item_porfoma.ii_amount) as totals')
+            ->leftJoin('t_customer', 't_invoice_porfoma.cust_number', '=', 't_customer.cust_number')
+            ->leftJoin('trel_cust_pkg', function ($join) {
+                $join->on('t_customer.cust_number', '=', 'trel_cust_pkg.cust_number')->on('trel_cust_pkg._nomor', '=', 't_invoice_porfoma.sp_nom');
+            })
+            ->leftJoin('t_inv_item_porfoma', function ($join) {
+                $join->on('t_invoice_porfoma.inv_number', '=', 't_inv_item_porfoma.inv_number')->where('ii_recycle', '<>', 1);
+            })
+            ->where('t_invoice_porfoma.inv_number', $request->input('form_inv'))
+            ->first();
+
+        if ($query) {
+            $periode = Carbon::parse($query->inv_start)->isoFormat('D MMMM') . ' s/d ' . Carbon::parse($query->inv_end)->isoFormat('D MMMM Y');
+
+            if ($request->has('form_phone')) {
+                $phoneNumber = $request->input('form_phone');
+            } else {
+                if ($query->cust_hp) {
+                    $phoneNumber = preg_replace("/[^A-Za-z0-9]/", "", $query->cust_hp);
+                } elseif ($query->cust_bill_phone) {
+                    $phoneNumber = preg_replace("/[^A-Za-z0-9]/", "", $query->cust_bill_phone);
+                } else {
+                    return redirect()->back()
+                        ->withInput()
+                        ->withErrors(['erorr' => 'Nomor Telfon tidak ditemukan']);
+                }
+
+                //$phoneNumber = '6285600200913';
+            }
+
+
+            if (substr($phoneNumber, 0, 1) === '0') {
+                $phoneNumber = '62' . substr($phoneNumber, 1);
+            } else {
+                $phoneNumber = $phoneNumber;
+            }
+
+            $originalCode = $query->inv_number . ';' . $query->inv_number;
+            $encryptionCode = urlencode(base64_encode($originalCode));
+
+            $postVal = [
+                'to_name' =>  $query->inv_number . ' - ' . $query->inv_number,
+                'to_number' => $phoneNumber,
+                'message_template_id' => $this->messageId,
+                'channel_integration_id' => $this->chanelId,
+                "language" => [
+                    "code" => "id"
+                ],
+                'parameters' => [
+                    /* "header" => [
+                    "format" => "DOCUMENT",
+                    "params" => [
+                        [
+                            "key" => "url",
+                            "value" => "https://qontak-hub-development.s3.amazonaws.com/uploads/direct/files/01417dc5-9cd1-40b7-8900-d8b9fd6f250e/sample.pdf"
+                        ],
+                        [
+                            "key" => "filename",
+                            "value" => "sample.pdf"
+                        ]
+                    ]
+                ],*/
+                    'body' => [
+                        [
+                            "key" => "1",
+                            "value_text" => $query->cust_name,
+                            "value" => "customer_name"
+                        ],
+                        [
+                            "key" => "2",
+                            "value_text" => $query->cust_number,
+                            "value" => "cust_name"
+                        ],
+                        [
+                            "key" => "3",
+                            "value_text" => $query->inv_number,
+                            "value" => "cust_number"
+                        ],
+                        [
+                            "key" => "4",
+                            "value_text" => $periode,
+                            "value" => "inv_number"
+                        ],
+                        [
+                            "key" => "5",
+                            "value_text" => Carbon::parse($query->inv_start)->isoFormat('D MMMM Y'),
+                            "value" => "periode"
+                        ],
+                        [
+                            "key" => "6",
+                            "value_text" => $query->sp_code,
+                            "value" => "inv_due"
+                        ],
+                        [
+                            "key" => "7",
+                            "value_text" => 'Rp. ' . SchRp($query->totals),
+                            "value" => "sp_code"
+                        ],
+                        [
+                            "key" => "8",
+                            "value_text" => 'https://pay.lifemedia.id/pay?code=' . $encryptionCode,
+                            "value" => "total"
+                        ],
+                    ]
+                ]
+            ];
+
+            $header = [
+                'Content-Type: application/json',
+                'Authorization: Bearer ' . $this->token
+            ];
+
+            $url = $this->baseUrl . 'broadcasts/whatsapp/direct';
+
+            $curl = curl_init();
+            curl_setopt($curl, CURLOPT_URL, $url);
+            curl_setopt($curl, CURLOPT_POST, 1);
+            curl_setopt($curl, CURLOPT_POSTFIELDS, json_encode($postVal));
+            curl_setopt($curl, CURLOPT_HTTPHEADER, $header);
+            curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+            $response = curl_exec($curl);
+
+            if (curl_errno($curl)) {
+                $error_msg = curl_error($curl);
+            }
+            if (isset($error_msg)) {
+                print_r($error_msg);
+            }
+            curl_close($curl);
+            if ($response) {
+                $arr = json_decode($response, true);
+                //dd($arr);
+                if ($arr['status'] == 'success') {
+                    return redirect()->back()
+                    //->withInput()
+                    ->withErrors(['success' => 'Kirim Invoice Berhasil']);
+                } else {
+                    return redirect()->back()
+                    ->withInput()
+                    ->withErrors(['erorr' => 'Gagal Kirim Invoice']);
+                }
+            }
+        }
     }
 
     private function arrField()

@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "09862620507a9363492ff1a238348c19",
+    "content-hash": "8edae262a6d7244fd9f4ca69b4d3d007",
     "packages": [
         {
             "name": "brick/math",
@@ -702,6 +702,142 @@
             "time": "2022-02-20T15:07:15+00:00"
         },
         {
+            "name": "glhd/aire",
+            "version": "2.6.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/glhd/aire.git",
+                "reference": "498d00162075b4b0a3b06b37836f7a9d70cd8842"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/glhd/aire/zipball/498d00162075b4b0a3b06b37836f7a9d70cd8842",
+                "reference": "498d00162075b4b0a3b06b37836f7a9d70cd8842",
+                "shasum": ""
+            },
+            "require": {
+                "ext-json": "*",
+                "illuminate/events": "~5.8.0|^6.0|^7.0|^8.0|^9.0|dev-master",
+                "illuminate/support": "~5.8.28|^6.0|^7.0|^8.0|^9.0|dev-master",
+                "illuminate/view": "~5.8.0|^6.0|^7.0|^8.0|^9.0|dev-master"
+            },
+            "require-dev": {
+                "barryvdh/reflection-docblock": "^2.0",
+                "friendsofphp/php-cs-fixer": "^3.5",
+                "guzzlehttp/guzzle": "~6.0|~7.0",
+                "mockery/mockery": "^1.4",
+                "orchestra/testbench": "^6.23|^7.0",
+                "php-coveralls/php-coveralls": "^2.1",
+                "phpunit/phpunit": "^9.5",
+                "symfony/css-selector": "^5.4",
+                "symfony/dom-crawler": "^5.4"
+            },
+            "suggest": {
+                "glhd/aire-tailwind-custom-forms": "Use the Tailwind custom forms plugin for even nicer looking forms"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Galahad\\Aire\\Support\\AireServiceProvider"
+                    ],
+                    "aliases": {
+                        "Aire": "Galahad\\Aire\\Support\\Facades\\Aire"
+                    }
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Galahad\\Aire\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Chris Morrell",
+                    "homepage": "http://www.cmorrell.com"
+                }
+            ],
+            "description": "Modern Laravel form builder. Remembers old input, retrieves error messages and comes with beautiful Tailwind-based markup out of the box.",
+            "keywords": [
+                "Forms",
+                "aire",
+                "laravel",
+                "tailwind"
+            ],
+            "support": {
+                "issues": "https://github.com/glhd/aire/issues",
+                "source": "https://github.com/glhd/aire/tree/2.6.0"
+            },
+            "time": "2022-08-08T18:20:17+00:00"
+        },
+        {
+            "name": "glhd/aire-bootstrap",
+            "version": "2.1.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/glhd/aire-bootstrap.git",
+                "reference": "30f66425ab51245ea81a5a474877c0faf5c55af9"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/glhd/aire-bootstrap/zipball/30f66425ab51245ea81a5a474877c0faf5c55af9",
+                "reference": "30f66425ab51245ea81a5a474877c0faf5c55af9",
+                "shasum": ""
+            },
+            "require": {
+                "glhd/aire": "^2.0",
+                "illuminate/support": "^5.7|^6.0|^7.0|^8.0|^9.0",
+                "php": ">=7.1"
+            },
+            "require-dev": {
+                "mockery/mockery": "^1.1",
+                "orchestra/testbench": "~3.0|~4.0|~5.0|~6.0",
+                "php-coveralls/php-coveralls": "^2.1",
+                "phpunit/phpunit": "^7.3|^8.0|^9.0",
+                "symfony/css-selector": "^4.1",
+                "symfony/dom-crawler": "^4.1"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Galahad\\AireBootstrap\\AireBootstrapServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Galahad\\AireBootstrap\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Chris Morrell",
+                    "homepage": "http://www.cmorrell.com"
+                }
+            ],
+            "description": "Bootstrap themes for Aire",
+            "keywords": [
+                "Forms",
+                "aire",
+                "bootstrap",
+                "laravel"
+            ],
+            "support": {
+                "issues": "https://github.com/glhd/aire-bootstrap/issues",
+                "source": "https://github.com/glhd/aire-bootstrap/tree/2.1.1"
+            },
+            "time": "2022-02-21T20:37:08+00:00"
+        },
+        {
             "name": "graham-campbell/result-type",
             "version": "v1.1.0",
             "source": {
@@ -1093,6 +1229,74 @@
                 }
             ],
             "time": "2022-08-28T14:45:39+00:00"
+        },
+        {
+            "name": "kris/laravel-form-builder",
+            "version": "1.51.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/kristijanhusak/laravel-form-builder.git",
+                "reference": "f070631b96eea1128d4c67307d4b5e0072887626"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/kristijanhusak/laravel-form-builder/zipball/f070631b96eea1128d4c67307d4b5e0072887626",
+                "reference": "f070631b96eea1128d4c67307d4b5e0072887626",
+                "shasum": ""
+            },
+            "require": {
+                "illuminate/database": "^5.6@dev|^6|^7|^8|^9",
+                "illuminate/validation": "^5.6@dev|^6|^7|^8|^9",
+                "laravelcollective/html": "^5.6|^6|^7|^8|^9",
+                "php": ">=7.1"
+            },
+            "require-dev": {
+                "orchestra/testbench": "^6.13"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Kris\\LaravelFormBuilder\\FormBuilderServiceProvider"
+                    ],
+                    "aliases": {
+                        "FormBuilder": "Kris\\LaravelFormBuilder\\Facades\\FormBuilder"
+                    }
+                }
+            },
+            "autoload": {
+                "files": [
+                    "src/helpers.php"
+                ],
+                "psr-0": {
+                    "Kris\\LaravelFormBuilder": "src/"
+                },
+                "classmap": [
+                    "tests/FormBuilderTestCase.php"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Kristijan Husak",
+                    "email": "husakkristijan@gmail.com"
+                }
+            ],
+            "description": "Laravel form builder - symfony like",
+            "keywords": [
+                "builder",
+                "form",
+                "laravel",
+                "symfony"
+            ],
+            "support": {
+                "issues": "https://github.com/kristijanhusak/laravel-form-builder/issues",
+                "source": "https://github.com/kristijanhusak/laravel-form-builder/tree/1.51.2"
+            },
+            "time": "2022-05-18T18:00:52+00:00"
         },
         {
             "name": "laravel/framework",

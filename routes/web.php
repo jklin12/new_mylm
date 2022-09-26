@@ -42,7 +42,11 @@ Route::middleware(['cek_login'])->group(function () {
     Route::get('/payment/void_request', 'App\Http\Controllers\DokuController@voidRequest')->name('void-request');
     Route::get('/payment/cek_request', 'App\Http\Controllers\DokuController@cekRequest')->name('cek-request');
     Route::get('/payment/update', 'App\Http\Controllers\DokuController@updateRequest')->name('update-request');
+    Route::get('/send_invoice', 'App\Http\Controllers\DokuController@sendInvForm')->name('send-invoice-form');
+    Route::post('/send_invoice', 'App\Http\Controllers\DokuController@sendInv')->name('send-invoice-store');
  
     Route::get('/mikrotik_cek_status', 'App\Http\Controllers\MikrotikController@cekStatus')->name('cek-status-pppoe');;
    
+    Route::resource('bukti_tf', 'App\Http\Controllers\BuktiTfController');
+    Route::get('bukti_tf_list', 'App\Http\Controllers\BuktiTfController@list')->name('bukti-tf-list');;
 });
