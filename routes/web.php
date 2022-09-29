@@ -26,10 +26,12 @@ Route::middleware(['cek_login'])->group(function () {
     Route::get('/cust', 'App\Http\Controllers\CustomerController@index')->name('customer-index');
     Route::get('/cust_list', 'App\Http\Controllers\CustomerController@list')->name('customer-list');
 
-    Route::get('/cust_detail', 'App\Http\Controllers\CustomerController@detail')->name('customer-detail');
+    Route::get('/cust_detail/{cust_number}', 'App\Http\Controllers\CustomerController@detail')->name('customer-detail');
     Route::get('/cust_cupkg', 'App\Http\Controllers\CustomerController@cupkg')->name('customer-cupkg');
     Route::get('/cust_porfoma', 'App\Http\Controllers\CustomerController@porfoma')->name('customer-porfoma');
     Route::get('/customer_audit', 'App\Http\Controllers\CustomerController@audit')->name('customer-audit');
+    Route::get('/customer_message/{message_id}/{cust_number}', 'App\Http\Controllers\CustomerController@messageForm')->name('customer-message-form');
+    Route::post('/customer_message/{message_id}/{cust_number}', 'App\Http\Controllers\CustomerController@sendMessage')->name('customer-message-store');
     
     Route::get('/report_doku', 'App\Http\Controllers\ReportDokuController@index')->name('report-doku');
     Route::get('/report_pengguna', 'App\Http\Controllers\ReportController@penggunaBaru')->name('report-pengguna');

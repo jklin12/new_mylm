@@ -198,7 +198,7 @@ class BuktiTfController extends Controller
         }
         $load['required'] = $required;
         $load['form'] = $form;
-
+        //dd($load);
 
         return view('pages.bukti_tf.form', $load);
     }

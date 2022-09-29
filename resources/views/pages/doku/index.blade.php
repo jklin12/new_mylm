@@ -30,18 +30,20 @@
         </div>
         <div class="mb-1"></div>
         <br>
-        <table id="table-cust" class="table table-striped table-bordered table-td-valign-middle">
-            <thead>
-                <tr>
-                    <th width="1%"></th>
-                    @foreach($arr_field as $vf)
-                    <th class="text-nowrap">{{ $vf['label'] }}</th>
-                    @endforeach
-                    <th></th>
+        <div class="table-responsive">
+            <table id="table-cust" class="table table-striped table-bordered table-td-valign-middle">
+                <thead>
+                    <tr>
+                        <th width="1%"></th>
+                        @foreach($arr_field as $vf)
+                        <th class="text-nowrap">{{ $vf['label'] }}</th>
+                        @endforeach
+                        <th></th>
 
-                </tr>
-            </thead>
-        </table>
+                    </tr>
+                </thead>
+            </table>
+        </div>
     </div>
 </div>
 <!-- end panel -->
@@ -58,13 +60,13 @@
             processing: true,
             serverSide: true,
             ajax: "{{ route('pay-request-list') }}",
-            
+
             columns: <?php echo $table_column ?>
         });
 
         $('.toggle-vis').on('click', function(e) {
             e.preventDefault();
- 
+
             var column = table.column($(this).attr('data-column'));
 
             column.visible(!column.visible());
