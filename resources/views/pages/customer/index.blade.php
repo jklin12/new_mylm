@@ -30,12 +30,12 @@
     }
 </style>
 @endpush
+
 <!-- begin page-header -->
 <h1 class="page-header">{{ $title}}<small>&nbsp;{{ $sub_title }}</small></h1>
 <!-- end page-header -->
 <!-- begin panel -->
 <div class="panel panel-inverse">
-
     <div class="panel-body">
         <div class="pull-right ">
             <div class="dropdown dropleft">
@@ -53,18 +53,20 @@
         </div>
         <div class="mb-1"></div>
         <br>
-        <table id="table-cust" class="table table-striped table-bordered table-td-valign-middle">
-            <thead>
-                <tr>
-                    <th width="1%"></th>
-                    @foreach($arr_field as $vf)
-                    <th class="text-nowrap">{{ $vf['label'] }}</th>
-                    @endforeach
-                    <th></th>
+        <div class="table-responsive">
+            <table id="table-cust" class="table table-striped table-bordered table-td-valign-middle">
+                <thead>
+                    <tr>
+                        <th width="1%"></th>
+                        @foreach($arr_field as $vf)
+                        <th class="text-nowrap">{{ $vf['label'] }}</th>
+                        @endforeach
+                        <th></th>
 
-                </tr>
-            </thead>
-        </table>
+                    </tr>
+                </thead>
+            </table>
+        </div>
     </div>
 </div>
 <!-- end panel -->
@@ -86,7 +88,7 @@
 
         $('.toggle-vis').on('click', function(e) {
             e.preventDefault();
- 
+
             var column = table.column($(this).attr('data-column'));
 
             column.visible(!column.visible());
