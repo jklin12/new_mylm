@@ -28,19 +28,22 @@
     }
 </style>
 @endpush
+
 <div class="pull-right">
+    <a href="javascript:;" id="btn_pppoe_check" data-title="Status PPPOE" class="btn btn-pink m-r-5 m-b-5">Check PPPOE</a>
+    <a href="javascript:;" id="btn_olt_check" data-title="Status OLT" class="btn btn-pink m-r-5 m-b-5">Check OLT</a>
     <div class="btn-group dropdown m-r-5 m-b-5">
         <a href="#" data-toggle="dropdown" class="btn btn-pink dropdown-toggle" aria-expanded="false">Follow Up Chat&nbsp;<b class="caret"></b></a>
 
-            <ul class="dropdown-menu dropdown-menu-right scrollable-menu" role="menu">
-                @forelse($message_template as $key => $value)
-                <li><a href="{{ route('customer-message-form',[$value['message_id'],$datas['cust_number']])}}" class="dropdown-item">{{ $value['name'] }}</a></li>
-                @empty
-                <li><a href="javascript:;" class="dropdown-item">Tidak ada Template</a></li>
-                @endforelse
-            </ul>
+        <ul class="dropdown-menu dropdown-menu-right scrollable-menu" role="menu">
+            @forelse($message_template as $key => $value)
+            <li><a href="{{ route('customer-message-form',[$value['message_id'],$datas['cust_number']])}}" class="dropdown-item">{{ $value['name'] }}</a></li>
+            @empty
+            <li><a href="javascript:;" class="dropdown-item">Tidak ada Template</a></li>
+            @endforelse
+        </ul>
     </div>
-    
+
 </div>
 <!-- begin page-header -->
 <h1 class="page-header">{{ $title}}<small>&nbsp;{{ $sub_title }}</small></h1>
@@ -99,6 +102,66 @@
     <b>Maaf </b>, Data tidak ditemukan
 </div>
 @endif
-
 <!-- end panel -->
+<div class="modal" tabindex="-1" role="dialog" id="modal-cek-pppoe">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="title">Modal title</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <table class="table table-striped" id="table-data">
+
+                </table>
+            </div>
+            <div class="modal-footer">
+
+                <button type="button" class="btn btn-white" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
+
+@push('scripts')
+<script>
+    $('#btn_pppoe_check').click(function() {
+        var element = '';
+        var title =  $(this).data('title');
+        $.get("<?php echo route('cek-status-pppoe', 'cust_number=' . $datas['cust_number']) ?>", function(data, status) {
+            element += '<tbody>';
+            $.each(data, function(k, v) {
+                element += '<tr><td class="col-2">' + k + '</td><td>:</td><td>' + v + '</td></tr>';
+            });
+            //alert(element);
+            element += '</tbody>';
+
+            $('#modal-cek-pppoe #table-data').html(element);
+            $('#modal-cek-pppoe #title').html(title);
+            $('#modal-cek-pppoe').modal('show');
+        });
+
+    })
+
+    $('#btn_olt_check').click(function() {
+        var element = '';
+        var title =  $(this).data('title');
+        $.get("<?php echo route('cek-status-olt', 'cust_number=' . $datas['cust_number']) ?>", function(data, status) {
+            element += '<tbody>';
+            $.each(data, function(k, v) {
+                element += '<tr><td class="col-2">' + k + '</td><td>:</td><td>' + v + '</td></tr>';
+            });
+            //alert(element);
+            element += '</tbody>';
+
+            $('#modal-cek-pppoe #table-data').html(element);
+            $('#modal-cek-pppoe #title').html(title);
+            $('#modal-cek-pppoe').modal('show');
+        });
+
+    })
+</script>
+@endpush

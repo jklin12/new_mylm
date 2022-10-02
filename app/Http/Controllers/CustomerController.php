@@ -47,7 +47,7 @@ class CustomerController extends Controller
 
         $load['arr_field'] = $arrfield;
         $load['table_column'] = json_encode($tableColumn);
-        //dd($load['table_column']);
+        //dd($arrfield);
 
         return view('pages/customer/index', $load);
     }
@@ -70,6 +70,7 @@ class CustomerController extends Controller
                     $actionBtn = '<a href="' . route('customer-detail', $row->cust_number) . '" class="btn btn-pink btn-icon btn-circle"><i class="fa fa-search-plus"></i></a>';
                     return $actionBtn;
                 })
+                
                 ->rawColumns(['detail'])
                 ->make(true);
         }
@@ -103,6 +104,8 @@ class CustomerController extends Controller
                     $datas[$key] = $value == 1 ? 'Laki-Laki' : 'Perempuan';
                 } else  if ($key == 'cust_ident_type') {
                     $datas[$key] = $this->jenisIdentitas[$value];
+                } else  if ($key == 'cupkg_status') {
+                    $datas[$key] = $this->arrStatus[$value];
                 } else  if ($key == 'cupkg_acc_type') {
                     $datas[$key] = $this->jenisAccount[$value];
                 } else  if ($key == 'cust_pop') {
@@ -171,22 +174,22 @@ class CustomerController extends Controller
         $keyForm = [];
         $customer = Customer::find($cust_number);
         try {
-            
+
 
             $header = [
                 'Content-Type: application/json',
                 'Authorization: Bearer ' . $this->token
             ];
-    
+
             $url = $this->baseUrl . 'templates/' . $message_id . '/whatsapp';
-    
+
             $curl = curl_init();
             curl_setopt($curl, CURLOPT_URL, $url);
             curl_setopt($curl, CURLOPT_POST, 0);
             curl_setopt($curl, CURLOPT_HTTPHEADER, $header);
             curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
             $response = curl_exec($curl);
-    
+
             if (curl_errno($curl)) {
                 $error_msg = curl_error($curl);
             }
@@ -197,7 +200,7 @@ class CustomerController extends Controller
             if ($response) {
                 $response = json_decode($response);
                 //dd($response);
-               
+
                 $matches = array();
                 preg_match_all('/\{{([^}]+)\}}/', $response->data->body, $matches);
                 $keyForm = isset($matches[1]) ? $matches[1] : [];
@@ -214,7 +217,7 @@ class CustomerController extends Controller
                 'orderable' => true,
                 'searchable' => true,
                 'required' => true,
-                'value' => $subtitle . ' - ' . $customer->cust_number
+                'value' =>  $customer->cust_number.' - '.$customer->cust_name
             ];
 
             if ($customer->cust_hp) {
@@ -264,6 +267,7 @@ class CustomerController extends Controller
         //dd($load);
         return view('pages.customer.message-form', $load);
     }
+    
     public function sendMessage(Request $request, $message_id, $cust_number)
     {
 
@@ -281,7 +285,7 @@ class CustomerController extends Controller
                 } else {
                     $body[$key]['key'] = $key;
                     $body[$key]['value_text'] = $value;
-                    $body[$key]['value'] = 'value_'.$key;
+                    $body[$key]['value'] = 'value_' . $key;
                 }
             }
         }
@@ -326,7 +330,7 @@ class CustomerController extends Controller
             $arr = json_decode($response, true);
             //dd($arr);
             if ($arr['status'] == 'success') {
-                session()->flash('success','Kirim Pesan Berhasil');
+                session()->flash('success', 'Kirim Pesan Berhasil');
                 return redirect(route('customer-detail', $cust_number));
             } else {
                 return redirect()->back()
@@ -361,42 +365,51 @@ class CustomerController extends Controller
             'cust_number' => [
                 'label' => 'Nomor',
                 'orderable' => true,
-                'searchable' => true
+                'searchable' => true,
+                'form_type' => 'text',
             ],
             'cust_name' => [
                 'label' => 'Nama',
                 'orderable' => false,
-                'searchable' => true
+                'searchable' => true,
+                'form_type' => 'text',
             ],
             'sp_code' => [
                 'label' => 'Layanan',
                 'orderable' => false,
-                'searchable' => false
+                'searchable' => false,
+                'form_type' => 'text',
             ],
             'cust_hp' => [
                 'label' => 'Homepass',
                 'orderable' => false,
-                'searchable' => true
+                'searchable' => true,
+                'form_type' => 'text',
             ],
             'cupkg_status' => [
                 'label' => 'Status',
                 'orderable' => false,
-                'searchable' => false
+                'searchable' => false,
+                'form_type' => 'select',
+                'keyvaldata' => $this->arrStatus
             ],
             'cust_address' => [
                 'label' => 'Alamat',
                 'orderable' => false,
-                'searchable' => true
+                'searchable' => true,
+                'form_type' => 'text',
             ],
             'cust_phone' => [
                 'label' => 'No Telp',
                 'orderable' => false,
-                'searchable' => true
+                'searchable' => true,
+                'form_type' => 'text',
             ],
             'cupkg_svc_begin' => [
                 'label' => 'Mulai Layanan',
                 'orderable' => true,
-                'searchable' => false
+                'searchable' => false,
+                'form_type' => 'text',
             ],
         ];
     }

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
 use \RouterOS\Client;
 use \RouterOS\Query;
 
@@ -10,6 +11,21 @@ use \RouterOS\Query;
 
 class MikrotikController extends Controller
 {
+
+    public function cekOlt(Request $request)
+    {
+        $cust_number = $request->input('cust_number');
+
+        if ($cust_number) {
+            $response = Http::get('http://202.169.224.46:8080/index.php/onu/detailCust/' . $cust_number);
+
+            $response = $response->object();
+            if ($response->status) {
+                return response()
+                ->json($response->data);
+            }
+        }
+    }
 
     public function cekStatus(Request $request)
     {
@@ -42,11 +58,11 @@ class MikrotikController extends Controller
                 $data['remote-address'] = $value['remote-address'];
                 $data['last-logged-out'] = $value['last-logged-out'];
                 $data['disabled'] = $value['disabled'];
-                $data['comment'] = $value['comment'];
+                $data['comment'] = isset($value['comment']) ? $value['comment'] : '';
             }
         }
-        
-        
+
+
         return response()
             ->json($data);
     }

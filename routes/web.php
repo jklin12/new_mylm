@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\OnuController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -37,6 +38,7 @@ Route::middleware(['cek_login'])->group(function () {
     Route::get('/report_pengguna', 'App\Http\Controllers\ReportController@penggunaBaru')->name('report-pengguna');
     Route::get('/report_porfoma', 'App\Http\Controllers\ReportController@porfoma')->name('report-porfoma');
     Route::get('/report_spk', 'App\Http\Controllers\ReportController@spk')->name('report-spk');
+    Route::get('/report_olt', 'App\Http\Controllers\ReportController@Olt')->name('report-olt');
     
     Route::get('/payment_request', 'App\Http\Controllers\DokuController@paymentRequest')->name('pay-request');
     Route::get('/payment_request_list', 'App\Http\Controllers\DokuController@paymentRequestList')->name('pay-request-list');
@@ -48,7 +50,10 @@ Route::middleware(['cek_login'])->group(function () {
     Route::post('/send_invoice', 'App\Http\Controllers\DokuController@sendInv')->name('send-invoice-store');
  
     Route::get('/mikrotik_cek_status', 'App\Http\Controllers\MikrotikController@cekStatus')->name('cek-status-pppoe');;
+    Route::get('/olt_cek_status', 'App\Http\Controllers\MikrotikController@cekOlt')->name('cek-status-olt');;
    
     Route::resource('bukti_tf', 'App\Http\Controllers\BuktiTfController');
-    Route::get('bukti_tf_list', 'App\Http\Controllers\BuktiTfController@list')->name('bukti-tf-list');;
+    Route::get('bukti_tf_list', 'App\Http\Controllers\BuktiTfController@list')->name('bukti-tf-list');
+
+    Route::get('/onu/index', [OnuController::class,'index'])->name('onu-index');
 });

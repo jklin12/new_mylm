@@ -26,7 +26,7 @@ class FinanceController extends Controller
         $load['title'] = $title;
         $load['sub_title'] = $subTitle;
 
-        $datas = ImportInvoiceResult::latest()->get();
+        $datas = ImportInvoiceResult::latest()->paginate(10);
         $load['datas'] = $datas;
         return view('pages/generateInv', $load);
     }

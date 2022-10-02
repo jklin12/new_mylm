@@ -16,7 +16,7 @@
 
 
 <div class="panel panel-inverse">
-	 
+
 	<div class="panel-body">
 		@include('includes.component.erorr-message')
 		@include('includes.component.success-message')
@@ -74,6 +74,9 @@
 					@endforelse
 				</tbody>
 			</table>
+			<nav aria-label="Page navigation example " class="mt-3">
+				{{ $datas->links() }}
+			</nav>
 		</div>
 	</div>
 </div>

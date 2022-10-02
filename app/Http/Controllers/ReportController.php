@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 
 class ReportController extends Controller
 {
@@ -107,7 +108,7 @@ class ReportController extends Controller
             ->selectRaw('COUNT(t_customer.cust_number) as total, cupkg_status')
             ->leftJoin('trel_cust_pkg', 't_customer.cust_number', '=', 'trel_cust_pkg.cust_number')
             ->where('cupkg_status', '!=', '7')
-            ->where('cupkg_status', '!=', '9')
+            //->where('cupkg_status', '!=', '9')
             ->where('cupkg_status', '!=', '10')
             //->whereRaw("YEAR(created) = '" . $year . "'")
             ->groupBy('cupkg_status')
@@ -292,5 +293,26 @@ class ReportController extends Controller
         $load['spk_pencabutan'] = $spkPencabutan;
 
         return view('pages/report/spk-index', $load);
+    }
+
+    public function Olt(Request $request){
+
+        $load['title'] = 'Summary Data OlT';
+        $load['sub_title'] = '';
+
+        if ($request->has('reload')) {
+            Http::get('http://202.169.224.46:8080/index.php/onu', ['connect_timeout' => 120]);
+            return redirect(route('report-index'));
+        }
+
+        $response = Http::get('http://202.169.224.46:8080/index.php/onu/summary');
+
+        if ($response->status() == 200) {
+            //dd($response->object());
+
+            $load['data'] = $response->object();
+        }
+
+        return view('pages/report/olt-index', $load);
     }
 }
