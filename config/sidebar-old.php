@@ -114,6 +114,11 @@ if (!function_exists('side_menu')) {
 						'title' => 'SPK',
 						'route-name' => 'report-spk'
 					],
+					[
+						'url' => route('report-olt'),
+						'title' => 'OLT',
+						'route-name' => 'report-olt'
+					],
 				]
 			];
 		}

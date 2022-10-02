@@ -16,7 +16,7 @@
                 <!-- begin title -->
                 <div class="mb-3 text-grey">
                     <b class="mb-3">Total Pelanggan</b>
-                    <span class="ml-2"><i class="fa fa-info-circle" data-toggle="popover" data-trigger="hover" data-title="Total Pelanggan" data-placement="top" data-content="Total Pelanggan Kecuali Sewa Khusus, Ekslusif dan CSR" data-original-title="" title=""></i></span>
+                    <span class="ml-2"><i class="fa fa-info-circle" data-toggle="popover" data-trigger="hover" data-title="Total Pelanggan" data-placement="top" data-content="Total Pelanggan Kecuali Sewa Khusus dan CSR" data-original-title="" title=""></i></span>
                 </div>
                 <!-- end title -->
                 <!-- begin conversion-rate -->

@@ -51,6 +51,29 @@
                 </div>
             </div>
         </div>
+        <!--<div class="row">
+            @foreach($arr_field as $kf=>$vf)
+
+            @if(!$vf['searchable'] && $vf['form_type'] =='select')
+            <div class="col-md-4">
+                <div class="form-group row m-b-15">
+                    <label class="col-form-label col-md-3">{{ $vf['label']}}</label>
+                    <div class="col-md-9">
+                        <select class="form-control" id="filter_{{$kf}}" name="cupkg_status">
+                            <option>--Status--</option>
+                            @forelse($vf['keyvaldata'] as $kdata => $vdata)
+                            <option value="{{$kdata}}">{{$vdata}}</option>
+                            @empty
+                            <option value="">Data tidak ditemukan</option>
+                            @endforelse
+                        </select>
+                    </div>
+                </div>
+            </div>
+            @endif
+            @endforeach
+
+        </div>-->
         <div class="mb-1"></div>
         <br>
         <div class="table-responsive">
@@ -82,8 +105,17 @@
         var table = $('#table-cust').DataTable({
             processing: true,
             serverSide: true,
-            ajax: "{{ route('customer-list') }}",
+            ajax: {
+                url: "{{ route('customer-list') }}",
+                data: function(d) {
+                    d.status = $('#filter_cupkg_status').val()
+                },
+            },
             columns: <?php echo $table_column ?>
+        });
+
+        $('#filter_cupkg_status').change(function() {
+            table.draw();
         });
 
         $('.toggle-vis').on('click', function(e) {
