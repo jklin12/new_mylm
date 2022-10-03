@@ -22,11 +22,11 @@
             <b class="caret"></b>
             <input id="reservationDate" type="hidden" name="filter" />
         </a>
-         
+
         <!--<div class="text-muted f-w-600 mt-2 mt-sm-0">compared to <span id="daterange-prev-date">24 Mar-30 Apr 2020</span></div>-->
     </div>
 </form>
- 
+
 
 <!-- begin panel -->
 <div class="row">
@@ -119,7 +119,8 @@
 <script src="https://code.highcharts.com/modules/accessibility.js"></script>
 <script src="https://code.highcharts.com/modules/variable-pie.js"></script>
 <script src="/assets/plugins/bootstrap-datepicker/dist/js/bootstrap-datepicker.js"></script>
-
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/locale/id.min.js"></script>
 <script>
     $("#datepicker").datepicker({
         format: "mm-yyyy",
@@ -130,7 +131,7 @@
     });
     Highcharts.chart('porfoma-chart', {
         chart: {
-            type: 'column'
+            type: 'column',
         },
         title: {
             text: 'Grafik Porfoma'
@@ -146,6 +147,7 @@
                 text: 'Jumlah'
             }
         },
+
         tooltip: {
             headerFormat: '<span style="font-size:10px">{point.key}</span><table>',
             pointFormat: '<tr><td style="color:{series.color};padding:0">{series.name}: </td>' +
@@ -163,6 +165,15 @@
                 dataLabels: {
                     enabled: true,
 
+                },
+                cursor: 'pointer',
+                point: {
+                    events: {
+                        click: function() {
+                            let dates = moment(this.category, 'D MMM YY').locale('id').format("YYYY-MM-DD")
+                            window.location.href = "<?php echo route('report-porfoma-detail', '') ?>" + "/" + dates
+                        }
+                    }
                 }
             }
         },

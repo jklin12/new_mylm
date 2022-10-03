@@ -100,7 +100,7 @@ class FinanceController extends Controller
                 $nomorInv = $newInvNumber;
 
                 $reCheckInv = Invoice::find($newInvNumber);
-                
+
                 if (isset($reCheckInv->inv_number) && $reCheckInv->inv_number) {
                     $lastNum = substr($reCheckInv->inv_number, -2);
                     $newNum =   sprintf('%02d', $lastNum + 1);
@@ -127,7 +127,10 @@ class FinanceController extends Controller
 
                 $qInsertInv = Invoice::create($insertInv);
 
-                $invItem = DB::table('t_inv_item_porfoma')->where('inv_number', $value->inv_number)->get();
+                $invItem = DB::table('t_inv_item_porfoma')
+                    ->where('inv_number', $value->inv_number)
+                    ->where('ii_recycle', '<>', '1')
+                    ->get();
                 $insertInvItem = [];
                 foreach ($invItem as $keys => $values) {
                     $insertInvItem[$keys]['inv_number'] = $newInvNumber;
