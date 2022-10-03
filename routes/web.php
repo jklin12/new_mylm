@@ -37,6 +37,8 @@ Route::middleware(['cek_login'])->group(function () {
     Route::get('/report_doku', 'App\Http\Controllers\ReportDokuController@index')->name('report-doku');
     Route::get('/report_pengguna', 'App\Http\Controllers\ReportController@penggunaBaru')->name('report-pengguna');
     Route::get('/report_porfoma', 'App\Http\Controllers\ReportController@porfoma')->name('report-porfoma');
+    Route::get('/report_porfoma/{date}', 'App\Http\Controllers\ReportController@porfomaDetail')->name('report-porfoma-detail');
+    Route::get('/report_porfoma_list/{date}', 'App\Http\Controllers\ReportController@porfomaList')->name('report-porfoma-list');
     Route::get('/report_spk', 'App\Http\Controllers\ReportController@spk')->name('report-spk');
     Route::get('/report_olt', 'App\Http\Controllers\ReportController@Olt')->name('report-olt');
     

@@ -2,14 +2,17 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\InvoicePorfoma;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use DataTables;
 
 class ReportController extends Controller
 {
     var $arrPop = ['Bogor Valley', 'LIFEMEDIA', 'HABITAT', 'SINDUADI', 'GREENNET', 'X-LIFEMEDIA', 'LDP LIFEMEDIA', 'LDP X-LIFEMEDIA', 'JIP', 'Jogja Tronik', 'LDP JIP'];
+    var $arrPiStatus = ['Blum Bayar', 'Lunas', 'Expired'];
     var $arrStatus = [1 => 'Registrasi', 'Instalasi', 'Setup', 'Sistem Aktif', 'Tidak Aktif', 'Trial', 'Sewa Khusus', 'Blokir', 'Ekslusif', 'CSR'];
 
 
@@ -234,7 +237,7 @@ class ReportController extends Controller
         $chartValue[2]['name'] = 'Porfoma Belum Lunas';
         $chartValue[3]['name'] = 'Porfoma Terkirim';
         foreach ($porfomaChart as $key => $value) {
-            $chartLabel[] = Carbon::parse($value->tanggal)->isoFormat(' D MMM YY');
+            $chartLabel[] = Carbon::parse($value->tanggal)->isoFormat('D MMM YY');
             $chartValue[0]['data'][$key] = intval($value->total_pi);
             $chartValue[1]['data'][$key] = intval($value->total_pi_lunas);
             $chartValue[2]['data'][$key] = intval($value->total_pi_tidak_lunas);
@@ -256,6 +259,91 @@ class ReportController extends Controller
 
         return view('pages/report/porfoma-index', $load);
     }
+
+    public function porfomaDetail(Request $request, $date)
+    {
+
+        $title = 'Data Porfoma';
+        $subTitle = 'Periode Mulai ' . Carbon::parse($date)->isoFormat('D MMMM YYYY');
+
+        $load['title'] = $title;
+        $load['sub_title'] = $subTitle;
+
+        $arrfield = $this->arrFieldPorfoma();
+        $i = 0;
+        $tableColumn[$i]['data'] = 'DT_RowIndex';
+        $tableColumn[$i]['name'] = 'DT_RowIndex';
+        $tableColumn[$i]['orderable'] = 'false';
+        $tableColumn[$i]['searchable'] = 'false';
+        foreach ($arrfield as $key => $value) {
+            $i++;
+            $tableColumn[$i]['data'] = $key;
+            $tableColumn[$i]['name'] = $value['label'];
+            $tableColumn[$i]['orderable'] = $value['orderable'];
+            $tableColumn[$i]['searchable'] = $value['searchable'];
+        }
+        $tableColumn[$i + 1]['data'] = 'detail';
+        $tableColumn[$i + 1]['name'] = 'detail';
+
+        $load['arr_field'] = $arrfield;
+        $load['table_column'] = json_encode($tableColumn);
+        $load['dates'] = $date;
+        //dd($arrfield);
+
+        return view('pages/report/porfoma-detail', $load);
+
+
+        /*$porfoma = InvoicePorfoma::where('inv_start', $date)
+            ->leftJoin('t_customer', 't_invoice_porfoma.cust_number', '=', 't_customer.cust_number')
+            ->leftJoin('trel_cust_pkg', function ($join) {
+                $join->on('t_customer.cust_number', '=', 'trel_cust_pkg.cust_number')->on('trel_cust_pkg._nomor', '=', 't_invoice_porfoma.sp_nom');
+            })
+            ->paginate(10);
+        dd($porfoma);*/
+    }
+
+    public function porfomaList(Request $request, $date)
+    {
+        if ($request->ajax()) {
+            $builder =  InvoicePorfoma::where('inv_start', $date)
+                ->leftJoin('t_customer', 't_invoice_porfoma.cust_number', '=', 't_customer.cust_number')
+                ->leftJoin('trel_cust_pkg', function ($join) {
+                    $join->on('t_customer.cust_number', '=', 'trel_cust_pkg.cust_number')->on('trel_cust_pkg._nomor', '=', 't_invoice_porfoma.sp_nom');
+                });
+
+            if ($request->has('filter_cupkg_status')) {
+                $builder->where('cupkg_status' , $request->input('filter_cupkg_status'));
+            }
+            if ($request->has('filter_inv_status')) {
+                $builder->where('inv_status' , $request->input('filter_inv_status'));
+            }
+            $porfoma = $builder->latest()->get();
+
+            return Datatables::of($porfoma)
+                ->addIndexColumn()
+                ->editColumn('cupkg_status', function ($user) {
+                    return $user->cupkg_status ? $this->arrStatus[$user->cupkg_status] : '';
+                })
+                ->editColumn('inv_status', function ($user) {
+                    return isset($user->inv_status) ? $this->arrPiStatus[$user->inv_status] :  $user->inv_status;
+                })
+                ->editColumn('inv_post', function ($user) {
+                    return Carbon::parse($user->inv_post)->isoFormat('D MMMM YYYY HH:mm');
+                })
+                ->editColumn('inv_start', function ($user) {
+                    return Carbon::parse($user->inv_post)->isoFormat('D MMMM YYYY');
+                })
+                ->addColumn('detail', function ($row) {
+                    $actionBtn = '<a href="' . route('customer-detail', $row->cust_number) . '" class="btn btn-pink btn-icon btn-circle"><i class="fa fa-search-plus"></i></a>';
+                    return $actionBtn;
+                })
+
+                ->rawColumns(['detail'])
+                ->make(true);
+        }
+    }
+
+
     public function spk(Request $request)
     {
 
@@ -279,7 +367,7 @@ class ReportController extends Controller
 
         $spkPencabutan = DB::table('t_field_task')
             //->selectRaw('count(ft_number) as jumlah,ft_status')
-            ->select([DB::raw('count(ft_number) as total_spk'), DB::raw('SUM(CASE WHEN ft_status = 0 THEN 1 ELSE 0 END) as spk_tunggu'), DB::raw('SUM(CASE WHEN ft_status = 1 THEN 1 ELSE 0 END) as spk_pelaksanaan'),DB::raw('SUM(CASE WHEN ft_status = 2 THEN 1 ELSE 0 END) as spk_ok'), DB::raw('SUM(CASE WHEN ft_status = 3 THEN 1 ELSE 0 END) as spk_batal')])
+            ->select([DB::raw('count(ft_number) as total_spk'), DB::raw('SUM(CASE WHEN ft_status = 0 THEN 1 ELSE 0 END) as spk_tunggu'), DB::raw('SUM(CASE WHEN ft_status = 1 THEN 1 ELSE 0 END) as spk_pelaksanaan'), DB::raw('SUM(CASE WHEN ft_status = 2 THEN 1 ELSE 0 END) as spk_ok'), DB::raw('SUM(CASE WHEN ft_status = 3 THEN 1 ELSE 0 END) as spk_batal')])
             ->whereRaw("MONTH(ft_received) = '" . $month . "'")
             ->whereRaw("YEAR(ft_received) = '" . $year . "'")
             ->where('ft_type', '5')
@@ -295,7 +383,8 @@ class ReportController extends Controller
         return view('pages/report/spk-index', $load);
     }
 
-    public function Olt(Request $request){
+    public function Olt(Request $request)
+    {
 
         $load['title'] = 'Summary Data OlT';
         $load['sub_title'] = '';
@@ -314,5 +403,62 @@ class ReportController extends Controller
         }
 
         return view('pages/report/olt-index', $load);
+    }
+
+    private function arrFieldPorfoma()
+    {
+        return [
+            'cust_number' => [
+                'label' => 'Nomor',
+                'orderable' => true,
+                'searchable' => true,
+                'form_type' => 'text',
+            ],
+            'cust_name' => [
+                'label' => 'Nama',
+                'orderable' => false,
+                'searchable' => true,
+                'form_type' => 'text',
+            ],
+            'sp_code' => [
+                'label' => 'Layanan',
+                'orderable' => false,
+                'searchable' => false,
+                'form_type' => 'text',
+            ],
+            'cupkg_status' => [
+                'label' => 'Status',
+                'orderable' => false,
+                'searchable' => false,
+                'form_type' => 'select',
+                'keyvaldata' => $this->arrStatus
+            ],
+            'inv_number' => [
+                'label' => 'Nomor PI',
+                'orderable' => false,
+                'searchable' => false,
+                'form_type' => 'text',
+
+            ],
+            'inv_status' => [
+                'label' => 'Status PI',
+                'orderable' => false,
+                'searchable' => false,
+                'form_type' => 'select',
+                'keyvaldata' => $this->arrPiStatus
+            ],
+            'inv_post' => [
+                'label' => 'Posted',
+                'orderable' => false,
+                'searchable' => false,
+                'form_type' => 'date',
+            ],
+            'inv_start' => [
+                'label' => 'Mulai Layanan',
+                'orderable' => false,
+                'searchable' => false,
+                'form_type' => 'date',
+            ],
+        ];
     }
 }

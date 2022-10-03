@@ -12,21 +12,21 @@ class DashboardController extends Controller
 
     public function index(Request $request)
     {
-        
+
         //print_r(side_menu()['menu']);die;
         $curentDateEnd = $request->has('end') ? $request->input('end') : date('Y-m-d');
         $curentDateStart = $request->has('start') ? $request->input('start') : date('Y-m-01');
 
         $curentDate['dateEnd'] = $curentDateEnd;
         $curentDate['dateStart'] = $curentDateStart;
-       
+
         $load['curentDate'] = $curentDate;
         //print_r($curentDate);die;
 
         $curentRevenue = DB::table('t_pay_request')->select([DB::raw('SUM(amount) as total'), DB::raw('count(id_pay_req) as total_pi')])
-            ->whereRaw("DATE_FORMAT(insert_date,'%Y-%m-%d') >= '" .$curentDateStart."'" )
-            ->whereRaw("DATE_FORMAT(insert_date,'%Y-%m-%d') <= '" .$curentDateEnd."'" )
-             ->where('result_msg', 'SUCCESS')
+            ->whereRaw("DATE_FORMAT(insert_date,'%Y-%m-%d') >= '" . $curentDateStart . "'")
+            ->whereRaw("DATE_FORMAT(insert_date,'%Y-%m-%d') <= '" . $curentDateEnd . "'")
+            ->where('result_msg', 'SUCCESS')
             ->first();
 
         //print_r($curentRevenue);die;
@@ -57,14 +57,15 @@ class DashboardController extends Controller
 
 
         $chartDoku = DB::table('t_pay_request')->selectRaw('SUM(amount) as total,DATE_FORMAT(insert_date,"%Y-%m-%d") as tanggal')
-            ->where('insert_date', '>=', $curentDateStart . ' 00:00:00')
-            ->where('insert_date', '<=', $curentDateEnd . ' 00:00:00')
-            ->where('inv_status', 1)
-            //->where('result_msg', 'SUCCESS')
+            ->whereRaw("DATE_FORMAT(insert_date,'%Y-%m-%d') >= '" . $curentDateStart . "'")
+            ->whereRaw("DATE_FORMAT(insert_date,'%Y-%m-%d') <= '" . $curentDateEnd . "'")
+            //->where('inv_status', 1)
+            ->where('result_msg', 'SUCCESS')
             ->leftJoin('t_invoice_porfoma', 't_pay_request.inv_numb', '=', 't_invoice_porfoma.inv_number')
             ->groupBy('tanggal')
             ->orderBy('tanggal')
             ->get();
+        
         $labelChartDoku = [];
         $valueChartDoku = [];
         foreach ($chartDoku as $key => $value) {
