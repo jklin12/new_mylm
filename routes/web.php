@@ -17,7 +17,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', 'App\Http\Controllers\DashboardController@index')->name('/')->middleware('cek_login');
 Route::get('finance/generateInv', 'App\Http\Controllers\FinanceController@index')->name('generateInv')->middleware('cek_login');
 Route::post('finance/importStatement', 'App\Http\Controllers\FinanceController@importStatement')->name('import-statement')->middleware('cek_login');
-Route::get('finance/cekRequest', 'App\Http\Controllers\FinanceController@cekRequest')->name('cek-request')->middleware('cek_login');
+Route::get('finance/cekRequest', 'App\Http\Controllers\FinanceController@cekRequest')->name('cek-request-doku')->middleware('cek_login');
 Route::get('finance/cekRequestList', 'App\Http\Controllers\FinanceController@cekRequestList')->name('cek-request-list')->middleware('cek_login');
 
 Route::get('login', 'App\Http\Controllers\AuthController@index')->name('login');
