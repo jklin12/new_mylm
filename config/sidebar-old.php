@@ -6,17 +6,17 @@ use Illuminate\Support\Facades\Route;
 if (!function_exists('arrCustStatus')) {
 	function arrCustStatus($index)
 	{
-		$return = ['status belum ada ','dark'];
+		$return = ['status belum ada ', 'dark'];
 		$arrSpk = [
-			4 => ['Sistem Aktif','green'],
-			5 => ['Tidak Aktif','danger'],
-			8 => ['Blocking','warning'],
+			4 => ['Sistem Aktif', 'green'],
+			5 => ['Tidak Aktif', 'danger'],
+			8 => ['Blocking', 'warning'],
 		];
 
 		if (isset($arrSpk[$index])) {
 			$return = $arrSpk[$index];
 		} else {
-			$return = ['status belum ada ','dark'];
+			$return = ['status belum ada ', 'dark'];
 		}
 		return $return;
 	}
@@ -24,17 +24,17 @@ if (!function_exists('arrCustStatus')) {
 if (!function_exists('arrPiStatus')) {
 	function arrPiStatus($index)
 	{
-		$return = ['status belum ada ','dark'];
+		$return = ['status belum ada ', 'dark'];
 		$arrSpk = [
-			0 => ['Belum Bayar','danger'],
-			1 => ['Lunas','green'],
-			2 => ['Expired','warning'],
+			0 => ['Belum Bayar', 'danger'],
+			1 => ['Lunas', 'green'],
+			2 => ['Expired', 'warning'],
 		];
 
 		if (isset($arrSpk[$index])) {
 			$return = $arrSpk[$index];
 		} else {
-			$return = ['status belum ada ','dark'];
+			$return = ['status belum ada ', 'dark'];
 		}
 		return $return;
 	}
@@ -79,11 +79,18 @@ if (!function_exists('side_menu')) {
 				'title' => 'finance',
 				'url' => 'javascript:;',
 				'caret' => true,
-				'sub_menu' => [[
-					'url' => '/finance/generateInv',
-					'title' => 'Generate Invoice',
-					'route-name' => 'generateInv'
-				]]
+				'sub_menu' => [
+					[
+						'url' => '/finance/generateInv',
+						'title' => 'Generate Invoice',
+						'route-name' => 'generateInv'
+					],
+					[
+						'url' => '/finance/cekRequest',
+						'title' => 'Monitoring Doku',
+						'route-name' => 'cek-request'
+					]
+				]
 			];
 		}
 		$menuReport = [];
