@@ -50,6 +50,46 @@
         </div>
     </div>
     <!-- end col-3 -->
+    <div class="col-xl-3 col-md-6">
+        <div class="card border-0 bg-pink text-white text-truncate mb-3">
+            <!-- begin card-body -->
+            <div class="card-body">
+                <!-- begin title -->
+                <div class="mb-3 text-grey">
+                    <b class="mb-3">Pelanggan Baru Bulan {{$month}}</b>
+                  
+                </div>
+                <!-- end title -->
+                <!-- begin conversion-rate -->
+                <div class="d-flex align-items-center mb-1">
+                    <h2 class="text-white mb-0"><span data-animation="number" data-value="{{$totalthis_month}}">0</span></h2>
+                    <div class="ml-auto">
+                        <div id="conversion-rate-sparkline"></div>
+                    </div>
+                </div>
+                <!-- end conversion-rate -->
+                <!-- begin percentage -->
+
+                <!-- end percentage -->
+                @foreach($amthis_month as $value)
+                <!-- begin info-row -->
+                <div class="d-flex mb-2">
+                    <div class="d-flex align-items-center">
+                        <i class="fa fa-circle text-blue f-s-8 mr-2"></i>
+                        {{ $value->cupkg_acct_manager }}
+                    </div>
+                    <div class="d-flex align-items-center ml-auto">
+                        
+                        <div class="width-50 text-right pl-2 f-w-600"><span data-animation="number" data-value="{{ $value->total }}">0</span></div>
+                    </div>
+                </div>
+                <!-- end info-row -->
+                @endforeach
+
+            </div>
+            <!-- end card-body -->
+        </div>
+    </div>
 
 
 </div>

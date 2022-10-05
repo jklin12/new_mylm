@@ -21,7 +21,9 @@ class ReportController extends Controller
         $title = "Report Pelanggan Lifemedia";
         $subTitle = '';
 
+
         $year = $request->has('tahun') ? $request->input('tahun') : date('Y');
+        $month = $request->has('bulan') ? $request->input('bulan') : date('m');
 
         $monthlyCustomer = DB::table('t_customer')
             ->selectRaw('COUNT(t_customer.cust_number) as total, MONTH(created) as bulan')
@@ -84,20 +86,26 @@ class ReportController extends Controller
         }
 
         $monthlyAmPop = DB::table('t_customer')
-            ->selectRaw('COUNT(t_customer.cust_number) as total, cupkg_acct_manager,cust_pop')
+            ->selectRaw('COUNT(t_customer.cust_number) as total, cupkg_acct_manager,MONTH(created) as bulan')
             ->leftJoin('trel_cust_pkg', 't_customer.cust_number', '=', 'trel_cust_pkg.cust_number')
             //->where('cupkg_status', '4')
             ->whereRaw("YEAR(created) = '" . $year . "'")
-            ->groupBy('cupkg_acct_manager', 'cust_pop')
-            ->orderBy('total')
+            ->groupBy('cupkg_acct_manager', 'bulan')
+            ->orderBy('bulan')
             ->get();
 
         $susundrilldownAm = [];
+        $amthismonth = [];
+        $totalThisMonth = 0;
         foreach ($monthlyAmPop as $key => $value) {
-            if ($value->total > 10) {
+            if ($value->bulan == $month) {
+                $totalThisMonth += $value->total;
+                $amthismonth[$key] = $value;
+            }
+            if ($value->total > 1) {
                 $susundrilldownAm[$value->cupkg_acct_manager ? $value->cupkg_acct_manager : $key]['name'] = $value->cupkg_acct_manager ? $value->cupkg_acct_manager : $key;
                 $susundrilldownAm[$value->cupkg_acct_manager ? $value->cupkg_acct_manager : $key]['id'] = $value->cupkg_acct_manager ? $value->cupkg_acct_manager : $key;
-                $susundrilldownAm[$value->cupkg_acct_manager ? $value->cupkg_acct_manager : $key]['data'][$key][] = $this->arrPop[$value->cust_pop];
+                $susundrilldownAm[$value->cupkg_acct_manager ? $value->cupkg_acct_manager : $key]['data'][$key][] = Carbon::parse('2022-'.$value->bulan.'-01')->isoFormat('MMMM');
                 $susundrilldownAm[$value->cupkg_acct_manager ? $value->cupkg_acct_manager : $key]['data'][$key][] = $value->total;
             }
         }
@@ -106,6 +114,13 @@ class ReportController extends Controller
             $susundrilldownAm[$key]['id'] = $value['id'];
             $susundrilldownAm[$key]['data'] = array_values($value['data']);
         }
+       
+        arsort($amthismonth);
+        $load['amthis_month'] = $amthismonth;
+        $load['totalthis_month'] = $totalThisMonth;
+        $load['month'] = Carbon::parse('2022-'.$month.'-01')->isoFormat('MMMM YYYY');
+
+        //dd($load);
 
         $allPelanggan = DB::table('t_customer')
             ->selectRaw('COUNT(t_customer.cust_number) as total, cupkg_status')
@@ -260,7 +275,7 @@ class ReportController extends Controller
         return view('pages/report/porfoma-index', $load);
     }
 
-    public function porfomaDetail(Request $request, $date)
+       public function porfomaDetail(Request $request, $date)
     {
 
         $title = 'Data Porfoma';
@@ -312,10 +327,10 @@ class ReportController extends Controller
                 });
 
             if ($request->has('filter_cupkg_status')) {
-                $builder->where('cupkg_status' , $request->input('filter_cupkg_status'));
+                $builder->where('cupkg_status', $request->input('filter_cupkg_status'));
             }
             if ($request->has('filter_inv_status')) {
-                $builder->where('inv_status' , $request->input('filter_inv_status'));
+                $builder->where('inv_status', $request->input('filter_inv_status'));
             }
             $porfoma = $builder->latest()->get();
 
