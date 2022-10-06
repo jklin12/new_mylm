@@ -69,7 +69,7 @@ class DokuController extends Controller
                 })
                 ->leftJoin('t_pay_channel', 't_pay_request.payment_channel', '=', 't_pay_channel.code')
                 ->groupBy('inv_numb', 't_customer.cust_number')
-                //->where('inv_numb','PIJP001229092214')
+                ->whereRaw("YEAR(insert_date) = '2022'")
                 ->orderByDesc('payment_time')
                 //->limit(1000)
                 ->get();
