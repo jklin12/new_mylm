@@ -40,9 +40,10 @@ class DashboardController extends Controller
         //print_r($piData);die;
 
         $custData = DB::table('t_customer')
-            ->select([DB::raw('count(cust_number) as pelanggan_baru'), 'cust_pop'])
-            ->where('created', '>=', $curentDateStart . ' 00:00:00')
-            ->where('created', '<=', $curentDateEnd . ' 00:00:00')
+            ->select([DB::raw('count(t_customer.cust_number) as pelanggan_baru'), 'cust_pop'])
+            ->leftJoin('trel_cust_pkg', 't_customer.cust_number', '=', 'trel_cust_pkg.cust_number')
+            ->whereRaw("DATE_FORMAT(created,'%Y-%m-%d') >= '" . $curentDateStart . "'")
+            ->whereRaw("DATE_FORMAT(created,'%Y-%m-%d') <= '" . $curentDateEnd . "'")
             ->groupBy('cust_pop')
             ->get();
 
