@@ -27,7 +27,7 @@ class ReportController extends Controller
 
         $monthlyCustomer = DB::table('t_customer')
             ->selectRaw('COUNT(t_customer.cust_number) as total, MONTH(created) as bulan')
-            //->leftJoin('trel_cust_pkg','t_customer.cust_number','=','trel_cust_pkg.cust_number')
+            ->leftJoin('trel_cust_pkg','t_customer.cust_number','=','trel_cust_pkg.cust_number')
             //->where('cupkg_status', '4')
             ->whereRaw("YEAR(created) = '" . $year . "'")
             ->groupBy('bulan')
@@ -43,10 +43,10 @@ class ReportController extends Controller
         }
         //print_r($susunChartCust);die;
 
+
         $monthlyCustomerPop = DB::table('t_customer')
             ->selectRaw('COUNT(t_customer.cust_number) as total, MONTH(created) as bulan,cust_pop')
             //->leftJoin('trel_cust_pkg','t_customer.cust_number','=','trel_cust_pkg.cust_number')
-            //->where('cupkg_status', '4')
             ->whereRaw("YEAR(created) = '" . $year . "'")
             ->groupBy('bulan', 'cust_pop')
             ->orderBy('bulan')
@@ -70,8 +70,9 @@ class ReportController extends Controller
             ->selectRaw('COUNT(t_customer.cust_number) as total, cupkg_acct_manager')
             ->leftJoin('trel_cust_pkg', 't_customer.cust_number', '=', 'trel_cust_pkg.cust_number')
             //->where('cupkg_status', '4')
+            ->where('sp_code','!=', 'Life Vision - K')
             ->whereRaw("YEAR(created) = '" . $year . "'")
-            ->groupBy('cupkg_acct_manager')
+            ->groupBy('cupkg_acct_manager',)
             ->orderBy('total')
             ->get();
         //print_r($monthlyAm);die;
@@ -88,12 +89,12 @@ class ReportController extends Controller
         $monthlyAmPop = DB::table('t_customer')
             ->selectRaw('COUNT(t_customer.cust_number) as total, cupkg_acct_manager,MONTH(created) as bulan')
             ->leftJoin('trel_cust_pkg', 't_customer.cust_number', '=', 'trel_cust_pkg.cust_number')
-            //->where('cupkg_status', '4')
+            //->where('sp_code','!=', 'Life Vision - K')
             ->whereRaw("YEAR(created) = '" . $year . "'")
             ->groupBy('cupkg_acct_manager', 'bulan')
             ->orderBy('bulan')
             ->get();
-
+        
         $susundrilldownAm = [];
         $amthismonth = [];
         $totalThisMonth = 0;
@@ -105,7 +106,7 @@ class ReportController extends Controller
             if ($value->total > 1) {
                 $susundrilldownAm[$value->cupkg_acct_manager ? $value->cupkg_acct_manager : $key]['name'] = $value->cupkg_acct_manager ? $value->cupkg_acct_manager : $key;
                 $susundrilldownAm[$value->cupkg_acct_manager ? $value->cupkg_acct_manager : $key]['id'] = $value->cupkg_acct_manager ? $value->cupkg_acct_manager : $key;
-                $susundrilldownAm[$value->cupkg_acct_manager ? $value->cupkg_acct_manager : $key]['data'][$key][] = Carbon::parse('2022-'.$value->bulan.'-01')->isoFormat('MMMM');
+                $susundrilldownAm[$value->cupkg_acct_manager ? $value->cupkg_acct_manager : $key]['data'][$key][] = Carbon::parse('2022-' . $value->bulan . '-01')->isoFormat('MMMM');
                 $susundrilldownAm[$value->cupkg_acct_manager ? $value->cupkg_acct_manager : $key]['data'][$key][] = $value->total;
             }
         }
@@ -114,39 +115,39 @@ class ReportController extends Controller
             $susundrilldownAm[$key]['id'] = $value['id'];
             $susundrilldownAm[$key]['data'] = array_values($value['data']);
         }
-       
+
         arsort($amthismonth);
         $load['amthis_month'] = $amthismonth;
         $load['totalthis_month'] = $totalThisMonth;
-        $load['month'] = Carbon::parse('2022-'.$month.'-01')->isoFormat('MMMM YYYY');
+        $load['month'] = Carbon::parse('2022-' . $month . '-01')->isoFormat('MMMM YYYY');
 
         //dd($load);
 
         $allPelanggan = DB::table('t_customer')
             ->selectRaw('COUNT(t_customer.cust_number) as total, cupkg_status')
             ->leftJoin('trel_cust_pkg', 't_customer.cust_number', '=', 'trel_cust_pkg.cust_number')
-            ->where('cupkg_status', '!=', '7')
+            //->where('cupkg_status', '!=', '7')
             //->where('cupkg_status', '!=', '9')
-            ->where('cupkg_status', '!=', '10')
+            //->where('cupkg_status', '!=', '10')
             //->whereRaw("YEAR(created) = '" . $year . "'")
             ->groupBy('cupkg_status')
             ->orderBy('total')
             ->get();
-
+        
         $totalPelanggan = 0;
         $PelangganByStatus = [];
         foreach ($allPelanggan as $key => $value) {
             $totalPelanggan += $value->total;
             $PelangganByStatus[$key]['total'] = $value->total;
-            $PelangganByStatus[$key]['status'] = $this->arrStatus[$value->cupkg_status];
+            $PelangganByStatus[$key]['status'] = isset($this->arrStatus[$value->cupkg_status]) ? $this->arrStatus[$value->cupkg_status] :'';
         }
 
         $custBySpcode = DB::table('t_customer')
             ->selectRaw('COUNT(t_customer.cust_number) as total, sp_code')
             ->leftJoin('trel_cust_pkg', 't_customer.cust_number', '=', 'trel_cust_pkg.cust_number')
-            ->where('cupkg_status', '!=', '7')
-            ->where('cupkg_status', '!=', '9')
-            ->where('cupkg_status', '!=', '10')
+            //->where('cupkg_status', '!=', '7')
+            //->where('cupkg_status', '!=', '9')
+            //->where('cupkg_status', '!=', '10')
             //->whereRaw("YEAR(created) = '" . $year . "'")
             ->groupBy('sp_code')
             ->orderBy('total')
@@ -275,7 +276,7 @@ class ReportController extends Controller
         return view('pages/report/porfoma-index', $load);
     }
 
-       public function porfomaDetail(Request $request, $date)
+    public function porfomaDetail(Request $request, $date)
     {
 
         $title = 'Data Porfoma';
