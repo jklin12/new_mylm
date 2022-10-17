@@ -27,7 +27,7 @@ class ReportController extends Controller
 
         $monthlyCustomer = DB::table('t_customer')
             ->selectRaw('COUNT(t_customer.cust_number) as total, MONTH(created) as bulan')
-            ->leftJoin('trel_cust_pkg','t_customer.cust_number','=','trel_cust_pkg.cust_number')
+            ->leftJoin('trel_cust_pkg', 't_customer.cust_number', '=', 'trel_cust_pkg.cust_number')
             //->where('cupkg_status', '4')
             ->whereRaw("YEAR(created) = '" . $year . "'")
             ->groupBy('bulan')
@@ -70,7 +70,7 @@ class ReportController extends Controller
             ->selectRaw('COUNT(t_customer.cust_number) as total, cupkg_acct_manager')
             ->leftJoin('trel_cust_pkg', 't_customer.cust_number', '=', 'trel_cust_pkg.cust_number')
             //->where('cupkg_status', '4')
-            ->where('sp_code','!=', 'Life Vision - K')
+            //->where('sp_code', '!=', 'Life Vision - K')
             ->whereRaw("YEAR(created) = '" . $year . "'")
             ->groupBy('cupkg_acct_manager',)
             ->orderBy('total')
@@ -94,7 +94,7 @@ class ReportController extends Controller
             ->groupBy('cupkg_acct_manager', 'bulan')
             ->orderBy('bulan')
             ->get();
-        
+
         $susundrilldownAm = [];
         $amthismonth = [];
         $totalThisMonth = 0;
@@ -133,13 +133,16 @@ class ReportController extends Controller
             ->groupBy('cupkg_status')
             ->orderBy('total')
             ->get();
-        
+
         $totalPelanggan = 0;
         $PelangganByStatus = [];
         foreach ($allPelanggan as $key => $value) {
-            $totalPelanggan += $value->total;
-            $PelangganByStatus[$key]['total'] = $value->total;
-            $PelangganByStatus[$key]['status'] = isset($this->arrStatus[$value->cupkg_status]) ? $this->arrStatus[$value->cupkg_status] :'';
+            
+            if ($value->cupkg_status) {
+                $totalPelanggan += $value->total;
+                $PelangganByStatus[$key]['total'] = $value->total;
+                $PelangganByStatus[$key]['status'] = isset($this->arrStatus[$value->cupkg_status]) ? $this->arrStatus[$value->cupkg_status] : '';
+            }
         }
 
         $custBySpcode = DB::table('t_customer')
