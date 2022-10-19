@@ -6,9 +6,7 @@
 @push('css')
 <link href="/assets/plugins/datatables.net-bs4/css/dataTables.bootstrap4.min.css" rel="stylesheet" />
 <link href="/assets/plugins/datatables.net-responsive-bs4/css/responsive.bootstrap4.min.css" rel="stylesheet" />
-<link href="/assets/plugins/datatables.net-buttons-bs4/css/buttons.bootstrap4.min.css" rel="stylesheet" />
 <style>
-    
     .pagination>li>a,
     .pagination>li>span {
         color: #b64260;
@@ -84,32 +82,12 @@
                     <tr>
                         <th width="1%"></th>
                         @foreach($arr_field as $vf)
-
                         <th class="text-nowrap">{{ $vf['label'] }}</th>
                         @endforeach
                         <th></th>
 
                     </tr>
                 </thead>
-                <tfoot>
-                    <th width="1%"></th>
-                    @foreach($arr_field as $kf=> $vf)
-                    @if($vf['form_type'] == 'select')
-                    <th class="text-nowrap">
-                        <select name="{{$kf}}" id="filter_{{$kf}}" class="form-control">
-                            <option value="">Select {{ $vf['label']}}</option>
-                            @foreach($vf['keyvaldata'] as $keyx => $row)
-                            <option value="{{ $keyx }}">{{ $row }}</option>
-                            @endforeach
-                        </select>
-
-                    </th>
-                    @else
-                    <th class="text-nowrap"></th>
-                    @endif
-                    @endforeach
-                    <th></th>
-                </tfoot>
             </table>
         </div>
     </div>
@@ -122,38 +100,21 @@
 <script src="/assets/plugins/datatables.net-bs4/js/dataTables.bootstrap4.min.js"></script>
 <script src="/assets/plugins/datatables.net-responsive/js/dataTables.responsive.min.js"></script>
 <script src="/assets/plugins/datatables.net-responsive-bs4/js/responsive.bootstrap4.min.js"></script>
-<script src="/assets/plugins/datatables.net-buttons/js/dataTables.buttons.min.js"></script>
-<script src="/assets/plugins/datatables.net-buttons-bs4/js/buttons.bootstrap4.min.js"></script>
 <script>
     $(function() {
-        buildTable()
-
-        function buildTable(data = '') {
-            var table = $('#table-cust').DataTable({
-                processing: true,
-                serverSide: true,
-                ajax: {
-                    url: "{{ route('report-porfoma-list', $dates) }}" + "?" + data,
-
+       var table = $('#table-cust').DataTable({
+            processing: true,
+            serverSide: true,
+            ajax: {
+                url: "{{ route('porfoma-list',$cust_number) }}",
+                data: function(d) {
+                    d.status = $('#filter_cupkg_status').val()
                 },
-                columns: <?php echo $table_column ?>,
-            });
-        }
-
-        $('#filter_cupkg_status').change(function() {
-            var status = $('#filter_cupkg_status').val();
-            $('#table-cust').DataTable().destroy();
-
-            buildTable('filter_cupkg_status=' + status)
+            },
+            columns: <?php echo $table_column ?>
         });
 
-        $('#filter_inv_status').change(function() {
-            var status = $('#filter_inv_status').val();
-            $('#table-cust').DataTable().destroy();
-
-            buildTable('&filter_inv_status=' + status)
-        });
-
+       
         $('.toggle-vis').on('click', function(e) {
             e.preventDefault();
 
