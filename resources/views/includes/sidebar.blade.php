@@ -65,7 +65,7 @@ $sidebarClass = (!empty($sidebarTransparent)) ? 'sidebar-transparent' : '';
 			return $subMenu;
 			}
 
-			foreach (side_menu()['menu'] as $key => $menu) {
+			foreach (side_menu(isset($cust_number) && $cust_number ? $cust_number : '')['menu'] as $key => $menu) {
 			if($menu){
 			$GLOBALS['parent_active'] = '';
 

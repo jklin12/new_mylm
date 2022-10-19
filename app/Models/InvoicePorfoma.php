@@ -20,4 +20,8 @@ class InvoicePorfoma extends Model
     {
         return $this->hasOne(Invoice::class);
     }
+
+    public function reportData(){
+        
+    }
 }

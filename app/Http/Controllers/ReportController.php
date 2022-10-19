@@ -200,8 +200,7 @@ class ReportController extends Controller
         $load['chartPop'] = json_encode($susunCustPop);
 
         $load['totalPelanggan'] = $totalPelanggan;
-        $load['PelangganByStatus'] = $PelangganByStatus;
-
+        $load['PelangganByStatus'] = $PelangganByStatus;        
 
         return view('pages/report/pengguna-index', $load);
     }
@@ -249,6 +248,7 @@ class ReportController extends Controller
             ->groupByRaw("inv_start")
             ->orderBy('inv_start')
             ->get();
+
         //dd($porfomaChart);
         $susunChart = [];
         $chartValue[0]['name'] = 'Total Porfoma';
@@ -307,7 +307,7 @@ class ReportController extends Controller
         $load['arr_field'] = $arrfield;
         $load['table_column'] = json_encode($tableColumn);
         $load['dates'] = $date;
-        //dd($arrfield);
+        //dd($tableColumn);
 
         return view('pages/report/porfoma-detail', $load);
 
@@ -356,8 +356,8 @@ class ReportController extends Controller
                     $actionBtn = '<a href="' . route('customer-detail', $row->cust_number) . '" class="btn btn-pink btn-icon btn-circle"><i class="fa fa-search-plus"></i></a>';
                     return $actionBtn;
                 })
-
                 ->rawColumns(['detail'])
+                
                 ->make(true);
         }
     }
@@ -477,6 +477,18 @@ class ReportController extends Controller
                 'orderable' => false,
                 'searchable' => false,
                 'form_type' => 'date',
+            ],
+            'wa_sent' => [
+                'label' => 'Kirim Invoice',
+                'orderable' => true,
+                'searchable' => false,
+                'form_type' => 'text',
+            ],
+            'wa_sent_number' => [
+                'label' => 'Kirim Nomor',
+                'orderable' => true,
+                'searchable' => false,
+                'form_type' => 'text',
             ],
         ];
     }

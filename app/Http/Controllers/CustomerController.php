@@ -9,6 +9,9 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
 use DataTables;
 use Illuminate\Support\Facades\Http;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\IOFactory;
 
 class CustomerController extends Controller
 {
@@ -70,7 +73,7 @@ class CustomerController extends Controller
                     $actionBtn = '<a href="' . route('customer-detail', $row->cust_number) . '" class="btn btn-pink btn-icon btn-circle"><i class="fa fa-search-plus"></i></a>';
                     return $actionBtn;
                 })
-                
+
                 ->rawColumns(['detail'])
                 ->make(true);
         }
@@ -119,6 +122,7 @@ class CustomerController extends Controller
         //dd($datas);
         $arrfield = $this->arrFieldDetail();
         //dd($arrfield);
+        $load['cust_number'] = $cust_number;
         $load['datas'] = $datas;
         $load['arr_field'] = $arrfield;
         $load['message_template'] = $messageTemplate;
@@ -217,7 +221,7 @@ class CustomerController extends Controller
                 'orderable' => true,
                 'searchable' => true,
                 'required' => true,
-                'value' =>  $customer->cust_number.' - '.$customer->cust_name
+                'value' =>  $customer->cust_number . ' - ' . $customer->cust_name
             ];
 
             if ($customer->cust_hp) {
@@ -267,7 +271,7 @@ class CustomerController extends Controller
         //dd($load);
         return view('pages.customer.message-form', $load);
     }
-    
+
     public function sendMessage(Request $request, $message_id, $cust_number)
     {
 
@@ -342,22 +346,58 @@ class CustomerController extends Controller
 
     public function audit()
     {
+        $invdata = DB::table('t_invoice_porfoma')
+            ->select(DB::raw('t_invoice_porfoma.cust_number'), 'cupkg_status', 'inv_number', 'inv_post', 'inv_start', 'inv_end', 'inv_status', 'wa_sent', 'wa_sent_number')
+            ->leftJoin('trel_cust_pkg', 't_invoice_porfoma.cust_number', '=', 'trel_cust_pkg.cust_number')
+            ->where('inv_status', '0')
+            ->whereRaw("MONTH(inv_post) = '09'")
+            ->whereRaw("YEAR(inv_post) = '2022'")
+            ->get();
 
-        $lastInv = DB::table('t_invoice_porfoma')
-            ->select('cust_number', 'inv_number', DB::raw('MAX(inv_post) as last_inv'))
+        $susunData = [];
+        foreach ($invdata->toArray() as $key => $value) {
+            $susunData[$key]['cust_number'] = $value->cust_number;
+            $susunData[$key]['status_pelanggan'] = isset($this->arrStatus[$value->cupkg_status]) ? $this->arrStatus[$value->cupkg_status] : 'lainya';
+            $susunData[$key]['inv_number'] = $value->inv_number;
 
-            ->groupBy('inv_number');
+            $susunData[$key]['terlambar'] =  date_diff(date_create(date('Y-m-d')), date_create($value->inv_start))->format("%a") . ' Hari';
+            $susunData[$key]['inv_post'] = $value->inv_post;
+            $susunData[$key]['inv_start'] = $value->inv_start;
+            $susunData[$key]['inv_end'] = $value->inv_end;
+            $susunData[$key]['inv_status'] = $value->inv_status == '0' ? 'Belum Bayar' : 'lainya';
+            $susunData[$key]['wa_sent'] = $value->wa_sent;
+            $susunData[$key]['wa_sent_number'] = $value->wa_sent_number;
+        }
+        $result = $this->downloadExcel($susunData);
+        print_r($result);
+    }
+    public function cekTerlmabat()
+    {
 
-        $customer = DB::table('t_customer')->selectRaw('t_customer.cust_number, cust_name, trel_cust_pkg.sp_code, cust_hp,cupkg_status, cust_address, cust_phone,cupkg_svc_begin')
-            //->where('t_customer.cust_pop', 5)
-            ->leftJoin('trel_cust_pkg', 't_customer.cust_number', '=', 'trel_cust_pkg.cust_number')
-            ->leftJoinSub($lastInv, 't1', function ($join) {
-                $join->on('trel_cust_pkg.cust_number', '=', 't1.cust_number');
-            })
-            ->leftJoin('t_invoice_porfoma as t2', 't1.last_inv', '=', 't2.inv_post')
-            ->orderByDesc('created')->get(10);
+        $invdata = DB::table('t_invoice_porfoma')
+            ->select(DB::raw('t_invoice_porfoma.cust_number'), 'cupkg_status', 'inv_number', 'inv_start', 'inv_end', 'inv_status', 'wa_sent', 'wa_sent_number')
+            ->leftJoin('trel_cust_pkg', 't_invoice_porfoma.cust_number', '=', 'trel_cust_pkg.cust_number')
+            ->where('inv_status', '0')
+            ->where('inv_start', '<', '2022-10-05')
+            ->where('inv_recycle', '<>', '1')
+            ->groupBy('inv_number')
+            ->get();
 
-        print_r($customer);
+        $susunData = [];
+        foreach ($invdata->toArray() as $key => $value) {
+            $susunData[$key]['cust_number'] = $value->cust_number;
+            $susunData[$key]['status_pelanggan'] = isset($this->arrStatus[$value->cupkg_status]) ? $this->arrStatus[$value->cupkg_status] : 'lainya';
+            $susunData[$key]['inv_number'] = $value->inv_number;
+
+            $susunData[$key]['terlambar'] =  date_diff(date_create(date('Y-m-d')), date_create($value->inv_start))->format("%a") . ' Hari';
+            $susunData[$key]['inv_start'] = $value->inv_start;
+            $susunData[$key]['inv_end'] = $value->inv_end;
+            $susunData[$key]['inv_status'] = $value->inv_status == '0' ? 'Belum Bayar' : 'lainya';
+            $susunData[$key]['wa_sent'] = $value->wa_sent;
+            $susunData[$key]['wa_sent_number'] = $value->wa_sent_number;
+        }
+        $result = $this->downloadExcel($susunData);
+        print_r($result);
     }
     private function arrField()
     {
@@ -673,5 +713,58 @@ class CustomerController extends Controller
 
             ]
         ];
+    }
+
+    private function downloadExcel($data)
+    {
+
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+
+        $arrTitle = ['Nomor Pelanggan', 'Status Pelanggan', 'Nomor PI', 'Terlmabat', 'Tgl terbit', 'Inv Start', 'Inv End', 'Inv Status', 'Terkirim', 'Terkirim Ke'];
+        $alphas = range('A', 'Z');
+        $dateExport = Carbon::parse(date('Y-m-d H:m:i'))->isoFormat('dddd, D MMMM Y H:mm');
+
+        $sheet->setCellValue('A1', 'Hasil Invoice Belum Bayar'); // Set kolom A1 dengan tulisan "DATA SISWA"
+        $sheet->setCellValue('A2', 'Pada ' . $dateExport); // Set kolom A1 dengan tulisan "DATA SISWA"
+        $sheet->mergeCells('A1:' . $alphas[count($arrTitle) - 1] . '1'); // Set Merge Cell pada kolom A1 sampai E1
+        $sheet->mergeCells('A2:' . $alphas[count($arrTitle) - 1] . '2'); // Set Merge Cell pada kolom A1 sampai E1
+        $sheet->getStyle('A1')->getFont()->setBold(true); // Set bold kolom A1
+        $sheet->getStyle('A1')->getAlignment()->setHorizontal('center');
+        $sheet->getStyle('A2')->getAlignment()->setHorizontal('center');
+
+        $sheet->setCellValue('A4', 'No.');
+        $sheet->getStyle('A4')->getFont()->setBold(true);
+        $sheet->getStyle('A4')->getAlignment()->setHorizontal('center');
+
+        foreach (array_values($arrTitle) as $key => $value) {
+
+            $sheet->setCellValue($alphas[$key + 1] . '4', $value);
+            $sheet->getStyle($alphas[$key + 1] . '4')->getFont()->setBold(true);
+            $sheet->getStyle($alphas[$key + 1] . '4')->getAlignment()->setHorizontal('center');
+        }
+
+        $num = 5;
+        $numAlpa = 1;
+        foreach ($data as $dKey => $dVal) {
+            $sheet->setCellValue('A' . $num, $dKey + 1);
+            $sheet->getStyle('A' . $num)->getAlignment()->setHorizontal('center');
+            foreach ($dVal as $key => $value) {
+                $sheet->setCellValue($alphas[$numAlpa] . $num, $value);
+                $sheet->getStyle($alphas[$numAlpa] . $num)->getAlignment()->setHorizontal('left');
+                $sheet->getColumnDimension($alphas[$numAlpa])->setAutoSize(true);
+                $numAlpa++;
+            }
+            $numAlpa = 1;
+            $num++;
+        }
+
+        $writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
+        $filePath = 'files/export/Generate Inv' . date(('Y-m-d')) . rand()  . '.xlsx';
+        $writer->save($filePath);
+
+        $export['status'] = true;
+        $export['data'] = $filePath;
+        return $export;
     }
 }

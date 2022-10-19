@@ -22,4 +22,37 @@ class OnuController extends Controller
         var_dump($session->walk(".1.3.6.1.4.1.3902.1012.3.28.1.1.3"));
         var_dump($session->getError());
     }
+
+    public function unconfig($ipOlt = '192.168.99.71')
+    {
+        require_once "../app/Lib/Net_Telnet.php";
+
+        
+        try {
+            $t = new Net_Telnet($ipOlt);
+            $t->connect();
+
+            echo $t->login(
+                array(
+                    'login_prompt'  => 'Username:',
+                    'login_success' => 'Oke',
+                    'login_fail'    => '% Access denied',
+                    'login'         => 'zte',
+                    'password'      => 'kds@lifemedia',
+                    'prompt'        => 'OLT-KDS-SENOPATI#',
+                )
+            );
+
+            echo $t->cmd('show version');
+
+            $t->disconnect();
+
+            echo $t->get_data();
+            echo "\n";
+        } catch (Exception $e) {
+            echo "Caught Exception ('{$e->getMessage()}')\n{$e}\n";
+        }
+
+        exit();
+    }
 }

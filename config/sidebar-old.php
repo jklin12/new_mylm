@@ -70,8 +70,34 @@ if (!function_exists('SchRp')) {
 }
 
 if (!function_exists('side_menu')) {
-	function side_menu()
+	function side_menu($custNumber = '')
 	{
+		$menuOlt = [];
+
+		$menuOlt = [
+			'icon' => 'fas fa-network-wired',
+			'title' => 'OLT Provisioning',
+			'url' => 'javascript:;',
+			'caret' => true,
+			'sub_menu' => [
+				[
+					'url' => route('report-olt'),
+					'title' => 'Summary',
+					'route-name' => 'report-olt'
+				],
+				[
+					'url' => route('olt-uncfg'),
+					'title' => 'Unconfig',
+					'route-name' => 'olt-uncfg'
+				],
+				[
+					'url' => route('olt-index'),
+					'title' => 'Data',
+					'route-name' => 'olt-index'
+				],
+			]
+		];
+
 		$menuFinance = [];
 		if (Auth::user()->level > 5) {
 			$menuFinance = [
@@ -121,11 +147,7 @@ if (!function_exists('side_menu')) {
 						'title' => 'SPK',
 						'route-name' => 'report-spk'
 					],
-					[
-						'url' => route('report-olt'),
-						'title' => 'OLT',
-						'route-name' => 'report-olt'
-					],
+					
 				]
 			];
 		}
@@ -141,6 +163,11 @@ if (!function_exists('side_menu')) {
 					'url' => route('pay-request'),
 					'title' => 'Payment Request',
 					'route-name' => 'pay-request'
+				],
+				[
+					'url' => route('qris-index'),
+					'title' => 'QRIS Request',
+					'route-name' => 'qris-index'
 				],
 				[
 					'url' => route('send-invoice-form'),
@@ -159,7 +186,7 @@ if (!function_exists('side_menu')) {
 
 		$menuPelanggan = [];
 		$route = Route::current();
-		if ($route->getName() == 'customer-detail') {
+		if ($route->getName() == 'customer-detail' || $route->getName() == 'customer-porfoma' || $route->getName() == 'porfoma-detail') {
 			$menuPelanggan = [
 				'icon' => 'fa fa-users',
 				'title' => 'Pelanggan',
@@ -173,17 +200,17 @@ if (!function_exists('side_menu')) {
 						'route-name' => 'customer-index'
 					],
 					[
-						'url' => route('customer-detail', 'cust=' . request()->get('cust')),
+						'url' => route('customer-detail', $custNumber),
 						'title' => 'Data Pelanggan',
 						'route-name' => 'customer-detail'
 					],
-					[
-						'url' => route('customer-cupkg', 'cust=' . request()->get('cust')),
+					/*[
+						'url' => route('customer-cupkg', $custNumber),
 						'title' => 'Acount Teknis',
 						'route-name' => 'customer-cupkg'
-					],
+					],*/
 					[
-						'url' => route('customer-porfoma', 'cust=' . request()->get('cust')),
+						'url' => route('customer-porfoma', $custNumber),
 						'title' => 'Porfoma',
 						'route-name' => 'customer-porfoma'
 					]
@@ -211,7 +238,8 @@ if (!function_exists('side_menu')) {
 				$menuPelanggan,
 				$menuReport,
 				$menuDoku,
-				$menuFinance
+				$menuFinance,
+				$menuOlt
 
 			]
 

@@ -6,6 +6,7 @@
     "license": "MIT",
     "require": {
         "php": "^8.0.2",
+        "chillerlan/php-qrcode": "^4.3",
         "evilfreelancer/routeros-api-php": "^1.4",
         "glhd/aire": "^2.6",
         "glhd/aire-bootstrap": "^2.1",
