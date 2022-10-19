@@ -74,29 +74,31 @@ if (!function_exists('side_menu')) {
 	{
 		$menuOlt = [];
 
-		$menuOlt = [
-			'icon' => 'fas fa-network-wired',
-			'title' => 'OLT Provisioning',
-			'url' => 'javascript:;',
-			'caret' => true,
-			'sub_menu' => [
-				[
-					'url' => route('report-olt'),
-					'title' => 'Summary',
-					'route-name' => 'report-olt'
-				],
-				[
-					'url' => route('olt-uncfg'),
-					'title' => 'Unconfig',
-					'route-name' => 'olt-uncfg'
-				],
-				[
-					'url' => route('olt-index'),
-					'title' => 'Data',
-					'route-name' => 'olt-index'
-				],
-			]
-		];
+		if (Auth::user()->level == 4 || Auth::user()->level == 9) {
+			$menuOlt = [
+				'icon' => 'fas fa-network-wired',
+				'title' => 'OLT Provisioning',
+				'url' => 'javascript:;',
+				'caret' => true,
+				'sub_menu' => [
+					[
+						'url' => route('report-olt'),
+						'title' => 'Summary',
+						'route-name' => 'report-olt'
+					],
+					[
+						'url' => route('olt-uncfg'),
+						'title' => 'Unconfig',
+						'route-name' => 'olt-uncfg'
+					],
+					[
+						'url' => route('olt-index'),
+						'title' => 'Data',
+						'route-name' => 'olt-index'
+					],
+				]
+			];
+		}
 
 		$menuFinance = [];
 		if (Auth::user()->level > 5) {
@@ -119,6 +121,7 @@ if (!function_exists('side_menu')) {
 				]
 			];
 		}
+
 		$menuReport = [];
 		if (Auth::user()->level > 5) {
 			$menuReport = [
@@ -147,12 +150,12 @@ if (!function_exists('side_menu')) {
 						'title' => 'SPK',
 						'route-name' => 'report-spk'
 					],
-					
+
 				]
 			];
 		}
 		$menuDoku = [];
-		//if (Auth::user()->level > 5) {
+		if (Auth::user()->level == 3 || Auth::user()->level > 5) {
 		$menuDoku = [
 			'icon' => 'fa fa-dollar-sign',
 			'title' => 'Doku',
@@ -182,7 +185,7 @@ if (!function_exists('side_menu')) {
 
 			]
 		];
-		//}
+		}
 
 		$menuPelanggan = [];
 		$route = Route::current();
