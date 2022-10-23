@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\DataTables\PorfomaReport2DataTable;
+use App\DataTables\PorfomaReportDatatable;
+use App\DataTables\Scopes\ReportPorfomaScope;
 use App\Models\InvoicePorfoma;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -137,7 +140,7 @@ class ReportController extends Controller
         $totalPelanggan = 0;
         $PelangganByStatus = [];
         foreach ($allPelanggan as $key => $value) {
-            
+
             if ($value->cupkg_status) {
                 $totalPelanggan += $value->total;
                 $PelangganByStatus[$key]['total'] = $value->total;
@@ -200,7 +203,7 @@ class ReportController extends Controller
         $load['chartPop'] = json_encode($susunCustPop);
 
         $load['totalPelanggan'] = $totalPelanggan;
-        $load['PelangganByStatus'] = $PelangganByStatus;        
+        $load['PelangganByStatus'] = $PelangganByStatus;
 
         return view('pages/report/pengguna-index', $load);
     }
@@ -230,11 +233,12 @@ class ReportController extends Controller
             ->where('inv_status', '1')
             //->groupBy('t_invoice_porfoma.inv_number')
             ->first();
+        //dd($porfomaLunas);
 
         $porfomaStatus = DB::table('t_invoice_porfoma')
             ->select([DB::raw('count(inv_number) as total_pi'), DB::raw('SUM(CASE WHEN inv_status = 1 THEN 1 ELSE 0 END) as total_pi_lunas'), DB::raw('SUM(CASE WHEN inv_status = 0 THEN 1 ELSE 0 END) as total_pi_tidak_lunas'), DB::raw('SUM(CASE WHEN inv_status = 2 THEN 1 ELSE 0 END) as total_pi_expired')])
-            ->whereRaw("MONTH(inv_post) = '" . $month . "'")
-            ->whereRaw("YEAR(inv_post) = '" . $year . "'")
+            ->whereRaw("MONTH(inv_start) = '" . $month . "'")
+            ->whereRaw("YEAR(inv_start) = '" . $year . "'")
             //->where('inv_status', '1')
             //->groupBy('inv_status')
             ->first();
@@ -279,7 +283,22 @@ class ReportController extends Controller
         return view('pages/report/porfoma-index', $load);
     }
 
-    public function porfomaDetail(Request $request, $date)
+    public function porfomaDetail(PorfomaReportDataTable $dataTable, Request $request)
+    {
+        $title = 'Datail Report Porfoma';
+        $subTitle = '';
+
+        $load['title'] = $title;
+        $load['sub_title'] = $subTitle;
+        $load['date'] = $request->has('inv_start') ?  $request->input('inv_start') . ' s/d ' . $request->input('inv_start') : '';
+        $load['pi_status'] = $request->has('pi_status') ?  $request->input('pi_status') : '';
+        $load['bulan'] = $request->has('bulan') ?  $request->input('bulan') : '';
+        //dd($load);
+
+        return $dataTable->addScope(new ReportPorfomaScope($request))->render('pages/report/porfoma-detail', $load);
+    }
+
+    public function porfomaDetailOld(PorfomaReportDatatable $dataTable, $date)
     {
 
         $title = 'Data Porfoma';
@@ -357,7 +376,7 @@ class ReportController extends Controller
                     return $actionBtn;
                 })
                 ->rawColumns(['detail'])
-                
+
                 ->make(true);
         }
     }

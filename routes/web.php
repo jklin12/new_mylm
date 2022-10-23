@@ -50,7 +50,7 @@ Route::middleware(['cek_login'])->group(function () {
     Route::get('/report_doku', 'App\Http\Controllers\ReportDokuController@index')->name('report-doku');
     Route::get('/report_pengguna', 'App\Http\Controllers\ReportController@penggunaBaru')->name('report-pengguna');
     Route::get('/report_porfoma', 'App\Http\Controllers\ReportController@porfoma')->name('report-porfoma');
-    Route::get('/report_porfoma/{date}', 'App\Http\Controllers\ReportController@porfomaDetail')->name('report-porfoma-detail');
+    Route::get('/report_porfoma_detail', 'App\Http\Controllers\ReportController@porfomaDetail')->name('report-porfoma-detail');
     Route::get('/report_porfoma_list/{date}', 'App\Http\Controllers\ReportController@porfomaList')->name('report-porfoma-list');
     Route::get('/report_spk', 'App\Http\Controllers\ReportController@spk')->name('report-spk');
     Route::get('/report_olt', 'App\Http\Controllers\ReportController@Olt')->name('report-olt');
@@ -76,6 +76,8 @@ Route::middleware(['cek_login'])->group(function () {
 
     Route::get('/olt', [OltController::class,'index'])->name('olt-index');
     Route::get('/olt_uncfg', [OltController::class,'uncfg'])->name('olt-uncfg');
-    Route::get('/olt_register', [OltController::class,'register'])->name('olt-register');
+    Route::get('/olt_register/{step}', [OltController::class,'register'])->name('olt-register');
+    Route::post('/ppp_register', [OltController::class,'pppRegister'])->name('ppp-register');
+    Route::post('/onu_register', [OltController::class,'onuRegister'])->name('onu-register');
     Route::post('/cek_api', [OltController::class,'api'])->name('olt-api');
 });

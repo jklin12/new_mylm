@@ -33,8 +33,8 @@ class DashboardController extends Controller
 
         $piData = DB::table('t_invoice_porfoma')
             ->select([DB::raw('count(inv_number) as total_pi'), DB::raw('SUM(CASE WHEN inv_status = 1 THEN 1 ELSE 0 END) as total_pi_lunas'), DB::raw('SUM(CASE WHEN inv_status = 0 THEN 1 ELSE 0 END) as total_pi_tidak_lunas'), DB::raw('SUM(CASE WHEN inv_status = 2 THEN 1 ELSE 0 END) as total_pi_expired')])
-            ->where('inv_post', '>=', $curentDateStart)
-            ->where('inv_post', '<=', $curentDateEnd)
+            ->where('inv_start', '>=', $curentDateStart)
+            ->where('inv_start', '<=', $curentDateEnd)
             ->first();
 
         //print_r($piData);die;

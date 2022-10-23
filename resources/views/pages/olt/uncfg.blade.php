@@ -57,7 +57,7 @@
                         @foreach($value as $values)
                         <td>{{$values}}</td>
                         @endforeach
-                        <td><a href="{{route('olt-register', ('olt='.$value[1].'&ip_olt='.$value[0].'&interface='.$value[2].'&sn='.$value[4].'&type='.$value[3])) }}" class="btn btn-pink btn-icon btn-circle"><i class="fa fa-search-plus"></i></a></td>
+                        <td><a href="{{route('olt-register', ('0?olt='.$value[1].'&ip_olt='.$value[0].'&interface='.$value[2].'&sn='.$value[4].'&type='.$value[3])) }}" class="btn btn-pink btn-icon btn-circle"><i class="fa fa-search-plus"></i></a></td>
                     </tr>
                     @empty
                     <div class="col-md-4">
