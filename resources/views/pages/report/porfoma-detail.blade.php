@@ -7,8 +7,10 @@
 <link href="/assets/plugins/datatables.net-bs4/css/dataTables.bootstrap4.min.css" rel="stylesheet" />
 <link href="/assets/plugins/datatables.net-responsive-bs4/css/responsive.bootstrap4.min.css" rel="stylesheet" />
 <link href="/assets/plugins/datatables.net-buttons-bs4/css/buttons.bootstrap4.min.css" rel="stylesheet" />
+<link href="/assets/plugins/bootstrap-daterangepicker/daterangepicker.css" rel="stylesheet" />
+<link href="/assets/plugins/bootstrap-datepicker/dist/css/bootstrap-datepicker.css" rel="stylesheet" />
+<link href="/assets/plugins/bootstrap-datepicker/dist/css/bootstrap-datepicker3.css" rel="stylesheet" />
 <style>
-    
     .pagination>li>a,
     .pagination>li>span {
         color: #b64260;
@@ -39,128 +41,146 @@
 <!-- begin panel -->
 <div class="panel panel-inverse">
     <div class="panel-body">
-        <div class="pull-right ">
-            <div class="dropdown dropleft">
-                <a class=" dropdown-toggle" href="javascript:;" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                    Tampil Kolom
-                </a>
-                <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                    @php $i = 1 @endphp
-                    @foreach($arr_field as $kf=>$vf)
-                    <a class="dropdown-item toggle-vis" data-column="{{ $i }}" id="view_{{ $kf }}" href="#"><input type="checkbox" name="checkbox">&nbsp; {{ $vf['label'] }}</a>
-                    @php $i++ @endphp
-                    @endforeach
+        <form action="" method="get" id="search-filter">
+            <div class="row ">
+                <div class="col">
+                    <div class="form-group row m-b-15">
+                        <label class="col-form-label col-md-3">Status Pelanggan</label>
+                        <div class="col-md-9">
+                            <select name="cupkg_status" id="filter_cupkg_status" class="form-control">
+                                <option value="">Select Status</option>
+                                <option value="1">Registrasi</option>
+                                <option value="2">Instalasi</option>
+                                <option value="3">Setup</option>
+                                <option value="4">Sistem Aktif</option>
+                                <option value="5">Tidak Aktif</option>
+                                <option value="6">Trial</option>
+                                <option value="7">Sewa Khusus</option>
+                                <option value="8">Blokir</option>
+                                <option value="9">Ekslusif</option>
+                                <option value="10">CSR</option>
+                            </select>
+                        </div>
+                    </div>
                 </div>
-            </div>
-        </div>
-        <!--<div class="row">
-            @foreach($arr_field as $kf=>$vf)
-
-            @if(!$vf['searchable'] && $vf['form_type'] =='select')
-            <div class="col-md-4">
-                <div class="form-group row m-b-15">
-                    <label class="col-form-label col-md-3">{{ $vf['label']}}</label>
-                    <div class="col-md-9">
-                        <select class="form-control" id="filter_{{$kf}}" name="cupkg_status">
-                            <option>--Status--</option>
-                            @forelse($vf['keyvaldata'] as $kdata => $vdata)
-                            <option value="{{$kdata}}">{{$vdata}}</option>
-                            @empty
-                            <option value="">Data tidak ditemukan</option>
-                            @endforelse
-                        </select>
+                <div class="col">
+                    <div class="form-group row m-b-15">
+                        <label class="col-form-label col-md-3">Status PI</label>
+                        <div class="col-md-9">
+                            <select name="inv_status" id="filter_inv_status" class="form-control">
+                                <option value="">Select Status PI</option>
+                                <option value="0">Blum Bayar</option>
+                                <option value="1">Lunas</option>
+                                <option value="2">Expired</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="form-group row m-b-15">
+                        <label class="col-form-label col-md-3">Bulan</label>
+                        <div class="col-md-9">
+                            <div class="input-group date" id="month-filter">
+                                <input type="text" class="form-control" name="bulan">
+                                <div class="input-group-addon">
+                                    <i class="fa fa-calendar"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="form-group row m-b-15">
+                        <label class="col-form-label col-md-3">Mulai Layanan</label>
+                        <div class="col-md-9">
+                            <div class="input-group" id="daterange-filter">
+                                <input type="text" name="daterange-filter" class="form-control" value="" placeholder="click to select the date range">
+                                <span class="input-group-append">
+                                    <span class="input-group-text"><i class="fa fa-calendar"></i></span>
+                                </span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-            @endif
-            @endforeach
 
-        </div>-->
-        <div class="mb-1"></div>
-        <br>
-        <div class="table-responsive">
-            <table id="table-cust" class="table table-striped table-bordered table-td-valign-middle">
-                <thead>
-                    <tr>
-                        <th width="1%"></th>
-                        @foreach($arr_field as $vf)
-
-                        <th class="text-nowrap">{{ $vf['label'] }}</th>
-                        @endforeach
-                        <th></th>
-
-                    </tr>
-                </thead>
-                <tfoot>
-                    <th width="1%"></th>
-                    @foreach($arr_field as $kf=> $vf)
-                    @if($vf['form_type'] == 'select')
-                    <th class="text-nowrap">
-                        <select name="{{$kf}}" id="filter_{{$kf}}" class="form-control">
-                            <option value="">Select {{ $vf['label']}}</option>
-                            @foreach($vf['keyvaldata'] as $keyx => $row)
-                            <option value="{{ $keyx }}">{{ $row }}</option>
-                            @endforeach
-                        </select>
-
-                    </th>
-                    @else
-                    <th class="text-nowrap"></th>
-                    @endif
-                    @endforeach
-                    <th></th>
-                </tfoot>
-            </table>
-        </div>
+            <div class="mb-3 text-right">
+                <button type="submit" class="btn btn-pink"><i class="fa fa-search"></i> Cari</button>
+            </div>
+        </form>
+        {!! $dataTable->table() !!}
     </div>
 </div>
 <!-- end panel -->
 @endsection
 
 @push('scripts')
-<script src="/assets/plugins/datatables.net/js/jquery.dataTables.min.js"></script>
-<script src="/assets/plugins/datatables.net-bs4/js/dataTables.bootstrap4.min.js"></script>
-<script src="/assets/plugins/datatables.net-responsive/js/dataTables.responsive.min.js"></script>
-<script src="/assets/plugins/datatables.net-responsive-bs4/js/responsive.bootstrap4.min.js"></script>
-<script src="/assets/plugins/datatables.net-buttons/js/dataTables.buttons.min.js"></script>
-<script src="/assets/plugins/datatables.net-buttons-bs4/js/buttons.bootstrap4.min.js"></script>
+<script type="text/javascript" src="https://cdn.datatables.net/1.10.22/js/jquery.dataTables.min.js"></script>
+<script type="text/javascript" src="https://cdn.datatables.net/1.10.22/js/dataTables.bootstrap4.min.js"></script>
+<script type="text/javascript" src="https://cdn.datatables.net/buttons/1.6.5/js/dataTables.buttons.min.js"></script>
+<script type="text/javascript" src="https://cdn.datatables.net/buttons/1.6.5/js/buttons.bootstrap4.min.js"></script>
+<script src="/assets/plugins/bootstrap-datepicker/dist/js/bootstrap-datepicker.js"></script>
+<script src="/assets/plugins/moment/moment.js"></script>
+<script src="/assets/plugins/bootstrap-daterangepicker/daterangepicker.js"></script>
+<script src="/vendor/datatables/buttons.server-side.js"></script>
+{!! $dataTable->scripts() !!}
 <script>
-    $(function() {
-        buildTable()
+    $(document).ready(function() {
 
-        function buildTable(data = '') {
-            var table = $('#table-cust').DataTable({
-                processing: true,
-                serverSide: true,
-                ajax: {
-                    url: "{{ route('report-porfoma-list', $dates) }}" + "?" + data,
 
-                },
-                columns: <?php echo $table_column ?>,
-            });
-        }
+        var reqTable = $('#porfomareportdatatable-table').DataTable();
 
-        $('#filter_cupkg_status').change(function() {
-            var status = $('#filter_cupkg_status').val();
-            $('#table-cust').DataTable().destroy();
-
-            buildTable('filter_cupkg_status=' + status)
+        $('#month-filter').datepicker({
+            format: "mm",
+            startView: "months",
+            minViewMode: "months"
         });
 
-        $('#filter_inv_status').change(function() {
-            var status = $('#filter_inv_status').val();
-            $('#table-cust').DataTable().destroy();
-
-            buildTable('&filter_inv_status=' + status)
-        });
-
-        $('.toggle-vis').on('click', function(e) {
+        $('#search-filter').on('submit', function(e) {
+            reqTable.draw();
             e.preventDefault();
+        });
 
-            var column = table.column($(this).attr('data-column'));
+        $('#daterange-filter').daterangepicker({
+            format: 'MM/DD/YYYY',
+            startDate: moment().subtract(7, 'days'),
+            endDate: moment(),
+            minDate: '01/06/2020',
+            maxDate: '31/12/2024',
+            dateLimit: {
+                days: 60
+            },
+            showDropdowns: true,
+            showWeekNumbers: true,
+            timePicker: false,
+            timePickerIncrement: 1,
+            timePicker12Hour: true,
+            opens: 'right',
+            drops: 'down',
+            buttonClasses: ['btn', 'btn-sm'],
+            applyClass: 'btn-primary',
+            cancelClass: 'btn-default',
+            separator: ' to ',
+            locale: {
+                applyLabel: 'Submit',
+                cancelLabel: 'Cancel',
+                fromLabel: 'From',
+                toLabel: 'To',
+                customRangeLabel: 'Custom',
+                daysOfWeek: ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'],
+                monthNames: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+                firstDay: 1
+            }
+        }, function(start, end, label) {
+            $('#daterange-filter input').val(start.format('YYYY-MM-DD') + ' s/d ' + end.format('YYYY-MM-DD'));
+            //$('#filter-form').submit();
+        });
 
-            column.visible(!column.visible());
-        })
-    })
+        $('#daterange-filter input').val('<?php echo $date ?>');
+        $('#month-filter input').val('<?php echo $bulan ?>');
+        $('#filter_inv_status').val('<?php echo $pi_status ?>');
+        $('#search-filter').submit();
+    });
 </script>
+
 @endpush

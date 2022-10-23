@@ -16,12 +16,5 @@ class InvoicePorfoma extends Model
     const CREATED_AT = 'inv_post';
     const UPDATED_AT = 'inv_updated';
 
-    public function invNumber()
-    {
-        return $this->hasOne(Invoice::class);
-    }
-
-    public function reportData(){
-        
-    }
+    
 }
