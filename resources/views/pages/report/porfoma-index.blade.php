@@ -29,7 +29,7 @@
 
 
 <!-- begin panel -->
-<div class="row">
+<div class="row mb-3">
     <!-- begin col-3 -->
     <div class="col-xl-3 col-md-6">
         <div class="card border-0 bg-pink text-white text-truncate mb-3">
@@ -107,7 +107,7 @@
         </div>
     </div>
     <!-- end col-3 -->
-
+    
 
 </div>
 
@@ -194,5 +194,6 @@
         },
         series: <?php echo $porfomaChart['value'] ?>,
     });
+    
 </script>
 @endpush

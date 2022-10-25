@@ -146,6 +146,11 @@ if (!function_exists('side_menu')) {
 						'route-name' => 'report-porfoma'
 					],
 					[
+						'url' => route('report-invoice'),
+						'title' => 'Invoice',
+						'route-name' => 'report-invoice'
+					],
+					[
 						'url' => route('report-spk'),
 						'title' => 'SPK',
 						'route-name' => 'report-spk'

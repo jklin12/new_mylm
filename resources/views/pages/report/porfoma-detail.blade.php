@@ -43,7 +43,7 @@
     <div class="panel-body">
         <form action="" method="get" id="search-filter">
             <div class="row ">
-                <div class="col">
+                <div class="col-md">
                     <div class="form-group row m-b-15">
                         <label class="col-form-label col-md-3">Status Pelanggan</label>
                         <div class="col-md-9">
@@ -63,7 +63,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col">
+                <div class="col-md">
                     <div class="form-group row m-b-15">
                         <label class="col-form-label col-md-3">Status PI</label>
                         <div class="col-md-9">
@@ -76,7 +76,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col">
+                <div class="col-md">
                     <div class="form-group row m-b-15">
                         <label class="col-form-label col-md-3">Bulan</label>
                         <div class="col-md-9">
@@ -89,7 +89,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col">
+                <div class="col-md">
                     <div class="form-group row m-b-15">
                         <label class="col-form-label col-md-3">Mulai Layanan</label>
                         <div class="col-md-9">
@@ -108,7 +108,9 @@
                 <button type="submit" class="btn btn-pink"><i class="fa fa-search"></i> Cari</button>
             </div>
         </form>
-        {!! $dataTable->table() !!}
+        <div class="table-responsive table-striped">
+            {!! $dataTable->table() !!}
+        </div>
     </div>
 </div>
 <!-- end panel -->
@@ -143,7 +145,7 @@
 
         $('#daterange-filter').daterangepicker({
             format: 'MM/DD/YYYY',
-            startDate: moment().subtract(7, 'days'),
+            startDate: moment().startOf('month'),
             endDate: moment(),
             minDate: '01/06/2020',
             maxDate: '31/12/2024',
