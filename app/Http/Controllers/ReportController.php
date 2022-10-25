@@ -212,6 +212,76 @@ class ReportController extends Controller
     {
         return round(($value / $total) * 100, 2);
     }
+    public function invoice(Request $request)
+    {
+        $year = isset($xplodeFilter[1]) && $xplodeFilter[1] ? $xplodeFilter[1] : date('Y');
+        $month = isset($xplodeFilter[0]) && $xplodeFilter[0] ? $xplodeFilter[0] : date('m');
+
+        $title = "Report Invoice Lifemedia";
+        $subTitle = 'Sampai Bulan ' . Carbon::parse($year . '-' . $month . '-01')->isoFormat('MMMM YY');;
+
+        $invoiceMonthlyChart = DB::table('t_invoice')
+            ->select([DB::raw('SUM(CASE WHEN inv_status = 1 THEN t_inv_item.ii_amount ELSE 0 END) as total_pi_lunas'), DB::raw('SUM(CASE WHEN inv_status = 0 THEN t_inv_item.ii_amount ELSE 0 END) as total_pi_tidak_lunas'), DB::raw("SUM(CASE WHEN inv_status = 2 THEN t_inv_item.ii_amount ELSE 0 END) as total_pi_expired"), DB::raw("month(inv_start) as bulan")])
+            ->leftJoin('t_inv_item', function ($join) {
+                $join->on('t_invoice.inv_number', '=', 't_inv_item.inv_number')->where('ii_recycle', '<>', 1);;
+            })
+            ->whereRaw("MONTH(inv_start) != '0'")
+            ->whereRaw("MONTH(inv_start) <= '" . $month . "'")
+            ->whereRaw("YEAR(inv_start) = '" . $year . "'")
+            //->where('inv_status', '1')
+            ->groupByRaw("MONTH(inv_start)")
+            ->orderBy('bulan')
+            ->get();
+
+        $susunInvMonthly = [];
+        $chartInvValueMonthly[0]['name'] = 'Porfoma Lunas';
+        $chartInvValueMonthly[1]['name'] = 'Porfoma Belum Lunas';
+        $chartInvValueMonthly[2]['name'] = 'Porfoma Expired';
+        foreach ($invoiceMonthlyChart as $key => $value) {
+            $chartInvLabelMonthly[] = Carbon::parse(date('Y') . "-" . $value->bulan)->isoFormat('MMM YY');
+            $chartInvValueMonthly[0]['data'][$key] = intval($value->total_pi_lunas);
+            $chartInvValueMonthly[1]['data'][$key] = intval($value->total_pi_tidak_lunas);
+            $chartInvValueMonthly[2]['data'][$key] = intval($value->total_pi_expired);
+        }
+        $susunInvMonthly['label'] = json_encode($chartInvLabelMonthly);
+        $susunInvMonthly['value'] = json_encode($chartInvValueMonthly);
+
+        //dd($susunInvMonthly);
+
+        $porfomaMonthlyChart = DB::table('t_invoice_porfoma')
+            ->select([DB::raw('SUM(CASE WHEN inv_status = 1 THEN t_inv_item_porfoma.ii_amount ELSE 0 END) as total_pi_lunas'), DB::raw('SUM(CASE WHEN inv_status = 0 THEN t_inv_item_porfoma.ii_amount ELSE 0 END) as total_pi_tidak_lunas'), DB::raw("SUM(CASE WHEN inv_status = 2 THEN t_inv_item_porfoma.ii_amount ELSE 0 END) as total_pi_expired"), DB::raw("month(inv_start) as bulan")])
+            ->leftJoin('t_inv_item_porfoma', function ($join) {
+                $join->on('t_invoice_porfoma.inv_number', '=', 't_inv_item_porfoma.inv_number')->where('ii_recycle', '<>', 1);;
+            })
+            ->whereRaw("MONTH(inv_start) != '0'")
+            ->whereRaw("MONTH(inv_start) <= '" . $month . "'")
+            ->whereRaw("YEAR(inv_start) = '" . $year . "'")
+            //->where('inv_status', '1')
+            ->groupByRaw("MONTH(inv_start)")
+            ->orderBy('bulan')
+            ->get();
+        $susunChartMonthly = [];
+        $chartValueMonthly[0]['name'] = 'Porfoma Lunas';
+        $chartValueMonthly[1]['name'] = 'Porfoma Belum Lunas';
+        $chartValueMonthly[2]['name'] = 'Porfoma Expired';
+        foreach ($porfomaMonthlyChart as $key => $value) {
+            $chartLabelMonthly[] = Carbon::parse(date('Y') . "-" . $value->bulan)->isoFormat('MMM YY');
+            $chartValueMonthly[0]['data'][$key] = intval($value->total_pi_lunas);
+            $chartValueMonthly[1]['data'][$key] = intval($value->total_pi_tidak_lunas);
+            $chartValueMonthly[2]['data'][$key] = intval($value->total_pi_expired);
+        }
+        $susunChartMonthly['label'] = json_encode($chartLabelMonthly);
+        $susunChartMonthly['value'] = json_encode($chartValueMonthly);
+
+        $load['title'] = $title;
+        $load['sub_title'] = $subTitle;
+        $load['year'] = $year;
+        $load['month'] =  Carbon::parse($year . '-' . $month . '-01')->isoFormat('MMMM');;
+        $load['porfomaChartMonthly'] = $susunChartMonthly;
+        $load['invoiceChartMonthly'] = $susunInvMonthly;
+
+        return view('pages/report/invoice-index', $load);
+    }
     public function porfoma(Request $request)
     {
         $filter =  $request->input('filter');
@@ -222,6 +292,9 @@ class ReportController extends Controller
 
         $title = "Report Porfoma Lifemedia";
         $subTitle = 'Bulan ' . Carbon::parse($year . '-' . $month . '-01')->isoFormat('MMMM YY');;
+
+
+
 
         $porfomaLunas = DB::table('t_invoice_porfoma')
             ->selectRaw('sum(t_inv_item_porfoma.ii_amount) as amount,t_invoice_porfoma.inv_number')
@@ -252,6 +325,8 @@ class ReportController extends Controller
             ->groupByRaw("inv_start")
             ->orderBy('inv_start')
             ->get();
+
+
 
         //dd($porfomaChart);
         $susunChart = [];
