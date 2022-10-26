@@ -238,7 +238,7 @@ if (!function_exists('side_menu')) {
 			'menu' => [
 				[
 					'icon' => 'fa fa-th-large',
-					'title' => 'Dashboard',
+					'title' => 'Dashboard ',
 					//'label' => 'NEW',
 					'url' => '/',
 					'route-name' => '/'

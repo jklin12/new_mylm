@@ -13,6 +13,7 @@ use DataTables;
 class PorfomaController extends Controller
 {
     var $invStatus = [['belum lunas', 'danger'], ['lunas', 'green'], ['expired', 'warning']];
+    
     public function index(Request $request, $cust_number)
     {
         $title = 'Porfoma ' . $cust_number;
@@ -149,6 +150,7 @@ class PorfomaController extends Controller
         $load['datas'] = $susunData2;
         $load['data_summary'] = $susunDataSummary;
         $load['arr_field'] = $arrfield;
+         
 
         return view('pages/porfoma/detail', $load);
     }
@@ -368,4 +370,6 @@ class PorfomaController extends Controller
 
         ];
     }
+
+     
 }

@@ -43,7 +43,7 @@ class PorfomaReportDatatable extends DataTable
                 return Carbon::parse($user->inv_start)->isoFormat('D MMMM YYYY');
             })
             ->addColumn('action', function ($row) {
-                $actionBtn = '<a href="' . route('customer-detail', $row->cust_number) . '" class="btn btn-pink btn-icon btn-circle"><i class="fa fa-search-plus"></i></a>';
+                $actionBtn = '<a href="' . route('porfoma-detail', $row->inv_number) . '" class="btn btn-pink btn-icon btn-circle"><i class="fa fa-search-plus"></i></a>';
                 return $actionBtn;
             })
             ->setRowId('cust_number');

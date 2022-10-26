@@ -33,6 +33,7 @@
 @if($inv_status == 0)
 <div class="pull-right">
     <a href="javascript:;" id="btn_qris" class="btn btn-pink m-r-5 m-b-5">Qris</a>
+    <button type="button" class="btn btn-pink m-r-5 m-b-5" data-toggle="modal" data-target="#message_modal">Kirim Invoice</button>
 </div>
 @endif
 <!-- begin page-header -->
@@ -41,6 +42,19 @@
 <!-- begin panel -->
 @include('includes.component.erorr-message')
 @include('includes.component.success-message')
+
+
+@if ($errors->any())
+<div class="alert alert-danger fade show m-b-10">
+    <span class="close" data-dismiss="alert">×</span>
+    <ul>
+        @foreach ($errors->all() as $error)
+        <li>{{ $error }}</li>
+        @endforeach
+    </ul>
+</div>
+@endif
+
 
 @if($datas)
 <div id="accordion" class="accordion">
@@ -143,12 +157,42 @@
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="message_modal" tabindex="-1" role="dialog" aria-labelledby="message_modalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="message_modalLabel">Kirim Porfoma</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form action="{{route('send-invoice-store')}}" method="POST" id="form_send_message">
+                    @csrf
+                    <div class="form-group">
+                        <label for="recipient-name" class="col-form-label">Nomor Porfoma :</label>
+                        <input type="text" class="form-control" id="" name="form_inv" value="{{ $datas['inv_number'] }}">
+                    </div>
+                    <div class="form-group">
+                        <label for="message-text" class="col-form-label">Nomor Telfon :</label>
+                        <input type="text" class="form-control" id="" name="form_phone">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="submit" form="form_send_message" class="btn btn-pink">Kirim</button>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
 <script>
     $('#btn_qris').click(function() {
-      
+
         $.get("<?php echo route('qris-generate', $datas['inv_number']) ?>", function(data, status) {
             console.log(data['data']['qr']);
             if (data['status']) {
