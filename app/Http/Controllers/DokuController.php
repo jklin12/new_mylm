@@ -453,6 +453,7 @@ class DokuController extends Controller
             ]
         );
 
+        //dd($request->all());
         $query = DB::table('t_invoice_porfoma')
             ->selectRaw('t_invoice_porfoma.sp_nom,t_invoice_porfoma.inv_number, t_invoice_porfoma.inv_status,inv_start,inv_end,trel_cust_pkg.sp_code,t_customer.cust_number,t_customer.cust_name,t_customer.cust_email,t_customer.cust_address,t_customer.cust_city,t_customer.cust_prov,t_customer.cust_zip,t_customer.cust_hp ,cupkg_status,_nomor,sum(t_inv_item_porfoma.ii_amount) as totals')
             ->leftJoin('t_customer', 't_invoice_porfoma.cust_number', '=', 't_customer.cust_number')

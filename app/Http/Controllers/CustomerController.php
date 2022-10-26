@@ -19,6 +19,7 @@ class CustomerController extends Controller
     var $arrStatus = [1 => 'Registrasi', 'Instalasi', 'Setup', 'Sistem Aktif', 'Tidak Aktif', 'Trial', 'Sewa Khusus', 'Blokir', 'Ekslusif', 'CSR'];
     var $jenisIdentitas = [1 => 'KTP', 'SIM', "Passport", 'Lainya'];
     var $jenisAccount = [1 => 'Personal', 'Perusahaan', "Pemkot", 'Lainya'];
+    
     var $baseUrl = 'https://service-chat.qontak.com/api/open/v1/';
     var $token = 'MtJTjHbFwDO3CHCKnshWujjdovWCx_d8LmPOA2BRd7c';
     var $chanelId = 'f08493be-7d5e-4e08-8c30-30d31557b7f0';
