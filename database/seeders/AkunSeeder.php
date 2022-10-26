@@ -18,19 +18,12 @@ class AkunSeeder extends Seeder
     {
         $user = [
             [
-                'username' => 'hd01',
-                'name' => 'hd01',
-                'email' => 'hd01@lifemedia.id',
-                'password' => bcrypt('hd01'),
-                'level' => 8,
-            ], 
-            [
-                'username' => 'ccare1',
-                'name' => 'ccare1',
-                'email' => 'ccare1@lifemedia.id',
-                'password' => bcrypt('ccare1'),
-                'level' => 8,
-            ], 
+                'username' => 'noc01',
+                'name' => 'noc01',
+                'email' => 'noc@lifemedia.id',
+                'password' => bcrypt('noc01'),
+                'level' => 6,
+            ],
         ];
 
         foreach ($user as $key => $value) {

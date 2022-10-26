@@ -66,7 +66,7 @@
                                 <div class="form-group row m-b-15">
                                     <label class="col-form-label col-md-3">Password</label>
                                     <div class="col-md-9">
-                                        <input type="text" class="form-control m-b-5" placeholder="" value="{{$sn}}" name="password">
+                                        <input type="text" class="form-control m-b-5" placeholder="" value="{{$sn}}" name="password" required>
                                     </div>
                                 </div>
                                 <div class="form-group row m-b-15">
@@ -84,7 +84,7 @@
                                 <div class="form-group row m-b-15">
                                     <label class="col-form-label col-md-3">Remote Address</label>
                                     <div class="col-md-9">
-                                        <input type="text" class="form-control m-b-5" placeholder="" value="{{$new_ip}}" name="remote-address">
+                                        <input type="text" class="form-control m-b-5" placeholder="" value="{{$new_ip}}" name="remote_address">
                                     </div>
                                 </div>
 
@@ -131,7 +131,7 @@
                         </tbody>
                     </table>
                     <div class="text-right">
-                        <a href="{{route('olt-register', ('2?olt=' . $olt . '&ip_olt=' . $ip_olt . '&interface=' . $interface . '&sn=' . $sn . '&type=' . $type)) }}" class="btn btn-pink">Next</a>
+                        <a href="{{route('olt-register', ('2?olt=' . $olt . '&ip_olt=' . $ip_olt . '&interface=' . $interface . '&sn=' . $sn . '&type=' . $type.'&name='.$name)) }}" class="btn btn-pink">Next</a>
                     </div>
                     @endif
                 </div>
@@ -148,7 +148,7 @@
                                 <div class="form-group row m-b-15">
                                     <label class="col-form-label col-md-3">Name</label>
                                     <div class="col-md-9">
-                                        <input type="text" class="form-control m-b-5" placeholder="" value="" name="name">
+                                        <input type="text" class="form-control m-b-5" placeholder="" value="{{$name}}" name="name">
                                     </div>
                                 </div>
                                 <div class="form-group row m-b-15">
@@ -178,7 +178,7 @@
                                 <div class="form-group row">
                                     <label class="col-form-label col-md-3">Profile Tcon</label>
                                     <div class="col-md-9">
-                                        <select class="default-select2 form-control" name="tcon_profile">
+                                        <select class="default-select2 form-control" name="tcon_profile" required>
                                             <option value="">-- Pilih Profile --</option>
                                             @forelse($profile_tcon as $key => $value)
                                             <option value="{{$value[1]}}">{{$value[1]}}</option>
@@ -191,7 +191,7 @@
                                 <div class="form-group row">
                                     <label class="col-form-label col-md-3">Profile Trafic</label>
                                     <div class="col-md-9">
-                                        <select class="default-select2 form-control" name="trafic_profile">
+                                        <select class="default-select2 form-control" name="trafic_profile" required>
                                             <option value="">-- Pilih Profile --</option>
                                             @forelse($profile as $key => $value)
                                             <option value="{{$value[1]}}">{{$value[1]}}</option>
@@ -214,7 +214,7 @@
                             @forelse($onu_data as $key => $value)
                             <p class="ml-3">
                                 @foreach($value as $values)
-                                {{ $values }}
+                                {{ $values }} 
                                 @endforeach
                             </p>
                             @empty
@@ -234,8 +234,9 @@
                     <p>
                         @forelse($onu_result as $key => $value)
                         @foreach($value as $keys => $values)
-                        {{ $values}}
+                        {{ $values}} <br>
                         @endforeach
+                        <hr>
                         <br>
                         @empty
                         @endforelse

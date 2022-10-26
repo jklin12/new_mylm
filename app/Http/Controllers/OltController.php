@@ -100,6 +100,7 @@ class OltController extends Controller
             $load['new_ip'] = $newIp['new_ip'];
             $load['ip_terdekat'] = $newIp['ip_terdekat'];
         } elseif ($step == 1) {
+            $name = $request->input('name');
             $client = new Client([
                 'host' => '202.169.224.19',
                 'user' => 'faris123',
@@ -108,12 +109,15 @@ class OltController extends Controller
             ]);
             $query =
                 (new Query('/ppp/secret/print'))
-                ->where('password', $sn);
+                ->where('name', $name);
 
             $response = $client->query($query)->read();
 
+            $load['name'] = $name;
             $load['ppp_result'] = $response;
         } elseif ($step == 2) {
+            $name = $request->input('name');
+            $load['name'] = $name;
 
             $postVal['ip_olt'] = $ipOlt;
             $profile = Http::asForm()->post('http://202.169.224.46:5000/profile', $postVal);
@@ -122,6 +126,7 @@ class OltController extends Controller
 
             $profileTcon = Http::asForm()->post('http://202.169.224.46:5000/profileTcon', $postVal);
             $resProfileTcon = json_decode($profileTcon->body(), true);
+
             //dd($resProfileTcon);
 
             $postVal['interface'] = $interface;
@@ -129,6 +134,22 @@ class OltController extends Controller
             $response = Http::asForm()->post('http://202.169.224.46:5000/showRun', $postVal);
             $resData = json_decode($response->body(), true);
             //dd($resData);
+
+            $dataProfileTrafic = [];
+            $dataProfileTcon = [];
+            if ($ipOlt == '192.168.99.78') {
+                $dataProfileTrafic = $resProfile;
+                $dataProfileTcon = $resProfileTcon;
+            } else {
+                foreach ($resProfile as $key => $value) {
+                    $dataProfileTrafic[$key][0] = $value[1];
+                    $dataProfileTrafic[$key][1] = $value[2];
+                }
+                foreach ($resProfileTcon as $key => $value) {
+                    $dataProfileTcon[$key][0] = $value[1];
+                    $dataProfileTcon[$key][1] = $value[2];
+                }
+            }
 
             $i = 1;
             foreach ($resData as $key => $value) {
@@ -140,27 +161,29 @@ class OltController extends Controller
             }
             $onuInterface = str_replace('gpon-olt_', 'gpon-onu_', $interface);
 
+
             $load['onu_index'] = $i;
             $load['onu_data'] = $resData;
 
-            $load['profile'] = $resProfile;
-            $load['profile_tcon'] = $resProfileTcon;
+            $load['profile'] = $dataProfileTrafic;
+            $load['profile_tcon'] = $dataProfileTcon;
             $load['vlan'] = $this->valn[$ipOlt];
         } elseif ($step == 3) {
 
             $onu_index = $request->input('onu_index');
 
-            $gponOnu = $interface.':'.$onu_index;
+            $gponOnu = 'gpon-onu_'.$interface . ':' . $onu_index;
 
-            $url = 'http://202.169.224.46:5000/detailInfo';
+            $url = 'http://202.169.224.46:5000/cekRegister';
             $postVal['ip_olt'] = $ipOlt;
-            $postVal['interface'] = 'gpon-onu_1/2/2:4';//$interface;
+            $postVal['onu'] = $gponOnu;
 
             $response = Http::asForm()->post($url, $postVal);
             $resData = json_decode($response->body(), true);
-            
-            $load['onu_result'] = $resData;
 
+            //dd($resData);
+
+            $load['onu_result'] = $resData;
         }
 
         $title = 'Register Pelanggan Baru';
@@ -188,9 +211,32 @@ class OltController extends Controller
         $sn = $request->input('sn');
         $olt = $request->input('olt');
         $type = $request->input('type');
+        $name = $request->input('name');
+        $service = $request->input('service');
+        $profile = $request->input('profile');
+        $remote_address = $request->input('remote_address');
 
         //print_r($request->all());
-        return redirect(route('olt-register', ('1?olt=' . $olt . '&ip_olt=' . $ipOlt . '&interface=' . $interface . '&sn=' . $sn . '&type=' . $type)));
+
+        $client = new Client([
+            'host' => '202.169.224.19',
+            'user' => 'faris123',
+            'pass' => 'faris123',
+            'port' => 9778,
+        ]);
+
+        $query =
+            (new Query('/ppp/secret/add'))
+            ->equal('name', $name)
+            ->equal('password', $sn)
+            ->equal('service', $service)
+            ->equal('profile', $profile)
+            ->equal('remote-address', $remote_address);
+
+        $response = $client->query($query)->read();
+        //print_r($response);die;
+
+        return redirect(route('olt-register', ('1?olt=' . $olt . '&ip_olt=' . $ipOlt . '&interface=' . $interface . '&sn=' . $sn . '&type=' . $type . '&name=' . $name)));
     }
 
     public function onuRegister(Request $request)
@@ -207,47 +253,63 @@ class OltController extends Controller
         $profileTrafic = $request->input('trafic_profile');
         $vlan = $request->input('vlan');
 
+        $explodeInt = explode('_', $interface);
         $comand = [];
         if ($ipOlt == '192.168.99.78') {
-
-
-            $comand[] =  'conf t';
+            $comand[] =  'interface ' . $interface;
             $comand[] =  'onu ' . $onuIndex . ' type ZXHN-' . $type . ' sn ' . $sn;
             $comand[] =  '!';
-            $comand[] =  'interface ' . $interface . ':' . $onuIndex;
-            $comand[] =  'description ' . $name . ' sn ' . $sn . ' ' . $interface . ':' . $onuIndex;
+            $comand[] =  'interface gpon-onu_' . $explodeInt[1] . ':' . $onuIndex;
+            $comand[] =  'description ' . $name . ' sn ' . $sn . ' gpon-onu_' . $explodeInt[1] . ':' . $onuIndex;
             $comand[] =  'tcont 1 profile ' . $profileTcon;
             $comand[] =  'gemport 1 name INTERNET unicast tcont 1 dir both';
             $comand[] =  'gemport 1 traffic-limit upstream ' . $profileTrafic . ' downstream ' . $profileTrafic;
             $comand[] =  'switchport mode hybrid vport 1';
             $comand[] =  'service-port 1 vport 1 user-vlan ' . $vlan . ' vlan ' . $vlan;
             $comand[] =  '!';
-            $comand[] =  'pon-onu-mng ' . $interface . ':' . $onuIndex;
+            $comand[] =  'pon-onu-mng gpon-onu_' . $explodeInt[1] . ':' . $onuIndex;
             $comand[] =  'service INTERNET gemport 1 vlan ' . $vlan;
-            $comand[] =  'security-mgmt 2 state enable mode forward protocol web';
             $comand[] =  'wan-ip 1 mode pppoe username ' . $name . ' password ' . $sn . ' vlan-profile vlan-' . $vlan . ' host 1';
+            $comand[] =  'security-mng 2 state enable mode permit protocol web';
             $comand[] =  'wan 1 service internet host 1';
             $comand[] =  '!';
         } else {
-            $comand[] =  'conf t';
+
+            #$comand[] =  'conf t';
+            $comand[] =  'interface ' . $interface;
             $comand[] =  'onu ' . $onuIndex . ' type ZXHN-' . $type . ' sn ' . $sn;
-            $comand[] =  '!';
-            $comand[] =  'interface ' . $interface . ':' . $onuIndex;
-            $comand[] =  'description ' . $name . ' sn ' . $sn . ' ' . $interface . ':' . $onuIndex;
+            $comand[] = '!';
+            $comand[] =  'interface gpon-onu_' . $explodeInt[1] . ':' . $onuIndex;
+            $comand[] =  'description ' . $name . ' sn ' . $sn . ' gpon-onu_' . $explodeInt[1] . ':' . $onuIndex;
             $comand[] =  'tcont 1 profile ' . $profileTcon;
             $comand[] =  'gemport 1 name INTERNET tcont 1';
             $comand[] =  'gemport 1 traffic-limit downstream ' . $profileTrafic;
             $comand[] =  'service-port 1 vport 1 user-vlan ' . $vlan . ' vlan ' . $vlan;
-            $comand[] =  '!';
-            $comand[] =  'pon-onu-mng ' . $interface . ':' . $onuIndex;
+            $comand[] = '!';
+            $comand[] =  'pon-onu-mng gpon-onu_' . $explodeInt[1] . ':' . $onuIndex;
             $comand[] =  'service INTERNET gemport 1 vlan ' . $vlan;
-            $comand[] =  'security-mgmt 2 state enable mode forward protocol web';
             $comand[] =  'wan-ip 1 mode pppoe username ' . $name . ' password ' . $sn . ' vlan-profile vlan-' . $vlan . ' host 1';
+            $comand[] =  'security-mgmt 2 state enable mode forward protocol web';
             $comand[] =  'wan 1 service internet host 1';
-            $comand[] =  '!';
+            $comand[] = '!';
+            $comand[] = 'end';
+            $comand[] = 'wr';
         }
-        //print_r($comand);
-        return redirect(route('olt-register', ('3?olt=' . $olt . '&ip_olt=' . $ipOlt . '&interface=' . $interface . '&sn=' . $sn . '&type=' . $type.'&onu_index='.$onuIndex)));
+
+        
+        $postVal['ip_olt'] = $ipOlt;
+        $postVal['onu'] = 'gpon-onu_' . $explodeInt[1]. ':' . $onuIndex;;
+        $postVal['comm'] = json_encode($comand); 
+        //dd($postVal);
+        //print_r($postVal);die;
+
+        $url = 'http://202.169.224.46:5000/config';
+        $response = Http::asForm()->post($url, $postVal);
+        $resData = json_decode($response->body(), true);
+
+        //dd($resData);
+
+        return redirect(route('olt-register', ('3?olt=' . $olt . '&ip_olt=' . $ipOlt . '&interface=' . $explodeInt[1]  . '&sn=' . $sn . '&type=' . $type . '&onu_index=' . $onuIndex)));
     }
 
     public function api(Request $request)
