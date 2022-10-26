@@ -160,7 +160,7 @@
                                 <div class="form-group row m-b-15">
                                     <label class="col-form-label col-md-3">Type</label>
                                     <div class="col-md-9">
-                                        <input type="text" class="form-control m-b-5" placeholder="" value="{{$type}}" name="type">
+                                        <input type="text" class="form-control m-b-5 border border-danger" placeholder="" value="{{$type}}" name="type">
                                     </div>
                                 </div>
                                 <div class="form-group row m-b-15">
@@ -172,13 +172,13 @@
                                 <div class="form-group row m-b-15">
                                     <label class="col-form-label col-md-3">Onu Index Suggestion</label>
                                     <div class="col-md-9">
-                                        <input type="text" class="form-control m-b-5" placeholder="" value="{{$onu_index}}" name="onu_index">
+                                        <input type="text" class="form-control m-b-5 border border-danger" placeholder="" value="{{$onu_index}}" name="onu_index">
                                     </div>
                                 </div>
                                 <div class="form-group row">
                                     <label class="col-form-label col-md-3">Profile Tcon</label>
                                     <div class="col-md-9">
-                                        <select class="default-select2 form-control" name="tcon_profile" required>
+                                        <select class="default-select2 form-control border border-danger" name="tcon_profile" required>
                                             <option value="">-- Pilih Profile --</option>
                                             @forelse($profile_tcon as $key => $value)
                                             <option value="{{$value[1]}}">{{$value[1]}}</option>
@@ -191,7 +191,7 @@
                                 <div class="form-group row">
                                     <label class="col-form-label col-md-3">Profile Trafic</label>
                                     <div class="col-md-9">
-                                        <select class="default-select2 form-control" name="trafic_profile" required>
+                                        <select class="default-select2 form-control border border-danger" name="trafic_profile" required>
                                             <option value="">-- Pilih Profile --</option>
                                             @forelse($profile as $key => $value)
                                             <option value="{{$value[1]}}">{{$value[1]}}</option>
