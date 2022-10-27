@@ -172,7 +172,7 @@ class OltController extends Controller
 
             $onu_index = $request->input('onu_index');
 
-            $gponOnu = 'gpon-onu_'.$interface . ':' . $onu_index;
+            $gponOnu = 'gpon-onu_' . $interface . ':' . $onu_index;
 
             $url = 'http://202.169.224.46:5000/cekRegister';
             $postVal['ip_olt'] = $ipOlt;
@@ -270,7 +270,7 @@ class OltController extends Controller
             $comand[] =  'pon-onu-mng gpon-onu_' . $explodeInt[1] . ':' . $onuIndex;
             $comand[] =  'service INTERNET gemport 1 vlan ' . $vlan;
             $comand[] =  'wan-ip 1 mode pppoe username ' . $name . ' password ' . $sn . ' vlan-profile vlan-' . $vlan . ' host 1';
-            $comand[] =  'security-mng 2 state enable mode permit protocol web';
+            $comand[] =  'security-mng 1 state enable mode permit protocol web';
             $comand[] =  'wan 1 service internet host 1';
             $comand[] =  '!';
         } else {
@@ -289,23 +289,25 @@ class OltController extends Controller
             $comand[] =  'pon-onu-mng gpon-onu_' . $explodeInt[1] . ':' . $onuIndex;
             $comand[] =  'service INTERNET gemport 1 vlan ' . $vlan;
             $comand[] =  'wan-ip 1 mode pppoe username ' . $name . ' password ' . $sn . ' vlan-profile vlan-' . $vlan . ' host 1';
-            $comand[] =  'security-mgmt 2 state enable mode forward protocol web';
+            $comand[] =  'security-mgmt 1 state enable mode forward protocol web';
             $comand[] =  'wan 1 service internet host 1';
             $comand[] = '!';
             $comand[] = 'end';
             $comand[] = 'wr';
         }
 
-        
+
         $postVal['ip_olt'] = $ipOlt;
-        $postVal['onu'] = 'gpon-onu_' . $explodeInt[1]. ':' . $onuIndex;;
-        $postVal['comm'] = json_encode($comand); 
+        $postVal['onu'] = 'gpon-onu_' . $explodeInt[1] . ':' . $onuIndex;;
+        $postVal['comm'] = json_encode($comand);
         //dd($postVal);
-        //print_r($postVal);die;
 
         $url = 'http://202.169.224.46:5000/config';
         $response = Http::asForm()->post($url, $postVal);
         $resData = json_decode($response->body(), true);
+
+        $postVal['name'] = $name;
+        Http::asForm()->post('http://202.169.224.46:8080/index.php/onu/addLog', $postVal);
 
         //dd($resData);
 
