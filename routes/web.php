@@ -78,6 +78,7 @@ Route::middleware(['cek_login'])->group(function () {
     Route::get('/olt', [OltController::class,'index'])->name('olt-index');
     Route::get('/olt_uncfg', [OltController::class,'uncfg'])->name('olt-uncfg');
     Route::get('/olt_register/{step}', [OltController::class,'register'])->name('olt-register');
+    Route::get('/olt/register_log', [OltController::class,'getLog'])->name('olt-reg-log');
     Route::post('/ppp_register', [OltController::class,'pppRegister'])->name('ppp-register');
     Route::post('/onu_register', [OltController::class,'onuRegister'])->name('onu-register');
     Route::post('/cek_api', [OltController::class,'api'])->name('olt-api');

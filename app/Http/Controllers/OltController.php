@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use \RouterOS\Client;
@@ -242,6 +243,7 @@ class OltController extends Controller
     public function onuRegister(Request $request)
     {
         //dd($request->all());
+        $jenis = $request->input('jenis');
         $ipOlt = $request->input('ip_olt');
         $interface = $request->input('interface');
         $sn = $request->input('sn');
@@ -249,10 +251,13 @@ class OltController extends Controller
         $type = $request->input('type');
         $onuIndex = $request->input('onu_index');
         $name = $request->input('name');
-        $profileTcon = $request->input('tcon_profile');
-        $profileTrafic = $request->input('trafic_profile');
+        $profileTcon1 = $request->input('tcon_profile_1');
+        $profileTcon2 = $request->input('tcon_profile_2');
+        $profileTrafic1 = $request->input('trafic_profile_1');
+        $profileTrafic2 = $request->input('trafic_profile_2');
         $vlan = $request->input('vlan');
 
+        //echo $jenis;
         $explodeInt = explode('_', $interface);
         $comand = [];
         if ($ipOlt == '192.168.99.78') {
@@ -261,17 +266,59 @@ class OltController extends Controller
             $comand[] =  '!';
             $comand[] =  'interface gpon-onu_' . $explodeInt[1] . ':' . $onuIndex;
             $comand[] =  'description ' . $name . ' sn ' . $sn . ' gpon-onu_' . $explodeInt[1] . ':' . $onuIndex;
-            $comand[] =  'tcont 1 profile ' . $profileTcon;
-            $comand[] =  'gemport 1 name INTERNET unicast tcont 1 dir both';
-            $comand[] =  'gemport 1 traffic-limit upstream ' . $profileTrafic . ' downstream ' . $profileTrafic;
-            $comand[] =  'switchport mode hybrid vport 1';
-            $comand[] =  'service-port 1 vport 1 user-vlan ' . $vlan . ' vlan ' . $vlan;
+            $comand[] =  'tcont 1 profile ' . $profileTcon1;
+            if ($profileTcon2) {
+                $comand[] =  'tcont 2 profile ' . $profileTcon2;
+            }
+            if ($jenis == '1') {
+                $comand[] =  'gemport 1 name INTERNET unicast tcont 1 dir both';
+                $comand[] =  'gemport 1 traffic-limit upstream ' . $profileTrafic1 . ' downstream ' . $profileTrafic1;
+                $comand[] =  'switchport mode hybrid vport 1';
+                $comand[] =  'service-port 1 vport 1 user-vlan ' . $vlan . ' vlan ' . $vlan;
+            } elseif ($jenis == '2') {
+                $comand[] =  'gemport 1 name PPPOE unicast tcont 1 dir both';
+                $comand[] =  'gemport 1 traffic-limit upstream ' . $profileTrafic1 . ' downstream ' . $profileTrafic1;
+                $comand[] =  'switchport mode hybrid vport 1';
+                $comand[] =  'service-port 1 vport 1 user-vlan ' . $vlan . ' vlan ' . $vlan;
+                if ($profileTrafic2) {
+                    $comand[] =  'gemport 2 name INTERNNET unicast tcont 2 dir both';
+                    $comand[] =  'gemport 2 traffic-limit upstream ' . $profileTrafic2 . ' downstream ' . $profileTrafic2;
+                    $comand[] =  'switchport mode hybrid vport 2';
+                    $comand[] =  'service-port 2 vport 2 user-vlan 211 vlan 211';
+                }
+            }
             $comand[] =  '!';
             $comand[] =  'pon-onu-mng gpon-onu_' . $explodeInt[1] . ':' . $onuIndex;
-            $comand[] =  'service INTERNET gemport 1 vlan ' . $vlan;
-            $comand[] =  'wan-ip 1 mode pppoe username ' . $name . ' password ' . $sn . ' vlan-profile vlan-' . $vlan . ' host 1';
-            $comand[] =  'security-mng 1 state enable mode permit protocol web';
-            $comand[] =  'wan 1 service internet host 1';
+            if ($jenis == '1') {
+                $comand[] =  'service INTERNET gemport 1 vlan ' . $vlan;
+                $comand[] =  'wan-ip 1 mode pppoe username ' . $name . ' password ' . $sn . ' vlan-profile vlan-' . $vlan . ' host 1';
+                $comand[] =  'security-mng 1 state enable mode permit protocol web';
+                $comand[] =  'wan 1 service internet host 1';
+            } elseif ($jenis == '2') {
+                $comand[] =  'service PPPOE gemport 1 vlan ' . $vlan;
+                $comand[] =  'service INTERNET gemport 2 vlan 211';
+                $comand[] = 'interface eth eth_0/1 state lock';
+                $comand[] = 'interface eth eth_0/2 state lock';
+                $comand[] = 'interface eth eth_0/3 state lock';
+                $comand[] = 'interface eth eth_0/4 state lock';
+                $comand[] = 'interface wifi wifi_0/2 state lock';
+                $comand[] = 'interface wifi wifi_0/3 state lock';
+                $comand[] = 'interface wifi wifi_0/4 state lock';
+                $comand[] = 'vlan port eth_0/1 mode tag vlan 211';
+                $comand[] = 'vlan port eth_0/2 mode tag vlan 211';
+                $comand[] = 'vlan port eth_0/3 mode tag vlan 211';
+                $comand[] = 'vlan port eth_0/4 mode tag vlan 211';
+                $comand[] = 'vlan port wifi_0/1 mode tag vlan 211';
+                $comand[] = 'vlan port wifi_0/2 mode tag vlan 211';
+                $comand[] = 'vlan port wifi_0/3 mode tag vlan 211';
+                $comand[] = 'vlan port wifi_0/4 mode tag vlan 211';
+                $comand[] = 'dhcp-ip ethuni eth_0/1 from-internet';
+                $comand[] = 'dhcp-ip ethuni eth_0/2 from-internet';
+                $comand[] = 'dhcp-ip ethuni eth_0/3 from-internet';
+                $comand[] = 'dhcp-ip ethuni eth_0/4 from-internet';
+                $comand[] =  'wan-ip 1 mode pppoe username ' . $name . ' password ' . $sn . ' vlan-profile vlan-' . $vlan . ' host 1';
+                $comand[] =  'security-mng 1 state enable mode permit protocol web';
+            }
             $comand[] =  '!';
         } else {
 
@@ -281,21 +328,65 @@ class OltController extends Controller
             $comand[] = '!';
             $comand[] =  'interface gpon-onu_' . $explodeInt[1] . ':' . $onuIndex;
             $comand[] =  'description ' . $name . ' sn ' . $sn . ' gpon-onu_' . $explodeInt[1] . ':' . $onuIndex;
-            $comand[] =  'tcont 1 profile ' . $profileTcon;
-            $comand[] =  'gemport 1 name INTERNET tcont 1';
-            $comand[] =  'gemport 1 traffic-limit downstream ' . $profileTrafic;
-            $comand[] =  'service-port 1 vport 1 user-vlan ' . $vlan . ' vlan ' . $vlan;
+            $comand[] =  'tcont 1 profile ' . $profileTcon1;
+            if ($profileTcon2) {
+                $comand[] =  'tcont 2 profile ' . $profileTcon2;
+            }
+            if ($jenis == '1') {
+                $comand[] =  'gemport 1 name INTERNET tcont 1';
+                $comand[] =  'gemport 1 traffic-limit downstream ' . $profileTrafic1;
+                $comand[] =  'service-port 1 vport 1 user-vlan ' . $vlan . ' vlan ' . $vlan;
+            } elseif ($jenis = '2') {
+                $comand[] =  'gemport 1 name PPPOE tcont 1';
+                $comand[] =  'gemport 1 traffic-limit downstream ' . $profileTrafic1;
+                $comand[] =  'service-port 1 vport 1 user-vlan ' . $vlan . ' vlan ' . $vlan;
+                if ($profileTrafic2) {
+                    $comand[] =  'gemport 2 name INTERNET tcont 2';
+                    $comand[] =  'gemport 2 traffic-limit downstream ' . $profileTrafic2;
+                    $comand[] =  'service-port 2 vport 2 user-vlan 211 vlan 211';
+                }
+            }
             $comand[] = '!';
             $comand[] =  'pon-onu-mng gpon-onu_' . $explodeInt[1] . ':' . $onuIndex;
-            $comand[] =  'service INTERNET gemport 1 vlan ' . $vlan;
-            $comand[] =  'wan-ip 1 mode pppoe username ' . $name . ' password ' . $sn . ' vlan-profile vlan-' . $vlan . ' host 1';
-            $comand[] =  'security-mgmt 1 state enable mode forward protocol web';
-            $comand[] =  'wan 1 service internet host 1';
+            if ($jenis == '1') {
+                $comand[] =  'service INTERNET gemport 1 vlan ' . $vlan;
+                $comand[] =  'wan-ip 1 mode pppoe username ' . $name . ' password ' . $sn . ' vlan-profile vlan-' . $vlan . ' host 1';
+                $comand[] =  'security-mgmt 1 state enable mode forward protocol web';
+                $comand[] =  'wan 1 service internet host 1';
+            } elseif ($jenis == '2') {
+                $comand[] =  'service PPPOE gemport 1 vlan ' . $vlan;
+                $comand[] =  'service INTERNET gemport 2 vlan 211';
+                $comand[] = 'interface eth eth_0/1 state lock';
+                $comand[] = 'interface eth eth_0/2 state lock';
+                $comand[] = 'interface eth eth_0/3 state lock';
+                $comand[] = 'interface eth eth_0/4 state lock';
+                $comand[] = 'interface wifi wifi_0/2 state lock';
+                $comand[] = 'interface wifi wifi_0/3 state lock';
+                $comand[] = 'interface wifi wifi_0/4 state lock';
+                $comand[] = 'vlan port eth_0/1 mode tag vlan 211';
+                $comand[] = 'vlan port eth_0/2 mode tag vlan 211';
+                $comand[] = 'vlan port eth_0/3 mode tag vlan 211';
+                $comand[] = 'vlan port eth_0/4 mode tag vlan 211';
+                $comand[] = 'vlan port wifi_0/1 mode tag vlan 211';
+                $comand[] = 'vlan port wifi_0/2 mode tag vlan 211';
+                $comand[] = 'vlan port wifi_0/3 mode tag vlan 211';
+                $comand[] = 'vlan port wifi_0/4 mode tag vlan 211';
+                $comand[] = 'dhcp-ip ethuni eth_0/1 from-internet';
+                $comand[] = 'dhcp-ip ethuni eth_0/2 from-internet';
+                $comand[] = 'dhcp-ip ethuni eth_0/3 from-internet';
+                $comand[] = 'dhcp-ip ethuni eth_0/4 from-internet';
+                $comand[] =  'wan-ip 1 mode pppoe username ' . $name . ' password ' . $sn . ' vlan-profile vlan-' . $vlan . ' host 1';
+                $comand[] =  'security-mgmt 1 state enable mode forward protocol web';
+                if ($jenis == '1') {
+                    $comand[] =  'wan 1 service internet host 1';
+                }
+            }
             $comand[] = '!';
             $comand[] = 'end';
             $comand[] = 'wr';
         }
 
+        //print_r($comand);die;
 
         $postVal['ip_olt'] = $ipOlt;
         $postVal['onu'] = 'gpon-onu_' . $explodeInt[1] . ':' . $onuIndex;;
@@ -305,13 +396,40 @@ class OltController extends Controller
         $url = 'http://202.169.224.46:5000/config';
         $response = Http::asForm()->post($url, $postVal);
         $resData = json_decode($response->body(), true);
-
+        //dd($resData);
         $postVal['name'] = $name;
         Http::asForm()->post('http://202.169.224.46:8080/index.php/onu/addLog', $postVal);
 
         //dd($resData);
 
         return redirect(route('olt-register', ('3?olt=' . $olt . '&ip_olt=' . $ipOlt . '&interface=' . $explodeInt[1]  . '&sn=' . $sn . '&type=' . $type . '&onu_index=' . $onuIndex)));
+    }
+
+    public function getLog()
+    {
+        $url = 'http://202.169.224.46:8080/index.php/onu/getLog';
+        $response = Http::get($url);
+        $resData = json_decode($response->body(), true);
+
+
+        $susunData = [];
+        foreach ($resData as $key => $value) {
+            $susunData[$key]['olt'] = $value['name'];
+            $susunData[$key]['ip_olt'] = $value['ip'];
+            $susunData[$key]['register_log_name'] = $value['register_log_name'];
+            $susunData[$key]['register_onu'] = $value['register_onu'];
+            $susunData[$key]['register_log_command'] = ($value['register_log_command']);
+            $susunData[$key]['created_at'] = Carbon::parse($value['created_at'])->isoFormat('dddd, D MMMM Y H:mm');
+        }
+        //dd($susunData);
+        $title = 'Log Register';
+        $subTitle = ' ONT Baru';
+
+        $load['title'] = $title;
+        $load['sub_title'] = $subTitle;
+        $load['data'] = $susunData;
+
+        return view('pages/olt/log', $load);
     }
 
     public function api(Request $request)

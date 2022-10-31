@@ -92,6 +92,11 @@ if (!function_exists('side_menu')) {
 						'route-name' => 'olt-uncfg'
 					],
 					[
+						'url' => route('olt-reg-log'),
+						'title' => 'Log Register',
+						'route-name' => 'olt-reg-log'
+					],
+					[
 						'url' => route('olt-index'),
 						'title' => 'Data',
 						'route-name' => 'olt-index'
