@@ -13,6 +13,19 @@
 <!-- begin page-header -->
 <h1 class="page-header">{{ $title}}<small>&nbsp;{{ $sub_title }}</small></h1>
 <!-- end page-header -->
+@if($step == 2)
+<div class="note note-warning m-b-15">
+    <div class="note-icon"><i class="fa fa-lightbulb"></i></div>
+    <div class="note-content">
+        <h4><b>Note !</b></h4>
+        <p>
+            - Untuk OLT C300( TMH_2 ) onu Index Perlu di cek Manual <br>
+            - retail profile tcon 2 dan trafic 2 tidak perlu diisi <br>
+            - Untuk JSS Profile tcon 1 512k tcon 2 50M dan trafic 1 512k trafi 2 50m
+        </p>
+    </div>
+</div>
+@endif
 <!-- begin panel -->
 <div class="panel panel-inverse">
     <div class="panel-body">
@@ -146,6 +159,16 @@
                                 <input type="hidden" name="ip_olt" value="{{ $ip_olt }}">
 
                                 <div class="form-group row m-b-15">
+                                    <label class="col-form-label col-md-3">Jenis</label>
+                                    <div class="col-md-9">
+                                        <select class="form-control" name="jenis" id="jenis">
+                                            <option value="1">Retail</option>
+                                            <option value="2">JSS</option>
+
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-group row m-b-15">
                                     <label class="col-form-label col-md-3">Name</label>
                                     <div class="col-md-9">
                                         <input type="text" class="form-control m-b-5" placeholder="" value="{{$name}}" name="name">
@@ -176,9 +199,9 @@
                                     </div>
                                 </div>
                                 <div class="form-group row">
-                                    <label class="col-form-label col-md-3">Profile Tcon</label>
+                                    <label class="col-form-label col-md-3">Profile Tcon 1</label>
                                     <div class="col-md-9">
-                                        <select class="default-select2 form-control border border-danger" name="tcon_profile" required>
+                                        <select class="default-select2 form-control border border-danger" id="tcon_profile_1" name="tcon_profile_1" required>
                                             <option value="">-- Pilih Profile --</option>
                                             @forelse($profile_tcon as $key => $value)
                                             <option value="{{$value[1]}}">{{$value[1]}}</option>
@@ -189,9 +212,35 @@
                                     </div>
                                 </div>
                                 <div class="form-group row">
-                                    <label class="col-form-label col-md-3">Profile Trafic</label>
+                                    <label class="col-form-label col-md-3">Profile Tcon 2</label>
                                     <div class="col-md-9">
-                                        <select class="default-select2 form-control border border-danger" name="trafic_profile" required>
+                                        <select class="default-select2 form-control border border-danger" id="tcon_profile_2" name="tcon_profile_2">
+                                            <option value="">-- Pilih Profile --</option>
+                                            @forelse($profile_tcon as $key => $value)
+                                            <option value="{{$value[1]}}">{{$value[1]}}</option>
+                                            @empty
+                                            <option value="">Data tidak ditemukan</option>
+                                            @endforelse
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-group row">
+                                    <label class="col-form-label col-md-3">Profile Trafic 1</label>
+                                    <div class="col-md-9">
+                                        <select class="default-select2 form-control border border-danger" id="trafic_profile_1" name="trafic_profile_1" required>
+                                            <option value="">-- Pilih Profile --</option>
+                                            @forelse($profile as $key => $value)
+                                            <option value="{{$value[1]}}">{{$value[1]}}</option>
+                                            @empty
+                                            <option value="">Data tidak ditemukan</option>
+                                            @endforelse
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-group row">
+                                    <label class="col-form-label col-md-3">Profile Trafic 2</label>
+                                    <div class="col-md-9">
+                                        <select class="default-select2 form-control border border-danger" id="trafic_profile_2" name="trafic_profile_2" required>
                                             <option value="">-- Pilih Profile --</option>
                                             @forelse($profile as $key => $value)
                                             <option value="{{$value[1]}}">{{$value[1]}}</option>
@@ -214,7 +263,7 @@
                             @forelse($onu_data as $key => $value)
                             <p class="ml-3">
                                 @foreach($value as $values)
-                                {{ $values }} 
+                                {{ $values }}
                                 @endforeach
                             </p>
                             @empty
@@ -281,6 +330,17 @@
             });
         });
         $(".default-select2").select2();
+        $("#jenis").change(function() {
+            var id = $(this).val()
+
+            if (id == 2) {
+                $('#tcon_profile_1').select2().select2('val', 'up-512k')
+                $('#tcon_profile_2').select2().select2('val', 'UP-LIFESTYLE-50M')
+
+                $('#trafic_profile_1').select2().select2('val', '512k')
+                $('#trafic_profile_2').select2().select2('val', 'LIFESTYLE-50M')
+            }
+        })
     })
 </script>
 @endpush

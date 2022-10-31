@@ -107,7 +107,7 @@ class CustomerController extends Controller
                 } else if ($key == 'cust_sex') {
                     $datas[$key] = $value == 1 ? 'Laki-Laki' : 'Perempuan';
                 } else  if ($key == 'cust_ident_type') {
-                    $datas[$key] = $this->jenisIdentitas[$value];
+                    $datas[$key] = isset($this->jenisIdentitas[$value]) ? $this->jenisIdentitas[$value] :'';
                 } else  if ($key == 'cupkg_status') {
                     $datas[$key] = $this->arrStatus[$value];
                 } else  if ($key == 'cupkg_acc_type') {
