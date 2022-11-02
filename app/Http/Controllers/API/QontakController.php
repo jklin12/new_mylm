@@ -174,30 +174,30 @@ class QontakController extends Controller
 
             $newCmpNum = 'KEL' . sprintf('%05d', $lastNum + 1) . '/' . date('m') . '/' . date('y');
 
-            $subject =  $request->input('cmp_type') == 1 ? 'Intenet' : 'TV' ;
+            $subject =  $request->input('cmp_type') == 1 ? 'Intenet' : 'TV';
 
             $postVal['cmp_number'] = $newCmpNum;
             $postVal['cust_number'] = $custData->cust_number;
             $postVal['sp_code'] = $custData->sp_code;
-            $postVal['cmp_subject'] ='Keluhan ' . $subject. ' Dari WA BOT';
+            $postVal['cmp_subject'] = 'Keluhan ' . $subject . ' Dari WA BOT';
             $postVal['cmp_complain1'] = $request->input('cmp_type');
-            
+
             $postVal['cmp_received'] = date('Y-m-d H:m:s');
             $postVal['cmp_desc'] = $request->input('description');
             $postVal['cmp_via'] = 4;
             $postVal['cmp_type'] = 12;
             $postVal['cmp_priority'] = 2;
             $postVal['cmp_source'] = 2;
-            
+
             $insert = DB::table('t_complain')->insert($postVal);
             if ($insert) {
                 $status = true;
                 $message = 'Add Complain success';
                 $data['cust_number'] = $custData->cust_number;
                 $data['sp_code'] = $custData->sp_code;
-                $data['cust_name'] = $custData->cust_name;
-                $data['cust_address'] = $custData->cust_address;
-                $data['cust_phone'] = $custData->cust_phone;
+                $data['cust_name'] = $this->textsensor($custData->cust_name);
+                $data['cust_address'] = $this->textsensor($custData->cust_address);
+                $data['cust_phone'] = $this->textsensor($custData->cust_phone);
                 $data['cmp_type'] = $postVal['cmp_complain1'];
                 $data['description'] = $postVal['cmp_desc'];
             }
@@ -209,5 +209,25 @@ class QontakController extends Controller
 
         return response()
             ->json($load);
+    }
+
+    private function textsensor($text)
+    {
+        $afterVal = strlen($text) / 4;
+        $jmlSensor = strlen($text) / 2;
+
+        $star = '';
+        for ($i = 0; $i < $jmlSensor; $i++) {
+            $star .= '*';
+        }
+
+        $sensor = substr($text, $afterVal, $jmlSensor);
+
+        //untuk memecah bagian / kelompok angka pertama dan terakhir
+        $noPhone2 = explode($sensor, $text);
+
+        // untuk menggabungkan angka pertama dan terakhir dengan angka tengah yang sudah di sensor
+        $newPhone = $noPhone2[0] . $star . $noPhone2[1];
+        return $newPhone;
     }
 }
