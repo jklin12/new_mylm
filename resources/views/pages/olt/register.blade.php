@@ -240,7 +240,7 @@
                                 <div class="form-group row">
                                     <label class="col-form-label col-md-3">Profile Trafic 2</label>
                                     <div class="col-md-9">
-                                        <select class="default-select2 form-control border border-danger" id="trafic_profile_2" name="trafic_profile_2" required>
+                                        <select class="default-select2 form-control border border-danger" id="trafic_profile_2" name="trafic_profile_2" >
                                             <option value="">-- Pilih Profile --</option>
                                             @forelse($profile as $key => $value)
                                             <option value="{{$value[1]}}">{{$value[1]}}</option>

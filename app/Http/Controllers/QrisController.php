@@ -60,7 +60,7 @@ class QrisController extends Controller
         if ($request->ajax()) {
             $data = DB::table('t_qr_request')
                 ->selectRaw('cust_number,t_invoice_porfoma.inv_number,t_qr_request.*')
-                ->leftJoin('t_invoice_porfoma', 't_qr_request.invoice', '=', 't_invoice_porfoma.inv_number')
+                ->leftJoin('t_invoice_porfoma', 't_qr_request.porfoma', '=', 't_invoice_porfoma.inv_number')
                 ->leftJoin('t_inv_item_porfoma', function ($join) {
                     $join->on('t_invoice_porfoma.inv_number', '=', 't_inv_item_porfoma.inv_number')->where('ii_recycle', '<>', 1);
                 })
@@ -227,7 +227,7 @@ class QrisController extends Controller
                     if ($arr['responseCode'] == '0000') {
                         //dd($arr);
                         $susunData['transactionid'] = $arr['transactionId'];
-                        $susunData['invoice'] = $inv_number;
+                        $susunData['porfoma'] = $inv_number;
                         $susunData['qrCode'] = $arr['qrCode'];
 
                         $insert  = DB::table('t_qr_request')
@@ -331,9 +331,27 @@ class QrisController extends Controller
                 'searchable' => true,
                 'form_type' => 'text',
             ],
-            'invoice' => [
+            
+            /*'invoice' => [
+                'label' => 'Invoice',
+                'orderable' => false,
+                'searchable' => true,
+                'form_type' => 'text',
+            ],*/
+            'porfoma' => [
                 'label' => 'PI',
                 'orderable' => false,
+                'searchable' => true,
+                'form_type' => 'text',
+            ],'customername' => [
+                'label' => 'Nama',
+                'orderable' => true,
+                'searchable' => true,
+                'form_type' => 'text',
+            ],
+            'issuername' => [
+                'label' => 'Isuer Name',
+                'orderable' => true,
                 'searchable' => true,
                 'form_type' => 'text',
             ],
