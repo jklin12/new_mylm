@@ -60,7 +60,7 @@ class PorfomaReportDatatable extends DataTable
 
 
 
-        return $model->select(DB::raw('t_customer.cust_number, t_invoice_porfoma.sp_code'), 'inv_number', 'cust_name', 'cupkg_status', 'inv_status', 'inv_post', 'inv_start', 'wa_sent', 'wa_sent_number')
+        return $model->select(DB::raw('t_customer.cust_number, t_invoice_porfoma.sp_code'), 'inv_number', 'cust_name', 'cupkg_status', 'inv_status', 'inv_post', 'inv_start', 'wa_sent', 'wa_sent_number','cupkg_acct_manager')
             //->where('inv_start', '2022-10-21')
             //->whereRaw("MONTH(inv_start) = '10'")
             ->whereRaw("YEAR(inv_start) = '2022'")
@@ -91,6 +91,7 @@ class PorfomaReportDatatable extends DataTable
                     data.cupkg_status    = $('#filter_cupkg_status').val();
                     data.inv_start    = $('#daterange-filter input').val();
                     data.bulan    = $('#month-filter input').val();
+                    data.tidak_terkirim    = $('#tidak_terkirim').val();
                 }",
             ])
             //->searchPanes(false)
@@ -193,6 +194,12 @@ class PorfomaReportDatatable extends DataTable
                 'orderable' => false,
                 'searchable' => false,
                 'form_type' => 'date',
+            ],
+            'cupkg_acct_manager' => [
+                'label' => 'AM',
+                'orderable' => true,
+                'searchable' => false,
+                'form_type' => 'text',
             ],
             'wa_sent' => [
                 'label' => 'Kirim Invoice',
