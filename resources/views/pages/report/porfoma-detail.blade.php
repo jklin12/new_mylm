@@ -43,7 +43,7 @@
     <div class="panel-body">
         <form action="" method="get" id="search-filter">
             <div class="row ">
-                <div class="col-md">
+                <div class="col-md-3">
                     <div class="form-group row m-b-15">
                         <label class="col-form-label col-md-3">Status Pelanggan</label>
                         <div class="col-md-9">
@@ -63,7 +63,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-md">
+                <div class="col-md-3">
                     <div class="form-group row m-b-15">
                         <label class="col-form-label col-md-3">Status PI</label>
                         <div class="col-md-9">
@@ -76,7 +76,19 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-md">
+                <div class="col-md-3">
+                    <div class="form-group row m-b-15">
+                        <label class="col-form-label col-md-3">WA Terkirim</label>
+                        <div class="col-md-9">
+                            <select name="inv_status" id="tidak_terkirim" class="form-control">
+                                <option value=""></option>
+                                <option value="1">Ya</option>
+                                <option value="0">Tidak</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
                     <div class="form-group row m-b-15">
                         <label class="col-form-label col-md-3">Bulan</label>
                         <div class="col-md-9">
