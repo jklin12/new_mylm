@@ -59,7 +59,7 @@
                         <div class="text-grey f-s-11"><span data-animation="number" data-value="{{ $piData->total_pi_lunas }}">0</span></div>
                         <div class="width-50 text-right pl-2 f-w-600"><span data-animation="number" data-value="{{ $pi_lunas }}">0.00</span>%</div>
                         <div>
-                            <a href="{{ route('report-porfoma-detail','bulan=10&pi_status=1')}}" class="btn btn-yellow btn-icon btn-circle btn-sm ml-3">
+                            <a href="{{ route('report-porfoma-detail','bulan='.date('m').'&pi_status=1')}}" class="btn btn-yellow btn-icon btn-circle btn-sm ml-3">
                                 <i class="fa fa-arrow-right"></i>
                             </a>
                         </div>
@@ -77,7 +77,7 @@
                         <div class="width-50 text-right pl-2 f-w-600"><span data-animation="number" data-value="{{ $pi_belum_lunas }}">0.00</span>%</div>
                     </div>
                     <div>
-                        <a href="{{ route('report-porfoma-detail','bulan=10&pi_status=0')}}" class="btn btn-yellow btn-icon btn-circle btn-sm ml-3">
+                        <a href="{{ route('report-porfoma-detail','bulan='.date('m').'&pi_status=0')}}" class="btn btn-yellow btn-icon btn-circle btn-sm ml-3">
                             <i class="fa fa-arrow-right"></i>
                         </a>
                     </div>
@@ -93,7 +93,7 @@
                         <div class="text-grey f-s-11"><span data-animation="number" data-value="{{ $piData->total_pi_expired }}">0</span></div>
                         <div class="width-50 text-right pl-2 f-w-600"><span data-animation="number" data-value="{{ $pi_expired }}">0.00</span>%</div>
                         <div>
-                            <a href="{{ route('report-porfoma-detail','bulan=10&pi_status=2')}}" class="btn btn-yellow btn-icon btn-circle btn-sm ml-3">
+                            <a href="{{ route('report-porfoma-detail','bulan='.date('m').'&pi_status=2')}}" class="btn btn-yellow btn-icon btn-circle btn-sm ml-3">
                                 <i class="fa fa-arrow-right"></i>
                             </a>
                         </div>
