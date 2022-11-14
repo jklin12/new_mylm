@@ -257,8 +257,8 @@ class ReportController extends Controller
 
         $load['inBoundChart'] = json_encode(array_values($inBoundChart));
         $load['outBoundChart'] = json_encode(array_values($outBoundChart));
-        $value['totalInBoud'] = $totalInBound;
-        $value['totalOuBoud'] = $totalOutBound;
+        $load['totalInBoud'] = $totalInBound;
+        $load['totalOuBoud'] = $totalOutBound;
 
         return view('pages/report/pengguna-index', $load);
     }
