@@ -496,7 +496,7 @@ class DokuController extends Controller
             $encryptionCode = urlencode(base64_encode($originalCode));
 
             $postVal = [
-                'to_name' =>  $query->inv_number . ' - ' . $query->inv_number,
+                'to_name' =>  $query->cust_number . ' - ' . $query->inv_number,
                 'to_number' => $phoneNumber,
                 'message_template_id' => $this->messageId,
                 'channel_integration_id' => $this->chanelId,

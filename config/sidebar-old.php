@@ -3,8 +3,26 @@
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
+if (!function_exists('arrJenisAkun')) {
+	function arrJenisAkun($index = '')
+	{
+		$return = 'Jenis belum ada ';
+		$arrSpk = [
+			1 => 'Personal',
+			2 => 'Perusahaan',
+			3 => 'Pemkot',
+		];
+
+		if (isset($arrSpk[$index])) {
+			$return = $arrSpk[$index];
+		} else {
+			$return = ['status belum ada ', 'dark'];
+		}
+		return $index ? $return : $arrSpk;
+	}
+}
 if (!function_exists('arrCustStatus')) {
-	function arrCustStatus($index)
+	function arrCustStatus($index = '')
 	{
 		$return = ['status belum ada ', 'dark'];
 		$arrSpk = [
@@ -18,7 +36,7 @@ if (!function_exists('arrCustStatus')) {
 		} else {
 			$return = ['status belum ada ', 'dark'];
 		}
-		return $return;
+		return $index ? $return : $arrSpk;
 	}
 }
 if (!function_exists('arrPiStatus')) {
@@ -44,6 +62,18 @@ if (!function_exists('spkVal')) {
 	function spkVal($index)
 	{
 		$arrSpk = ['Tunggu', 'Pelaksanaan', 'OK', 'Batal', 'Reschedule'];
+
+		if (isset($arrSpk[$index])) {
+			return $arrSpk[$index];
+		} else {
+			return false;
+		}
+	}
+}
+if (!function_exists('spkType')) {
+	function spkType($index)
+	{
+		$arrSpk = [1=>'Instalasi', 'Setup', 'Perbaikan', 'Pemblokiran', 'Pencabutan','Upgrade','Downgrade','Blocking','Cabut Pindah','Tambah Titik','Pindah Titik','Tambah STB'];
 
 		if (isset($arrSpk[$index])) {
 			return $arrSpk[$index];
@@ -160,46 +190,58 @@ if (!function_exists('side_menu')) {
 						'title' => 'SPK',
 						'route-name' => 'report-spk'
 					],
+					[
+						'url' => route('report-pelanggan-berhenti'),
+						'title' => 'Pelanggan Berhenti',
+						'route-name' => 'report-pelanggan-berhenti'
+					],
 
 				]
 			];
 		}
 		$menuDoku = [];
 		if (Auth::user()->level == 3 || Auth::user()->level > 5) {
-		$menuDoku = [
-			'icon' => 'fa fa-dollar-sign',
-			'title' => 'Doku',
-			'url' => 'javascript:;',
-			'caret' => true,
-			'sub_menu' => [
-				[
-					'url' => route('pay-request'),
-					'title' => 'Payment Request',
-					'route-name' => 'pay-request'
-				],
-				[
-					'url' => route('qris-index'),
-					'title' => 'QRIS Request',
-					'route-name' => 'qris-index'
-				],
-				[
-					'url' => route('send-invoice-form'),
-					'title' => 'Kirim Invoice',
-					'route-name' => 'send-invoice-form'
-				],
-				[
-					'url' => route('bukti_tf.index'),
-					'title' => 'Bukti Transfer',
-					'route-name' => 'bukti_tf.index'
-				],
+			$menuDoku = [
+				'icon' => 'fa fa-dollar-sign',
+				'title' => 'Doku',
+				'url' => 'javascript:;',
+				'caret' => true,
+				'sub_menu' => [
+					[
+						'url' => route('pay-request'),
+						'title' => 'Payment Request',
+						'route-name' => 'pay-request'
+					],
+					[
+						'url' => route('qris-index'),
+						'title' => 'QRIS Request',
+						'route-name' => 'qris-index'
+					],
+					[
+						'url' => route('send-invoice-form'),
+						'title' => 'Kirim Invoice',
+						'route-name' => 'send-invoice-form'
+					],
+					[
+						'url' => route('bukti_tf.index'),
+						'title' => 'Bukti Transfer',
+						'route-name' => 'bukti_tf.index'
+					],
 
-			]
-		];
+				]
+			];
 		}
 
 		$menuPelanggan = [];
+		$menuMap =  [
+			'icon' => 'fa fa-map',
+			'title' => 'Peta Pelanggan',
+			//'label' => 'NEW',
+			'url' => route('customer-map'),
+			'route-name' => 'customer-map'
+		];
 		$route = Route::current();
-		if ($route->getName() == 'customer-detail' || $route->getName() == 'customer-porfoma' || $route->getName() == 'porfoma-detail') {
+		if ($route->getName() == 'customer-detail' || $route->getName() == 'customer-porfoma' || $route->getName() == 'porfoma-detail' || $route->getName() == 'customer-cupkg' || $route->getName() =='customer-spk') {
 			$menuPelanggan = [
 				'icon' => 'fa fa-users',
 				'title' => 'Pelanggan',
@@ -217,15 +259,20 @@ if (!function_exists('side_menu')) {
 						'title' => 'Data Pelanggan',
 						'route-name' => 'customer-detail'
 					],
-					/*[
+					[
 						'url' => route('customer-cupkg', $custNumber),
 						'title' => 'Acount Teknis',
 						'route-name' => 'customer-cupkg'
-					],*/
+					],
 					[
 						'url' => route('customer-porfoma', $custNumber),
 						'title' => 'Porfoma',
 						'route-name' => 'customer-porfoma'
+					],
+					[
+						'url' => route('customer-spk', $custNumber),
+						'title' => 'Sp Kerja',
+						'route-name' => 'customer-spk'
 					]
 				]
 			];
@@ -249,6 +296,7 @@ if (!function_exists('side_menu')) {
 					'route-name' => '/'
 				],
 				$menuPelanggan,
+				$menuMap,
 				$menuReport,
 				$menuDoku,
 				$menuFinance,

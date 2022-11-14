@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\DataTables\CustomerDataTable;
+use App\DataTables\Scopes\CustomerScope;
 use App\Models\Customer;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -19,13 +21,13 @@ class CustomerController extends Controller
     var $arrStatus = [1 => 'Registrasi', 'Instalasi', 'Setup', 'Sistem Aktif', 'Tidak Aktif', 'Trial', 'Sewa Khusus', 'Blokir', 'Ekslusif', 'CSR'];
     var $jenisIdentitas = [1 => 'KTP', 'SIM', "Passport", 'Lainya'];
     var $jenisAccount = [1 => 'Personal', 'Perusahaan', "Pemkot", 'Lainya'];
-    
+
     var $baseUrl = 'https://service-chat.qontak.com/api/open/v1/';
     var $token = 'MtJTjHbFwDO3CHCKnshWujjdovWCx_d8LmPOA2BRd7c';
     var $chanelId = 'f08493be-7d5e-4e08-8c30-30d31557b7f0';
 
 
-    public function index(Request $request)
+    public function index(CustomerDataTable $dataTable, Request $request)
     {
         $title = 'Data Pelanggan';
         $subTitle = 'Data seluruh Pelanggan lifemedia';
@@ -33,33 +35,18 @@ class CustomerController extends Controller
         $load['title'] = $title;
         $load['sub_title'] = $subTitle;
 
-        $arrfield = $this->arrField();
-        $i = 0;
-        $tableColumn[$i]['data'] = 'DT_RowIndex';
-        $tableColumn[$i]['name'] = 'DT_RowIndex';
-        $tableColumn[$i]['orderable'] = 'false';
-        $tableColumn[$i]['searchable'] = 'false';
-        foreach ($arrfield as $key => $value) {
-            $i++;
-            $tableColumn[$i]['data'] = $key;
-            $tableColumn[$i]['name'] = $value['label'];
-            $tableColumn[$i]['orderable'] = $value['orderable'];
-            $tableColumn[$i]['searchable'] = $value['searchable'];
-        }
-        $tableColumn[$i + 1]['data'] = 'detail';
-        $tableColumn[$i + 1]['name'] = 'detail';
+        $load['arr_pop'] = $this->arrPop;
+        $load['cupkg_status'] = $request->has('cupkg_status') ? $request->input('cupkg_status') : '';
+        $load['cust_pop'] = $request->has('cust_pop') ? $request->input('cust_pop') : '';
+        
 
-        $load['arr_field'] = $arrfield;
-        $load['table_column'] = json_encode($tableColumn);
-        //dd($arrfield);
-
-        return view('pages/customer/index', $load);
+        return $dataTable->addScope(new CustomerScope($request))->render('pages/customer/index', $load);
     }
 
     public function list(Request $request)
     {
         if ($request->ajax()) {
-            $data = Customer::select('t_customer.cust_number', 'cust_name', 'cust_address', 'cust_phone', 'sp_code', 'cust_hp', 'cupkg_status', 'cupkg_svc_begin')
+            $data = Customer::select('t_customer.cust_number', 'cust_name', 'cust_address', 'cust_phone', 'sp_code', 'cust_hp', 'cupkg_status', 'cupkg_svc_begin', 'cust_pop', 'cupkg_acct_manager')
                 ->leftJoin('trel_cust_pkg', 't_customer.cust_number', '=', 'trel_cust_pkg.cust_number')
                 ->latest()->get();
             return Datatables::of($data)
@@ -67,17 +54,61 @@ class CustomerController extends Controller
                 ->editColumn('cupkg_status', function ($user) {
                     return $user->cupkg_status ? $this->arrStatus[$user->cupkg_status] : '';
                 })
+                ->editColumn('cust_pop', function ($user) {
+                    return $user->cust_pop ? $this->arrPop[$user->cust_pop] : '';
+                })
                 ->editColumn('cupkg_svc_begin', function ($user) {
-                    return $user->cupkg_svc_begin ? with(new Carbon($user->cupkg_svc_begin))->isoFormat('dddd, D MMMM Y') : '';
+                    return $user->cupkg_svc_begin ? with(new Carbon($user->cupkg_svc_begin))->isoFormat('ddd, D MMM YY') : '';
+                })
+                ->addColumn('durasi', function ($user) {
+                    $interval = '';
+                    if ($user->cupkg_status != 5) {
+                        $datetime1 = date_create($user->cupkg_svc_begin);
+                        $datetime2 = date_create(date('Y-m-d'));
+                        $interval = date_diff($datetime1, $datetime2);
+                        return $interval->format('%m bulan, %d hari');
+                    }
+                    return $interval;
                 })
                 ->addColumn('detail', function ($row) {
                     $actionBtn = '<a href="' . route('customer-detail', $row->cust_number) . '" class="btn btn-pink btn-icon btn-circle"><i class="fa fa-search-plus"></i></a>';
                     return $actionBtn;
                 })
 
-                ->rawColumns(['detail'])
+                ->rawColumns(['detail', 'durasi'])
                 ->make(true);
         }
+    }
+
+    public function map()
+    {
+        $title = 'Data Pelanggan';
+        $subTitle = 'Data seluruh Pelanggan lifemedia';
+
+        $load['title'] = $title;
+        $load['sub_title'] = $subTitle;
+
+        $data = Customer::select('t_customer.cust_number', 'cust_name', 'cust_address', 'cust_phone', 'sp_code', 'cust_hp', 'cupkg_status', 'cupkg_tech_coord')
+            ->leftJoin('trel_cust_pkg', 't_customer.cust_number', '=', 'trel_cust_pkg.cust_number')
+            ->where('cupkg_tech_coord', '!=', '')
+            //->limit(10)
+            ->latest()->get();
+
+        $susunData = [];
+        foreach ($data as $key => $value) {
+            $explodeCoord  = explode(',', $value['cupkg_tech_coord']);
+            //print_r($explodeCoord);die;
+            $susunData[$key]['type'] = 'Feature';
+            $susunData[$key]['properties']['description'] = '<strong>' . $value['cust_number'] . '</strong><p>' . $value['cust_name'] . '<br>' . $value['cust_address'] . '<br>' . $value['cust_phone'] . '<br>' . $value['sp_code'] . '<br>' . $this->arrStatus[$value['cupkg_status']] . '<br></p>';
+            $susunData[$key]['properties']['status'] = $this->arrStatus[$value['cupkg_status']];
+            $susunData[$key]['geometry']['type'] = 'Point';
+            $susunData[$key]['geometry']['coordinates'][] = isset($explodeCoord[1]) ? doubleval($explodeCoord[1]) : 0;
+            $susunData[$key]['geometry']['coordinates'][] = isset($explodeCoord[0]) ? doubleval($explodeCoord[0]) : 0;
+        }
+
+        $load['datas'] = json_encode($susunData);
+
+        return view('pages/customer/map', $load);
     }
 
     public function detail(Request $request, $cust_number)
@@ -89,8 +120,7 @@ class CustomerController extends Controller
         $messageTemplate = $this->getMessageTemplate();
         $load['title'] = $title;
         $load['sub_title'] = $subTitle;
-        $customer = Customer::leftJoin('trel_cust_pkg', 't_customer.cust_number', '=', 'trel_cust_pkg.cust_number')
-            ->where('t_customer.cust_number', $cust_number)
+        $customer = Customer::where('t_customer.cust_number', $cust_number)
             ->first();
 
         $datas = [];
@@ -107,7 +137,7 @@ class CustomerController extends Controller
                 } else if ($key == 'cust_sex') {
                     $datas[$key] = $value == 1 ? 'Laki-Laki' : 'Perempuan';
                 } else  if ($key == 'cust_ident_type') {
-                    $datas[$key] = isset($this->jenisIdentitas[$value]) ? $this->jenisIdentitas[$value] :'';
+                    $datas[$key] = isset($this->jenisIdentitas[$value]) ? $this->jenisIdentitas[$value] : '';
                 } else  if ($key == 'cupkg_status') {
                     $datas[$key] = $this->arrStatus[$value];
                 } else  if ($key == 'cupkg_acc_type') {
@@ -123,12 +153,36 @@ class CustomerController extends Controller
         //dd($datas);
         $arrfield = $this->arrFieldDetail();
         //dd($arrfield);
+
         $load['cust_number'] = $cust_number;
         $load['datas'] = $datas;
         $load['arr_field'] = $arrfield;
         $load['message_template'] = $messageTemplate;
 
         return view('pages/customer/detail', $load);
+    }
+
+    public function cupkg($cust_number)
+    {
+        $title = 'Akun Teknis ' . $cust_number;
+        $subTitle = '';
+
+        $customer = Customer::leftJoin('trel_cust_pkg', 't_customer.cust_number', '=', 'trel_cust_pkg.cust_number')
+            ->where('t_customer.cust_number', $cust_number)
+            ->get();
+
+        //dd($customer);
+
+        $arrfield = $this->arrFieldCupkg();
+
+        $load['title'] = $title;
+        $load['sub_title'] = $subTitle;
+        $load['cust_number'] = $cust_number;
+        $load['datas'] = $customer;
+        $load['arr_field'] = $arrfield;
+
+
+        return view('pages/customer/cupkg', $load);
     }
 
     private function getMessageTemplate()
@@ -415,25 +469,6 @@ class CustomerController extends Controller
                 'searchable' => true,
                 'form_type' => 'text',
             ],
-            'sp_code' => [
-                'label' => 'Layanan',
-                'orderable' => false,
-                'searchable' => false,
-                'form_type' => 'text',
-            ],
-            'cust_hp' => [
-                'label' => 'Homepass',
-                'orderable' => false,
-                'searchable' => true,
-                'form_type' => 'text',
-            ],
-            'cupkg_status' => [
-                'label' => 'Status',
-                'orderable' => false,
-                'searchable' => false,
-                'form_type' => 'select',
-                'keyvaldata' => $this->arrStatus
-            ],
             'cust_address' => [
                 'label' => 'Alamat',
                 'orderable' => false,
@@ -446,8 +481,43 @@ class CustomerController extends Controller
                 'searchable' => true,
                 'form_type' => 'text',
             ],
+            'cupkg_acct_manager' => [
+                'label' => 'AM',
+                'orderable' => false,
+                'searchable' => false,
+                'form_type' => 'text',
+            ],
+            'sp_code' => [
+                'label' => 'Layanan',
+                'orderable' => false,
+                'searchable' => false,
+                'form_type' => 'text',
+            ],
+
+            'cupkg_status' => [
+                'label' => 'Status',
+                'orderable' => false,
+                'searchable' => false,
+                'form_type' => 'select',
+                'keyvaldata' => $this->arrStatus
+            ],
+            'cust_pop' => [
+                'label' => 'POP',
+                'orderable' => false,
+                'searchable' => false,
+                'form_type' => 'select',
+                'keyvaldata' => $this->arrPop
+            ],
+
             'cupkg_svc_begin' => [
                 'label' => 'Mulai Layanan',
+                'orderable' => true,
+                'searchable' => false,
+                'form_type' => 'text',
+            ],
+
+            'durasi' => [
+                'label' => 'Durasi Layanan',
                 'orderable' => true,
                 'searchable' => false,
                 'form_type' => 'text',
@@ -455,6 +525,59 @@ class CustomerController extends Controller
         ];
     }
 
+    public function arrFieldCupkg()
+    {
+
+        return $arrfield = [
+            [
+                'title' => 'Informasi Account',
+                'data' => [
+                    'sp_code' => [
+                        'form' => true,
+                        'form_type' => 'text',
+                        'label' => 'Jenis Layanan',
+                        'orderable' => true,
+                        'searchable' => true,
+                        'required' => true
+                    ],
+                    'cupkg_acc_type' => [
+                        'form' => true,
+                        'form_type' => 'select',
+                        'label' => 'Jenis Account',
+                        'orderable' => true,
+                        'searchable' => true,
+                        'required' => true,
+                        'keyvaldata' => arrJenisAkun()
+                    ],
+                    'cupkg_svc_begin' => [
+                        'form' => true,
+                        'form_type' => 'date',
+                        'label' => 'Mulai Layanan',
+                        'orderable' => true,
+                        'searchable' => true,
+                        'required' => true
+                    ],
+                    'cupkg_status' => [
+                        'form' => true,
+                        'form_type' => 'date',
+                        'label' => 'Status Layanan',
+                        'orderable' => true,
+                        'searchable' => true,
+                        'required' => true,
+                        'keyvaldata' => arrCustStatus()
+                    ],
+                    'cupkg_acct_manager' => [
+                        'form' => true,
+                        'form_type' => 'text',
+                        'label' => 'Account Manager',
+                        'orderable' => true,
+                        'searchable' => true,
+                        'required' => true
+                    ],
+                ]
+            ]
+        ];
+    }
     public function arrFieldDetail()
     {
 
@@ -666,53 +789,94 @@ class CustomerController extends Controller
 
             ],
             [
-                'title' => 'Informasi Acount',
+                'title' => 'Informasi Penagihan',
                 'data' => [
-                    'sp_code' => [
+                    'cust_bill_contact' => [
                         'form' => true,
                         'form_type' => 'text',
-                        'label' => 'Layanan',
+                        'label' => 'Kontak Penagihan',
+                        'orderable' => true,
+                        'searchable' => true,
+                        'required' => true
+                    ],
+                    'cust_bill_address' => [
+                        'form' => true,
+                        'form_type' => 'text',
+                        'label' => 'Alamat',
                         'orderable' => true,
                         'searchable' => true,
                         'required' => true
                     ],
 
-                    'cupkg_acc_type' => [
+                    'cust_bill_zip' => [
                         'form' => true,
                         'form_type' => 'text',
-                        'label' => 'Jenis Acount',
+                        'label' => 'Kode POS',
                         'orderable' => true,
                         'searchable' => true,
                         'required' => true
                     ],
-                    'cupkg_svc_begin' => [
+                    'cust_bill_city' => [
                         'form' => true,
                         'form_type' => 'select',
-                        'label' => 'Mulai Layanan',
+                        'label' => 'Kota',
                         'orderable' => true,
                         'searchable' => true,
                         'required' => true,
                     ],
-                    'cupkg_acct_manager' => [
+                    'cust_bill_prov' => [
                         'form' => true,
                         'form_type' => 'select',
-                        'label' => 'Account Manager',
+                        'label' => 'Kab',
                         'orderable' => true,
                         'searchable' => true,
                         'required' => true,
                     ],
-                    'cupkg_status' => [
+                    'cust_bill_fax' => [
                         'form' => true,
                         'form_type' => 'select',
-                        'label' => 'Status',
+                        'label' => 'FAX',
                         'orderable' => true,
                         'searchable' => true,
                         'required' => true,
+                    ],
+                    'cust_bill_hp' => [
+                        'form' => true,
+                        'form_type' => 'text',
+                        'label' => 'HP',
+                        'orderable' => true,
+                        'searchable' => true,
+                        'required' => true,
+                    ],
+                    'cust_bill_phone' => [
+                        'form' => true,
+                        'form_type' => 'text',
+                        'label' => 'Phone',
+                        'orderable' => true,
+                        'searchable' => true,
+                        'required' => true,
+                    ],
+                    'cust_bill_email' => [
+                        'form' => true,
+                        'form_type' => 'text',
+                        'label' => 'Email',
+                        'orderable' => true,
+                        'searchable' => true,
+                        'required' => true
+                    ],
+                    'cust_bill_info' => [
+                        'form' => true,
+                        'form_type' => 'text',
+                        'label' => 'Keterangan',
+                        'orderable' => true,
+                        'searchable' => true,
+                        'required' => true
                     ],
 
                 ],
 
-            ]
+            ],
+
         ];
     }
 

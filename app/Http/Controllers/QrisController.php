@@ -8,6 +8,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use chillerlan\QRCode\{QRCode, QROptions};
 use DataTables;
+use \RouterOS\Client;
+use \RouterOS\Query;
 
 class QrisController extends Controller
 {
@@ -15,12 +17,12 @@ class QrisController extends Controller
     var $clientId = '4553';
     var $clientSecret = 'f0636c2085b95aa06908d3a2ec5851df';
     var $secretKey = 'FooCJBwNS5eelxBt';*/
-    
+
     var $baseUrl = 'https://my.dokuwallet.com/';
     var $clientId = '6978';
     var $clientSecret = 'bf727ccbcb24e8fb66dd376ca139a332';
     var $secretKey = 'qqHpni8dX4pyKvnq';
-    
+
 
     var $invStatus = ['N' => ['belum lunas', 'danger'], 'S' => ['lunas', 'green']];
 
@@ -180,7 +182,7 @@ class QrisController extends Controller
 
                 $tokenData = DB::table('t_qris_token')->where('status', 1)->orderByDesc('created_at')->first();
 
-               
+
                 //dd($tok->systrace);
                 $token = $tokenData->token;
                 $systrace = $tokenData->systrace;
@@ -253,9 +255,22 @@ class QrisController extends Controller
         }
     }
 
-    public function cekStatus(Request $request, $transactionid)
+    public function cekStatus(Request $request, $inv_number)
     {
 
+        $query = DB::table('t_qr_request')->selectRaw('porfoma, txnstatus,txndate,transactionid , cupkg_status,amount,t_customer.cust_number,t_invoice_porfoma.inv_number,inv_status,t_invoice_porfoma.sp_nom,t_invoice_porfoma.sp_code,inv_start,inv_end,inv_paid,inv_post,inv_info,cust_name,cust_pop,cust_hp,cust_address,cust_phone,cust_email')
+            ->leftJoin('t_invoice_porfoma', 't_qr_request.porfoma', '=', 't_invoice_porfoma.inv_number')
+            ->leftJoin('t_customer', 't_invoice_porfoma.cust_number', '=', 't_customer.cust_number')
+            ->leftJoin('trel_cust_pkg', function ($join) {
+                $join->on('t_customer.cust_number', '=', 'trel_cust_pkg.cust_number')->on('trel_cust_pkg._nomor', '=', 't_invoice_porfoma.sp_nom');
+            })
+
+            ->groupBy('porfoma', 't_customer.cust_number')
+            ->where('porfoma', $inv_number)
+            ->first();
+
+
+        $transactionid = $query->transactionid;
         $url = $this->baseUrl . '/dokupay/h2h/checkstatusqris';
 
         $tokenData = DB::table('t_qris_token')->where('status', 1)->orderByDesc('created_at')->first();
@@ -294,9 +309,184 @@ class QrisController extends Controller
         if ($response) {
             $arr = json_decode($response, true);
 
-            dd($arr);
+            $susunData = [];
+            foreach ($arr as $key => $value) {
+
+                if ($key == 'responseMessage') {
+                    foreach ($value as $ks => $vs) {
+                        $susunData[$ks] = $vs;
+                    }
+                } else {
+                    $susunData[$key] = $value;
+                }
+            }
+
+            if ($susunData['responseCode'] == 0000) {
+                $postQr['txndate'] = $arr['transactionDateTime'];
+                $postQr['txnstatus'] = 'S';
+                $postQr['acquirer'] = 'DOKU';
+                $postQr['merchantpan'] = '936008990000006978';
+                $postQr['amount'] = $arr['amount'];
+                $postQr['referenceId'] = $arr['referenceId'];
+                //dd($arr, $postQr, $query);
+                DB::table('t_qr_request')->where('transactionId', $arr['transactionId'])->update($postQr);
+
+                if ($query->cupkg_status != 4) {
+                    $getLastSpk = DB::table('t_field_task')
+                        ->select('ft_number')
+                        ->where('ft_number', 'like', 'SP0%')
+                        ->whereRaw('MONTH(ft_received) =' . date('m'))
+                        ->whereRaw('YEAR(ft_received) =' . date('Y'))
+                        ->orderByDesc('ft_number')
+                        ->first();
+                    //print_r($getLastSpk);
+                    if (isset($getLastSpk->ft_number)) {
+                        $explodeSpkNumber = explode('/', $getLastSpk->ft_number);
+                        //echo $getLastSpk->ft_number.'<br>';
+                        $newSpkNumber = sprintf("%05d", substr($explodeSpkNumber[0], 2) + 1);
+                        //echo 'SP'.$newSpkNumber."/NOC/".date('m').'/'.date('y');die;
+
+                        $ftNumber =  'SP' . $newSpkNumber . "/NOC/" . date('m') . '/' . date('y');
+                        $postVal['ft_number'] = $ftNumber;
+                        $postVal['ft_received'] = date('Y-m-d H:i:s');
+                        $postVal['ft_type'] = 2;
+                        $postVal['cust_number'] = $query->cust_number;
+                        $postVal['sp_code'] = $query->sp_code;
+                        $postVal['sp_nom'] = $query->sp_nom;
+                        $postVal['ft_recycle'] = 2;
+                        $postVal['ft_reactive'] = 1;
+                        $postVal['ft_desc'] = 'SPK Setup Genertae by doku at ' . Carbon::parse(date('Y-m-d H:m:i'))->isoFormat('D MMMM Y, HH:mm');
+
+                        //print_r($postVal);
+                        DB::table('t_field_task')->insert($postVal);
+
+                        $status = $this->openBlocking($query->cust_number);
+                        if ($status) {
+                            $updateVal['ft_status'] = '2';
+                            $updateVal['ft_updated'] = date('Y-m-d H:m:i');
+                            $updateVal['ft_solved'] = date('Y-m-d H:m:i');
+                            $updateVal['ft_updated_by'] = "admin";
+                            $updateVal['ft_desc'] = $postVal['ft_desc'] . ' <br> ' . 'Setup done by sistem at ' . Carbon::parse(date('Y-m-d H:m:i'))->isoFormat('D MMMM Y, HH:mm');
+
+                            //print_r($updateVal);
+                            DB::table('t_field_task')
+                                ->where('ft_number', $ftNumber)
+                                ->update($updateVal);
+
+                            DB::table('trel_cust_pkg')
+                                ->where('cust_number', $query->cust_number)
+                                ->update(['cupkg_status' => 4]);
+                        } else {
+                            DB::table('trel_cust_pkg')
+                                ->where('cust_number', $query->cust_number)
+                                ->update(['cupkg_status' => 3]);
+                        }
+                    }
+                }
+
+                if ($query->inv_status == 0) {
+                    $message =  'Di bayar dengan QRIS <br>Diupdate mylm pada ' . Carbon::parse(date('Y-m-d H:m:i'))->isoFormat('D MMMM Y, HH:mm');
+    
+                    $piData['inv_status'] = 1;
+                    $piData['inv_pay_method'] = '12';
+                    $piData['inv_paid'] = date('Y-m-d H:m:i');
+                    $piData['inv_info'] = $message;
+                
+                    DB::table('t_invoice_porfoma')
+                        ->where('inv_number', $query->inv_number)
+                        ->update($piData);
+                }
+            }
+
+            //dd($susunData);
+            return response()
+                ->json($susunData);
         }
         //dd($postVal);
+    }
+
+    private function  openBlocking($cust_number = '')
+    {
+        $client = new Client([
+            'host' => '202.169.224.19',
+            'user' => 'faris123',
+            'pass' => 'faris123',
+            'port' => 9778,
+        ]);
+
+        $status = false;
+
+        if ($cust_number) {
+            $query =
+                (new Query('/ppp/secret/print'))
+                ->where('name', $cust_number);
+
+            // Send query and read response from RouterOS
+            $response = $client->query($query)->read();
+
+            $message = '';
+            $id = '';
+
+            if (isset($response[0])) {
+
+                foreach ($response[0] as $keys => $value) {
+
+                    if ($keys == 'comment') {
+                        $explodeComent = explode('|', $value);
+                        if ($explodeComent) {
+                            //print_r($explodeComent);
+                            if (end($explodeComent)) {
+                                $message .= end($explodeComent);
+                            } else {
+                                $result = array_slice($explodeComent, 0, -1, true);
+                                $message .= end($result) . ' | ';
+                            }
+                        }
+                    }
+                    if ($keys == '.id') {
+                        $id = $value;
+                    }
+                }
+
+                $message .= 'Setup by Mylm at ' . (date('Y-m-d H:i:s')) . ' | ';
+
+                if ($id) {
+
+                    $openBlocking = (new Query('/ppp/secret/enable'))
+                        ->equal('.id', $id);
+                    $response = $client->query($openBlocking)->read();
+
+                    $setComent = (new Query('/ppp/secret/set'))
+                        ->equal('.id', $id)
+                        ->equal('comment', $message);
+                    $response = $client->query($setComent)->read();
+
+                    $status = true;
+                }
+            }
+        }
+
+        return $status;
+    }
+
+    public function updateStatus($inv_number)
+    {
+
+        if ($inv_number) {
+
+            $query = DB::table('t_qr_request')->selectRaw('porfoma, txnstatus,txndate , cupkg_status,amount,t_customer.cust_number,t_invoice_porfoma.inv_number,inv_status,t_invoice_porfoma.sp_nom,t_invoice_porfoma.sp_code,inv_start,inv_end,inv_paid,inv_post,inv_info,cust_name,cust_pop,cust_hp,cust_address,cust_phone,cust_email')
+                ->leftJoin('t_invoice_porfoma', 't_qr_request.porfoma', '=', 't_invoice_porfoma.inv_number')
+                ->leftJoin('t_customer', 't_invoice_porfoma.cust_number', '=', 't_customer.cust_number')
+                ->leftJoin('trel_cust_pkg', function ($join) {
+                    $join->on('t_customer.cust_number', '=', 'trel_cust_pkg.cust_number')->on('trel_cust_pkg._nomor', '=', 't_invoice_porfoma.sp_nom');
+                })
+
+                ->groupBy('porfoma', 't_customer.cust_number')
+                ->where('porfoma', $inv_number)
+                ->first();
+
+            dd($query);
+        }
     }
 
     public function words($systrace = '', $auth = true)
@@ -331,7 +521,7 @@ class QrisController extends Controller
                 'searchable' => true,
                 'form_type' => 'text',
             ],
-            
+
             /*'invoice' => [
                 'label' => 'Invoice',
                 'orderable' => false,
@@ -343,7 +533,7 @@ class QrisController extends Controller
                 'orderable' => false,
                 'searchable' => true,
                 'form_type' => 'text',
-            ],'customername' => [
+            ], 'customername' => [
                 'label' => 'Nama',
                 'orderable' => true,
                 'searchable' => true,

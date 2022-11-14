@@ -29,6 +29,7 @@ Route::get('logout', 'App\Http\Controllers\AuthController@logout')->name('logout
 Route::middleware(['cek_login'])->group(function () {
     Route::get('/cust', 'App\Http\Controllers\CustomerController@index')->name('customer-index');
     Route::get('/cust_list', 'App\Http\Controllers\CustomerController@list')->name('customer-list');
+    Route::get('/cust_map', 'App\Http\Controllers\CustomerController@map')->name('customer-map');
     Route::get('/cust_detail/{cust_number}', 'App\Http\Controllers\CustomerController@detail')->name('customer-detail');
     Route::get('/cust_cupkg/{cust_number}', 'App\Http\Controllers\CustomerController@cupkg')->name('customer-cupkg');
 
@@ -36,11 +37,16 @@ Route::middleware(['cek_login'])->group(function () {
     Route::get('/porfoma_list/{cust_number}', 'App\Http\Controllers\PorfomaController@list')->name('porfoma-list');
     Route::get('/porfoma_detail/{inv_number}', 'App\Http\Controllers\PorfomaController@detail')->name('porfoma-detail');
 
+    Route::get('/cust_spk/{cust_number}', 'App\Http\Controllers\SpkerjaController@index')->name('customer-spk');
+    Route::get('/spk_list/{cust_number}', 'App\Http\Controllers\SpkerjaController@list')->name('spk-list');
+    Route::get('/spk_detail', 'App\Http\Controllers\SpkerjaController@detail')->name('spk-detail');
+
     Route::get('/qris/generate/{inv_number}', 'App\Http\Controllers\QrisController@generate')->name('qris-generate');
     Route::get('/qris', 'App\Http\Controllers\QrisController@index')->name('qris-index');
     Route::get('/qris/auth', 'App\Http\Controllers\QrisController@auth')->name('qris-auth');
     Route::get('/qris_list', 'App\Http\Controllers\QrisController@list')->name('qris-list');
     Route::get('/qris_cek/{id}', 'App\Http\Controllers\QrisController@cekStatus')->name('qris-cek');
+    Route::get('/qris_update/{id}', 'App\Http\Controllers\QrisController@updateStatus')->name('qris-update');
 
 
     Route::get('/customer_audit', 'App\Http\Controllers\CustomerController@audit')->name('customer-audit');
@@ -55,6 +61,7 @@ Route::middleware(['cek_login'])->group(function () {
     Route::get('/report_porfoma_list/{date}', 'App\Http\Controllers\ReportController@porfomaList')->name('report-porfoma-list');
     Route::get('/report_spk', 'App\Http\Controllers\ReportController@spk')->name('report-spk');
     Route::get('/report_olt', 'App\Http\Controllers\ReportController@Olt')->name('report-olt');
+    Route::get('/report_pelanggan_berhenti', 'App\Http\Controllers\ReportController@pelangganBerhenti')->name('report-pelanggan-berhenti');
     
     Route::get('/payment_request', 'App\Http\Controllers\DokuController@paymentRequest')->name('pay-request');
     Route::get('/payment_request_list', 'App\Http\Controllers\DokuController@paymentRequestList')->name('pay-request-list');
@@ -72,9 +79,7 @@ Route::middleware(['cek_login'])->group(function () {
     Route::resource('bukti_tf', 'App\Http\Controllers\BuktiTfController');
     Route::get('bukti_tf_list', 'App\Http\Controllers\BuktiTfController@list')->name('bukti-tf-list');
 
-    Route::get('/onu/index', [OnuController::class,'index'])->name('onu-index');
-    Route::get('/onu_unconfig', [OnuController::class,'unconfig'])->name('onu-uncfg');
-
+    
     Route::get('/olt', [OltController::class,'index'])->name('olt-index');
     Route::get('/olt_uncfg', [OltController::class,'uncfg'])->name('olt-uncfg');
     Route::get('/olt_register/{step}', [OltController::class,'register'])->name('olt-register');
