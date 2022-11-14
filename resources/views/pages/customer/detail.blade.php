@@ -73,7 +73,7 @@
                     <tbody>
                         @foreach($value['data'] as $keys => $values)
                         <tr>
-                            <td class="col-1">
+                            <td class="col-2">
                                 {{ $values['label'] }}
                             </td>
                             <td class="text-center">:</td>

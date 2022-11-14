@@ -17,6 +17,7 @@ class ReportController extends Controller
     var $arrPop = ['Bogor Valley', 'LIFEMEDIA', 'HABITAT', 'SINDUADI', 'GREENNET', 'X-LIFEMEDIA', 'LDP LIFEMEDIA', 'LDP X-LIFEMEDIA', 'JIP', 'Jogja Tronik', 'LDP JIP'];
     var $arrPiStatus = ['Blum Bayar', 'Lunas', 'Expired'];
     var $arrStatus = [1 => 'Registrasi', 'Instalasi', 'Setup', 'Sistem Aktif', 'Tidak Aktif', 'Trial', 'Sewa Khusus', 'Blokir', 'Ekslusif', 'CSR'];
+    var $spkStatus = ['Tunggu', 'Pelaksanaan', 'OK', 'Batal', 'Reschdule'];
 
 
     public function penggunaBaru(Request $request)
@@ -47,27 +48,58 @@ class ReportController extends Controller
         //print_r($susunChartCust);die;
 
 
-        $monthlyCustomerPop = DB::table('t_customer')
-            ->selectRaw('COUNT(t_customer.cust_number) as total, MONTH(created) as bulan,cust_pop')
+        $monthlyCustomerweek = DB::table('t_customer')
+            ->selectRaw('COUNT(t_customer.cust_number) as total, MONTH(created) as bulan,WEEK(created) as minggu')
             //->leftJoin('trel_cust_pkg','t_customer.cust_number','=','trel_cust_pkg.cust_number')
             ->whereRaw("YEAR(created) = '" . $year . "'")
-            ->groupBy('bulan', 'cust_pop')
+            ->groupBy('bulan', 'minggu')
             ->orderBy('bulan')
             ->get();
+        $monthlyCustomerPop = DB::table('t_customer')
+            ->selectRaw('COUNT(t_customer.cust_number) as total, MONTH(created) as bulan,WEEK(created) as minggu,cust_pop')
+            //->leftJoin('trel_cust_pkg','t_customer.cust_number','=','trel_cust_pkg.cust_number')
+            ->whereRaw("YEAR(created) = '" . $year . "'")
+            ->groupBy('minggu', 'cust_pop')
+            ->orderBy('minggu')
+            ->get();
+
 
         $susundrilldown = [];
-        foreach ($monthlyCustomerPop as $key => $value) {
+        foreach ($monthlyCustomerweek as $key => $value) {
             $susundrilldown[$value->bulan]['name'] = Carbon::parse($year . '-' . $value->bulan . '-01')->isoFormat('MMM YY');
             $susundrilldown[$value->bulan]['id'] = Carbon::parse($year . '-' . $value->bulan . '-01')->isoFormat('MMM YY');
-            $susundrilldown[$value->bulan]['data'][$key][] = $this->arrPop[$value->cust_pop];
-            $susundrilldown[$value->bulan]['data'][$key][] = $value->total;
+            $date = Carbon::now();
+            $week = $date->setISODate(date('y'), $value->minggu);
+            $weekStartDate = $week->startOfWeek()->format('d-M');
+            $weekEndDate = $week->endOfWeek()->format('d-M');
+            $susundrilldown[$value->bulan]['data'][$key]['name'] = $weekStartDate . ' s/d ' . $weekEndDate;
+            $susundrilldown[$value->bulan]['data'][$key]['y'] = $value->total;
+            $susundrilldown[$value->bulan]['data'][$key]['drilldown'] = $weekStartDate . ' s/d ' . $weekEndDate;
         }
+        $susundrilldown2 = [];
+        foreach ($monthlyCustomerPop as $key => $value) {
+            $week = $date->setISODate(date('y'), $value->minggu);
+            $weekStartDate = $week->startOfWeek()->format('d-M');
+            $weekEndDate = $week->endOfWeek()->format('d-M');
+            $susundrilldown2[$value->minggu]['id'] = $weekStartDate . ' s/d ' . $weekEndDate;
+            $susundrilldown2[$value->minggu]['data'][$key][] = $this->arrPop[$value->cust_pop];
+            $susundrilldown2[$value->minggu]['data'][$key][] = $value->total;
+        }
+
+
         foreach ($susundrilldown as $key => $value) {
             $susundrilldown[$key]['name'] = $value['name'];
             $susundrilldown[$key]['id'] = $value['id'];
             $susundrilldown[$key]['data'] = array_values($value['data']);
         }
-        //print_r($susundrilldown);die;
+
+        foreach ($susundrilldown2 as $key => $value) {
+            $susundrilldown2[$key]['id'] = $value['id'];
+            $susundrilldown2[$key]['data'] = array_values($value['data']);
+        }
+
+        $susundrilldown = array_merge_recursive($susundrilldown,( $susundrilldown2));
+        //dd($susundrilldown);
 
         $monthlyAm = DB::table('t_customer')
             ->selectRaw('COUNT(t_customer.cust_number) as total, cupkg_acct_manager')
@@ -139,14 +171,26 @@ class ReportController extends Controller
 
         $totalPelanggan = 0;
         $PelangganByStatus = [];
+        $inBoundChart = [];
+        $outBoundChart = [];
         foreach ($allPelanggan as $key => $value) {
 
+            if ($value->cupkg_status != 5 && $value->cupkg_status != 8) {
+                $inBoundChart[$key]['name'] = isset($this->arrStatus[$value->cupkg_status]) ? $this->arrStatus[$value->cupkg_status] : '';
+                $inBoundChart[$key]['x'] = $value->cupkg_status;
+                $inBoundChart[$key]['y'] = $value->total;
+            } else {
+                $outBoundChart[$key]['name'] = isset($this->arrStatus[$value->cupkg_status]) ? $this->arrStatus[$value->cupkg_status] : '';
+                $outBoundChart[$key]['x'] = $value->cupkg_status;
+                $outBoundChart[$key]['y'] = $value->total;
+            }
             if ($value->cupkg_status) {
                 $totalPelanggan += $value->total;
                 $PelangganByStatus[$key]['total'] = $value->total;
                 $PelangganByStatus[$key]['status'] = isset($this->arrStatus[$value->cupkg_status]) ? $this->arrStatus[$value->cupkg_status] : '';
             }
         }
+
 
         $custBySpcode = DB::table('t_customer')
             ->selectRaw('COUNT(t_customer.cust_number) as total, sp_code')
@@ -190,6 +234,7 @@ class ReportController extends Controller
             $susunCustPop[$key]['y'] = $value->total;
         }
 
+
         $load['title'] = $title;
         $load['sub_title'] = $subTitle;
         $load['year'] = $year;
@@ -199,11 +244,15 @@ class ReportController extends Controller
 
         $load['monthlyChartAm'] = json_encode(array_values($susunChartAm));
         $load['drilldownDataAm'] = json_encode(array_values($susundrilldownAm));
+
         $load['chartSpcode'] = json_encode($susunSpcode);
         $load['chartPop'] = json_encode($susunCustPop);
 
         $load['totalPelanggan'] = $totalPelanggan;
         $load['PelangganByStatus'] = $PelangganByStatus;
+
+        $load['inBoundChart'] = json_encode(array_values($inBoundChart));
+        $load['outBoundChart'] = json_encode(array_values($outBoundChart));
 
         return view('pages/report/pengguna-index', $load);
     }
@@ -494,6 +543,107 @@ class ReportController extends Controller
         $load['spk_pencabutan'] = $spkPencabutan;
 
         return view('pages/report/spk-index', $load);
+    }
+
+    public function pelangganBerhenti(Request $request)
+    {
+
+        $filter =  $request->input('filter');
+        $xplodeFilter = explode('-', $filter);
+
+        $year = isset($xplodeFilter[1]) && $xplodeFilter[1] ? $xplodeFilter[1] : date('Y');
+
+
+        $title = "Pelanggan Berhenti ";
+        $subTitle = 'Berdasarakn SPK Pencabutan ' . $year;
+
+
+        $spkPencabutan = DB::table('t_field_task')
+            //->selectRaw('count(ft_number) as jumlah,ft_status')
+            ->select(DB::raw("t_customer.cust_number,trel_cust_pkg.sp_code,DATE_FORMAT(ft_received,'%Y-%m-%d') as tgl_spk"), 'cupkg_status', 'cupkg_svc_begin', 'ft_status')
+            ->whereRaw("YEAR(ft_received) = '" . $year . "'")
+            ->leftJoin('t_customer', 't_field_task.cust_number', '=', 't_customer.cust_number')
+            ->leftJoin('trel_cust_pkg', 't_customer.cust_number', '=', 'trel_cust_pkg.cust_number')
+            ->where('ft_type', '5')
+            ->groupBy(DB::raw("t_customer.cust_number"))
+            //->limit('10')
+            ->get()->toArray();
+        //dd($spkPencabutan);
+
+        $aktifKembali = 0;
+        $totalPencabutan = 0;
+        $status[0] = 1;
+        $status[1] = 1;
+        $status[2] = 1;
+        //$status[3] = 1;
+        $status[4] = 1;
+        $dateDiv = [];
+        foreach ($spkPencabutan as $key => $value) {
+            $totalPencabutan += 1;
+            if ($value->cupkg_status == 4) {
+                $aktifKembali += 1;
+            } else {
+                if ($value->ft_status == 0) {
+                    $status[0] += 1;
+                } elseif ($value->ft_status == 1) {
+                    $status[1] += 1;
+                } elseif ($value->ft_status == 2) {
+                    $status[2] += 1;
+                } elseif ($value->ft_status == 3) {
+                    $aktifKembali += 1;
+                } elseif ($value->ft_status == 4) {
+                    $status[4] += 1;
+                }
+                $interval = date_diff(date_create($value->tgl_spk), date_create($value->cupkg_svc_begin));
+
+                $dateDiv[] = $interval->format('%m');
+            }
+        }
+        $numbers = array();
+
+        foreach ($dateDiv as $field) {
+            if (isset($numbers[$field])) {
+                $numbers[$field] += 1;
+            } else {
+                $numbers[$field] = 1;
+            }
+        }
+
+        $sumMonth = 0;
+        foreach ($numbers as $key => $value) {
+            $sumMonth += $key;
+        }
+
+        foreach ($status as $key => $value) {
+            $susunStatus[$key]['name'] = $this->spkStatus[$key];
+            $susunStatus[$key]['y'] = $value;
+            $susunStatus[$key]['z'] = 90;
+        }
+
+        $susunStatus[5]['name'] = 'Aktif Kembali';
+        $susunStatus[5]['y'] = $aktifKembali;
+        $susunStatus[5]['z'] = 235;
+        //dd($susunStatus);
+
+        $susunChartBulan = [];
+        sort($numbers);
+        foreach ($numbers as $key => $value) {
+            $susunChartBulan[$key]['name'] =  $key;
+            $susunChartBulan[$key]['y'] =  $value;
+        }
+
+        $load['title'] = $title;
+        $load['sub_title'] = $subTitle;
+        $load['year'] = $year;
+        $load['total_spk'] = $totalPencabutan;
+        $load['aktif_kembali'] = $aktifKembali;
+        $load['jumlah_status'] = json_encode(array_values($susunStatus));
+        $load['average'] = round(array_sum($numbers) / $sumMonth, 2);
+        $load['chart_bulan'] = json_encode(array_values($susunChartBulan));
+
+        //dd($load);
+
+        return view('pages/report/pelanggan-berhenti', $load);
     }
 
     public function Olt(Request $request)

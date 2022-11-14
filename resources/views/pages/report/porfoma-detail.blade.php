@@ -10,30 +10,7 @@
 <link href="/assets/plugins/bootstrap-daterangepicker/daterangepicker.css" rel="stylesheet" />
 <link href="/assets/plugins/bootstrap-datepicker/dist/css/bootstrap-datepicker.css" rel="stylesheet" />
 <link href="/assets/plugins/bootstrap-datepicker/dist/css/bootstrap-datepicker3.css" rel="stylesheet" />
-<style>
-    .pagination>li>a,
-    .pagination>li>span {
-        color: #b64260;
-    }
-
-    .pagination>.active>a,
-    .pagination>.active>a:focus,
-    .pagination>.active>a:hover,
-    .pagination>.active>span,
-    .pagination>.active>span:focus,
-    .pagination>.active>span:hover {
-        background-color: green;
-        border-color: green;
-    }
-
-    .page-item.active .page-link {
-        z-index: 1;
-        color: #fff;
-        background-color: #b64260;
-        border-color: #b64260;
-    }
-</style>
-@endpush
+ @endpush
 
 <!-- begin page-header -->
 <h1 class="page-header">{{ $title}}<small>&nbsp;{{ $sub_title }}</small></h1>
@@ -69,9 +46,8 @@
                         <div class="col-md-9">
                             <select name="inv_status" id="filter_inv_status" class="form-control">
                                 <option value="">Select Status PI</option>
-                                <option value="0">Blum Bayar</option>
+                                <option value="0">Blum Lunas</option>
                                 <option value="1">Lunas</option>
-                                <option value="2">Expired</option>
                             </select>
                         </div>
                     </div>

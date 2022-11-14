@@ -90,10 +90,32 @@
                 </thead>
             </table>
         </div>
-      
+
     </div>
 </div>
 <!-- end panel -->
+
+<div class="modal" tabindex="-1" role="dialog" id="modal-cek-payment">
+    <div class="modal-dialog modal-md" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="title">Modal title</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <table class="table table-striped" id="table-data">
+
+                </table>
+            </div>
+            <div class="modal-footer">
+                <a href="" class="btn btn-warning">Update Status</a>
+                <button type="button" class="btn btn-white" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
@@ -115,9 +137,21 @@
             columns: <?php echo $table_column ?>
         });
         $(document).on("click", ".btn-cek", function(event) {
-             
+
             var id = $(this).data('id');
-            alert(id)
+            var element = '';
+            $.get("<?php echo route('qris-cek', '') ?>"+'/'+id, function(data, status) {
+                element += '<tbody>';
+                $.each(data, function(k, v) {
+                    element += '<tr><td class="col-1">' + k + '</td><td>:</td><td>' + v + '</td></tr>';
+                });
+                //alert(element);
+                element += '</tbody>';
+
+                $('#modal-cek-payment #table-data').html(element);
+                $('#modal-cek-payment #title').html('Detail Status Doku');
+                $('#modal-cek-payment').modal('show');
+            });
         })
 
 
