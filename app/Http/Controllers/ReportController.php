@@ -173,16 +173,20 @@ class ReportController extends Controller
         $PelangganByStatus = [];
         $inBoundChart = [];
         $outBoundChart = [];
+        $totalInBound = 0;
+        $totalOutBound = 0;
         foreach ($allPelanggan as $key => $value) {
 
             if ($value->cupkg_status != 5 && $value->cupkg_status != 8) {
                 $inBoundChart[$key]['name'] = isset($this->arrStatus[$value->cupkg_status]) ? $this->arrStatus[$value->cupkg_status] : '';
                 $inBoundChart[$key]['x'] = $value->cupkg_status;
                 $inBoundChart[$key]['y'] = $value->total;
+                $totalInBound += $value->total;
             } else {
                 $outBoundChart[$key]['name'] = isset($this->arrStatus[$value->cupkg_status]) ? $this->arrStatus[$value->cupkg_status] : '';
                 $outBoundChart[$key]['x'] = $value->cupkg_status;
                 $outBoundChart[$key]['y'] = $value->total;
+                $totalOutBound += $value->total;
             }
             if ($value->cupkg_status) {
                 $totalPelanggan += $value->total;
@@ -253,6 +257,8 @@ class ReportController extends Controller
 
         $load['inBoundChart'] = json_encode(array_values($inBoundChart));
         $load['outBoundChart'] = json_encode(array_values($outBoundChart));
+        $load['totalInBoud'] = $totalInBound;
+        $load['totalOuBoud'] = $totalOutBound;
 
         return view('pages/report/pengguna-index', $load);
     }

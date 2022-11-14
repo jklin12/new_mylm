@@ -143,6 +143,9 @@
         title: {
             text: 'In Stream Pelanggan '
         },
+        subtitle: {
+            text: 'Jumlah Total <?php echo $totalInBoud?>'
+        },
         tooltip: {
             pointFormat: 'Jumlah: <b>{point.y}</b><br>' +
                 'Presentase: <b>{point.percentage:.1f}%</b>'
@@ -184,6 +187,9 @@
         },
         title: {
             text: 'Out Stream Pelanggan'
+        },
+        subtitle:{
+            text: 'Jumlah Total <?php echo $totalOuBoud?>'
         },
         tooltip: {
             pointFormat: 'Jumlah: <b>{point.y}</b><br>' +
