@@ -5,6 +5,7 @@ namespace App\DataTables;
 use App\Models\Customer;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder as QueryBuilder;
+use Illuminate\Support\Facades\DB;
 use Yajra\DataTables\EloquentDataTable;
 use Yajra\DataTables\Html\Builder as HtmlBuilder;
 use Yajra\DataTables\Html\Button;
@@ -17,7 +18,7 @@ class CustomerDataTable extends DataTable
 {
     var $arrPop = ['Bogor Valley', 'LIFEMEDIA', 'HABITAT', 'SINDUADI', 'GREENNET', 'X-LIFEMEDIA', 'LDP LIFEMEDIA', 'LDP X-LIFEMEDIA', 'JIP', 'Jogja Tronik', 'LDP JIP'];
     var $arrStatus = [1 => 'Registrasi', 'Instalasi', 'Setup', 'Sistem Aktif', 'Tidak Aktif', 'Trial', 'Sewa Khusus', 'Blokir', 'Ekslusif', 'CSR'];
-   
+
     /**
      * Build DataTable class.
      *
@@ -28,8 +29,14 @@ class CustomerDataTable extends DataTable
     {
         return (new EloquentDataTable($query))
             ->addIndexColumn()
-            ->editColumn('cupkg_status', function ($user) {
-                return $user->cupkg_status ? $this->arrStatus[$user->cupkg_status] : '';
+            ->addColumn('status_plg', function ($user) {
+                $status = arrCustStatus($user->cupkg_status);
+                if ($user->cupkg_status != 5) {
+                    return $user->cupkg_status ? '<h5><span class="badge badge-' . $status[1] . '">' . $status[0]  . '</span></h5>'  : '';
+                } else {
+                    $reason = $user->cuin_reason == 1 ? 'Menunggak' : 'Permintaan Senidiri';
+                    return $user->cupkg_status ? '<h5><a href="javascript:;" class="status_btn" data-cuindate="'.with(new Carbon($user->cuin_date))->isoFormat('dddd, D MMMM YYYY').'" data-cuinreason="'.$reason.'" data-cuininfo="'.$user->cuin_info.'" ><span class="badge badge-' . $status[1] . '">' . $status[0]  . '</span></a></h5>'  : '';
+                }
             })
             ->editColumn('cust_pop', function ($user) {
                 return $user->cust_pop ? $this->arrPop[$user->cust_pop] : '';
@@ -44,6 +51,11 @@ class CustomerDataTable extends DataTable
                     $datetime2 = date_create(date('Y-m-d'));
                     $interval = date_diff($datetime1, $datetime2);
                     return $interval->format('%m bulan, %d hari');
+                } else {
+                    $datetime1 = date_create($user->cupkg_svc_begin);
+                    $datetime2 = date_create($user->cuin_date);
+                    $interval = date_diff($datetime1, $datetime2);
+                    return $interval->format('%m bulan, %d hari');
                 }
                 return $interval;
             })
@@ -51,6 +63,7 @@ class CustomerDataTable extends DataTable
                 $actionBtn = '<a href="' . route('customer-detail', $row->cust_number) . '" class="btn btn-pink btn-icon btn-circle"><i class="fa fa-search-plus"></i></a>';
                 return $actionBtn;
             })
+            ->rawColumns(['status_plg', 'durasi', 'action'])
             ->setRowId('cust_number');
     }
 
@@ -62,8 +75,10 @@ class CustomerDataTable extends DataTable
      */
     public function query(Customer $model): QueryBuilder
     {
-        return $model->select('t_customer.cust_number', 'cust_name', 'cust_address', 'cust_phone', 'sp_code', 'cust_hp', 'cupkg_status', 'cupkg_svc_begin', 'cust_pop', 'cupkg_acct_manager')
+        return $model->select('t_customer.cust_number', 'cust_name', 'cust_address', 'cust_phone', DB::raw('trel_cust_pkg.sp_code'), 'cust_hp', 'cupkg_status', 'cupkg_svc_begin', 'cust_pop', 'cupkg_acct_manager', 'cuin_type', 'cuin_date', 'cuin_reason', 'cuin_info')
             ->leftJoin('trel_cust_pkg', 't_customer.cust_number', '=', 'trel_cust_pkg.cust_number')
+            ->leftJoin('t_customer_inactive', 't_customer.cust_number', '=', 't_customer_inactive.cust_number')
+            ->groupBy('t_customer.cust_number')
             ->newQuery();
     }
 
@@ -173,7 +188,7 @@ class CustomerDataTable extends DataTable
                 'form_type' => 'text',
             ],
 
-            'cupkg_status' => [
+            'status_plg' => [
                 'label' => 'Status',
                 'orderable' => false,
                 'searchable' => false,
@@ -195,12 +210,6 @@ class CustomerDataTable extends DataTable
                 'form_type' => 'text',
             ],
 
-            'durasi' => [
-                'label' => 'Durasi Layanan',
-                'orderable' => true,
-                'searchable' => false,
-                'form_type' => 'text',
-            ],
         ];
     }
 }

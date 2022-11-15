@@ -33,8 +33,9 @@ class PorfomaReportDatatable extends DataTable
             ->editColumn('cupkg_status', function ($user) {
                 return $user->cupkg_status ? $this->arrStatus[$user->cupkg_status] : '';
             })
-            ->editColumn('inv_status', function ($user) {
-                return isset($user->inv_status) ? $this->arrPiStatus[$user->inv_status][0] :  $user->inv_status;
+            ->addColumn('status_pi', function ($user) {
+                $status = arrPiStatus($user->inv_status);
+                return  '<h5><span class="badge badge-' . $status[1] . '">' . $status[0]  . '</span></h5>' ;
             })
             ->editColumn('inv_post', function ($user) {
                 return Carbon::parse($user->inv_post)->isoFormat('D MMMM YYYY HH:mm');
@@ -46,6 +47,7 @@ class PorfomaReportDatatable extends DataTable
                 $actionBtn = '<a href="' . route('porfoma-detail', $row->inv_number) . '" class="btn btn-pink btn-icon btn-circle"><i class="fa fa-search-plus"></i></a>';
                 return $actionBtn;
             })
+            ->rawColumns(['status_pi', 'action'])
             ->setRowId('cust_number');
     }
 
@@ -176,7 +178,7 @@ class PorfomaReportDatatable extends DataTable
                 'form_type' => 'text',
 
             ],
-            'inv_status' => [
+            'status_pi' => [
                 'label' => 'Status PI',
                 'orderable' => false,
                 'searchable' => false,

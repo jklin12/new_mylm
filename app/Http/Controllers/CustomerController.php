@@ -99,7 +99,7 @@ class CustomerController extends Controller
             $explodeCoord  = explode(',', $value['cupkg_tech_coord']);
             //print_r($explodeCoord);die;
             $susunData[$key]['type'] = 'Feature';
-            $susunData[$key]['properties']['description'] = '<strong>' . $value['cust_number'] . '</strong><p>' . $value['cust_name'] . '<br>' . $value['cust_address'] . '<br>' . $value['cust_phone'] . '<br>' . $value['sp_code'] . '<br>' . $this->arrStatus[$value['cupkg_status']] . '<br></p>';
+            $susunData[$key]['properties']['description'] = '<strong>' . $value['cust_number'] . '</strong>&nbsp;<span class="badge badge-danger">'.$this->arrStatus[$value['cupkg_status']] .'</span><p>' . $value['cust_name'] . '<br>' . $value['cust_address'] . '<br>' . $value['cust_phone'] . '<br>' . $value['sp_code'] . '<br></p>';
             $susunData[$key]['properties']['status'] = $this->arrStatus[$value['cupkg_status']];
             $susunData[$key]['geometry']['type'] = 'Point';
             $susunData[$key]['geometry']['coordinates'][] = isset($explodeCoord[1]) ? doubleval($explodeCoord[1]) : 0;

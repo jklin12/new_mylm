@@ -75,14 +75,14 @@
 <!-- begin panel -->
 <div class="row">
     <div class="col-xl-6 col-md-9">
-        <div class="card border-0 bg-pink text-white text-truncate mb-3">
+        <div class="card border-0  text-white text-truncate mb-3">
             <div id="in-bound">
 
             </div>
         </div>
     </div>
     <div class="col-xl-6 col-md-9">
-        <div class="card border-0 bg-pink text-white text-truncate mb-3">
+        <div class="card border-0  text-white text-truncate mb-3">
             <div id="out-bound">
 
             </div>

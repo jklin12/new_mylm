@@ -186,6 +186,7 @@ class ReportController extends Controller
                 $outBoundChart[$key]['name'] = isset($this->arrStatus[$value->cupkg_status]) ? $this->arrStatus[$value->cupkg_status] : '';
                 $outBoundChart[$key]['x'] = $value->cupkg_status;
                 $outBoundChart[$key]['y'] = $value->total;
+                $outBoundChart[$key]['drilldown'] = $this->arrStatus[$value->cupkg_status];
                 $totalOutBound += $value->total;
             }
             if ($value->cupkg_status) {
