@@ -7,7 +7,7 @@
 <link href="/assets/plugins/datatables.net-bs4/css/dataTables.bootstrap4.min.css" rel="stylesheet" />
 <link href="/assets/plugins/datatables.net-responsive-bs4/css/responsive.bootstrap4.min.css" rel="stylesheet" />
 <link href="/assets/plugins/datatables.net-buttons-bs4/css/buttons.bootstrap4.min.css" rel="stylesheet" />
- 
+
 @endpush
 
 <!-- begin page-header -->
@@ -32,7 +32,7 @@
                                 <option value="6">Trial</option>
                                 <option value="7">Sewa Khusus</option>
                                 <option value="8">Blokir</option>
-                                <option value="9">Ekslusif</option>
+                                <option value="9">Eksklusif</option>
                                 <option value="10">CSR</option>
                             </select>
                         </div>
@@ -59,8 +59,8 @@
                 <button type="submit" class="btn btn-pink"><i class="fa fa-search"></i> Cari</button>
             </div>
         </form>
-       
-         <div class="mb-1"></div>
+
+        <div class="mb-1"></div>
         <br>
         <div class="table-responsive table-striped">
             {!! $dataTable->table() !!}
@@ -68,6 +68,44 @@
     </div>
 </div>
 <!-- end panel -->
+<div class="modal fade" id="cuin_modal" tabindex="-1" role="dialog" aria-labelledby="cuin_modalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="cuin_modalLabel">Informasi Ketidakaktifan</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <table class="table table-striped">
+
+                    <tbody>
+                        <tr>
+                            <td>Tanggal</td>
+                            <td class="">:</td>
+                            <td class="cuin_date">@mdo</td>
+                        </tr>
+                        <tr>
+                            <td>Alasan</td>
+                            <td>:</td>
+                            <td class="cuin_reason">Jacob</td>
+                        </tr>
+                        <tr>
+                            <td>Info</td>
+                            <td>:</td>
+                            <td class="cuin_info">@twitter</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
@@ -88,6 +126,18 @@
         $('#filter_cupkg_status').val('<?php echo $cupkg_status ?>');
         $('#filter_cust_pop').val('<?php echo $cust_pop ?>');
         $('#search-filter').submit();
+
+        $('#customer-table').on('click', '.status_btn', function() {
+            $('#cuin_modal').modal('toggle')
+           var date = $(this).data('cuindate')
+           var cuinreason = $(this).data('cuinreason')
+           var cuininfo = $(this).data('cuininfo')
+
+           $('#cuin_modal .modal-body .cuin_date').html(date)
+           $('#cuin_modal .modal-body .cuin_info').html(cuininfo)
+           $('#cuin_modal .modal-body .cuin_reason').html(cuinreason)
+           
+        })
     })
 </script>
 @endpush

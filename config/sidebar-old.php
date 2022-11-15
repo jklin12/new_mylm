@@ -26,9 +26,16 @@ if (!function_exists('arrCustStatus')) {
 	{
 		$return = ['status belum ada ', 'dark'];
 		$arrSpk = [
+			1 => ['Registrasi', 'purple'],
+			2 => ['Instalasi', 'indigo'],
+			3 => ['Setup', 'info'],
 			4 => ['Sistem Aktif', 'green'],
-			5 => ['Tidak Aktif', 'danger'],
-			8 => ['Blocking', 'warning'],
+			5 => ['Tidak Aktif', 'black'],
+			6 => ['Trial', 'yellow'],
+			7 => ['Sewa Kusus', 'primary'],
+			8 => ['Blocking', 'danger'],
+			9 => ['Eksklusif', 'success'],
+			10 => ['CSR', 'success'],
 		];
 
 		if (isset($arrSpk[$index])) {

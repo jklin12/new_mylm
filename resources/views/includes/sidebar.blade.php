@@ -7,12 +7,7 @@ $sidebarClass = (!empty($sidebarTransparent)) ? 'sidebar-transparent' : '';
 	<div data-scrollbar="true" data-height="100%">
 		@if (!$sidebarSearch)
 		<!-- begin sidebar user -->
-
-		<ul>
-			<li>
-				<a href="{{ route('/')}}" class="navbar-brand pt-3"><img src="/images/life-logo.png" alt="" width="150"></a>
-			</li>
-		</ul>
+		<a href="{{ route('/')}}" class="navbar-brand pt-3 pl-2"><img src="/images/life-logo.png" alt="" width="150"></a>
 		<!-- end sidebar user -->
 		@endif
 		<!-- begin sidebar nav -->
