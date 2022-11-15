@@ -148,6 +148,16 @@ class CustomerController extends Controller
                     $datas[$key] = $value;
                 }
             }
+            $response = Http::get('http://202.169.224.46:8080/index.php/onu/detailCust/' . $cust_number);
+            $response = $response->object();
+           
+            $oltData = [];
+            if ($response->status) {
+                $responseData = $response->data;
+                $oltData['onu_gpon'] = $responseData->onu_gpon;
+                $oltData['onu_olt_ip'] = $responseData->onu_olt_ip;
+                
+            }
         }
 
         //dd($datas);
@@ -158,6 +168,7 @@ class CustomerController extends Controller
         $load['datas'] = $datas;
         $load['arr_field'] = $arrfield;
         $load['message_template'] = $messageTemplate;
+        $load['olt_data'] = $oltData;
 
         return view('pages/customer/detail', $load);
     }

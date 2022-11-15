@@ -31,7 +31,18 @@
 
 <div class="pull-right">
     <a href="javascript:;" id="btn_pppoe_check" data-title="Status PPPOE" class="btn btn-pink m-r-5 m-b-5">Check PPPOE</a>
-    <a href="javascript:;" id="btn_olt_check" data-title="Status OLT" class="btn btn-pink m-r-5 m-b-5">Check OLT</a>
+    <!--<a href="javascript:;" id="btn_olt_check" data-title="Status OLT" class="btn btn-pink m-r-5 m-b-5">Check OLT</a>-->
+    @if($olt_data)
+    <div class="btn-group dropdown m-r-5 m-b-5">
+        <a href="#" data-toggle="dropdown" class="btn btn-pink dropdown-toggle" aria-expanded="false">Check OLT&nbsp;<b class="caret"></b></a>
+
+        <ul class="dropdown-menu dropdown-menu-right scrollable-menu" role="menu">
+            <li> <a href="javascript:;" class="dropdown-item btn-detail" data-olt="{{ $olt_data['onu_olt_ip']}}" data-interface="{{ $olt_data['onu_gpon']}}">Detail Info</a></li>
+            <li> <a href="javascript:;" class="dropdown-item btn-config" data-olt="{{ $olt_data['onu_olt_ip']}}" data-interface="{{ $olt_data['onu_gpon']}}">Run Interface </a></li>
+            <li> <a href="javascript:;" class="dropdown-item btn-power" data-olt="{{ $olt_data['onu_olt_ip']}}" data-interface="{{ $olt_data['onu_gpon']}}">Power Attenuation </a></li>
+        </ul>
+    </div>
+    @endif
     <div class="btn-group dropdown m-r-5 m-b-5">
         <a href="#" data-toggle="dropdown" class="btn btn-pink dropdown-toggle" aria-expanded="false">Follow Up Chat&nbsp;<b class="caret"></b></a>
 
@@ -124,13 +135,33 @@
         </div>
     </div>
 </div>
+
+<div class="modal" tabindex="-1" role="dialog" id="modal-response">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="title">Remote OLT</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="" id="response-container"></div>
+            </div>
+            <div class="modal-footer">
+
+                <button type="button" class="btn btn-white" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
 <script>
     $('#btn_pppoe_check').click(function() {
         var element = '';
-        var title =  $(this).data('title');
+        var title = $(this).data('title');
         $.get("<?php echo route('cek-status-pppoe', 'cust_number=' . $datas['cust_number']) ?>", function(data, status) {
             element += '<tbody>';
             $.each(data, function(k, v) {
@@ -146,10 +177,11 @@
 
     })
 
-    $('#btn_olt_check').click(function() {
+    /*$('#btn_olt_check').click(function() {
         var element = '';
-        var title =  $(this).data('title');
-        $.get("<?php echo route('cek-status-olt', 'cust_number=' . $datas['cust_number']) ?>", function(data, status) {
+        var title = $(this).data('title');
+        $.get("<?php //echo route('cek-status-olt', 'cust_number=' . $datas['cust_number']) 
+                ?>", function(data, status) {
             element += '<tbody>';
             $.each(data, function(k, v) {
                 element += '<tr><td class="col-2">' + k + '</td><td>:</td><td>' + v + '</td></tr>';
@@ -162,6 +194,58 @@
             $('#modal-cek-pppoe').modal('show');
         });
 
+    })*/
+    $('.btn-config').click(function() {
+        var olt = $(this).data('olt')
+        var interface = $(this).data('interface')
+
+        $.post("<?php echo route('olt-api') ?>", {
+                _token: "{{ csrf_token() }}",
+                olt: olt,
+                interface: interface,
+                url: "cekConfig"
+            },
+            function(data, status) {
+
+                $('#modal-response #response-container').html(data);
+                $('#modal-response #title').html("Show Config");
+                $('#modal-response').modal('show');
+            });
+    })
+
+    $('.btn-detail').click(function() {
+        var olt = $(this).data('olt')
+        var interface = $(this).data('interface')
+
+        $.post("<?php echo route('olt-api') ?>", {
+                _token: "{{ csrf_token() }}",
+                olt: olt,
+                interface: interface,
+                url: "detailInfo"
+            },
+            function(data, status) {
+
+                $('#modal-response #response-container').html(data);
+                $('#modal-response #title').html("Detail Info");
+                $('#modal-response').modal('show');
+            });
+    })
+    $('.btn-power').click(function() {
+        var olt = $(this).data('olt')
+        var interface = $(this).data('interface')
+
+        $.post("<?php echo route('olt-api') ?>", {
+                _token: "{{ csrf_token() }}",
+                olt: olt,
+                interface: interface,
+                url: "attenuation"
+            },
+            function(data, status) {
+
+                $('#modal-response #response-container').html(data);
+                $('#modal-response #title').html("Detail Info");
+                $('#modal-response').modal('show');
+            });
     })
 </script>
 @endpush
