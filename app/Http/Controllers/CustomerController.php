@@ -150,9 +150,9 @@ class CustomerController extends Controller
             }
             $response = Http::get('http://202.169.224.46:8080/index.php/onu/detailCust/' . $cust_number);
             $response = $response->object();
-           
+            
             $oltData = [];
-            if ($response->status) {
+            if (isset($response->status) && $response->status) {
                 $responseData = $response->data;
                 $oltData['onu_gpon'] = $responseData->onu_gpon;
                 $oltData['onu_olt_ip'] = $responseData->onu_olt_ip;
