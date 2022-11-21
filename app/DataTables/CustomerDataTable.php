@@ -42,7 +42,7 @@ class CustomerDataTable extends DataTable
                 return $user->cust_pop ? $this->arrPop[$user->cust_pop] : '';
             })
             ->editColumn('cuin_reason', function ($user) {
-                return  $user->cuin_reason == 1 ? 'Menunggak' : 'Permintaan Senidiri';
+                return  $user->cuin_reason == 1 ?   'Permintaan Senidiri' : 'Menunggak';
             })
             ->editColumn('cupkg_svc_begin', function ($user) {
                 return $user->cupkg_svc_begin ? with(new Carbon($user->cupkg_svc_begin))->isoFormat('ddd, D MMM YY') : '';
