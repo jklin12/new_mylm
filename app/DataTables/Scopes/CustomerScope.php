@@ -25,7 +25,9 @@ class CustomerScope implements DataTableScope
         // return $query->where('id', 1);
         $filters =  [
             'cupkg_status',
-            'cust_pop'
+            'cust_pop',
+            'cust_kecamatan',
+            'cust_kelurahan'
         ];
         //dd($this->request->input('inv_status'));
         //dd($this->request->all());

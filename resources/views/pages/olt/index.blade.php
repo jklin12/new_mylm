@@ -73,20 +73,21 @@
         <div class="table-responsive">
             <table id="table-onu" class="table table-striped table-bordered table-td-valign-middle">
                 <thead>
-                    <th>No.</th>
-                    <th>OLT</th>
-                    <th>Ip OLT</th>
-                    <th>Customer</th>
-                    <th>Type</th>
-                    <th>SN</th>
-                    <th>GPON ONU</th>
-                    <th>Status</th>
-                    <th>Last Online</th>
-                    <th>Last Offline</th>
-                    <th>Power</th>
-                    <th>Last Update </th>
-                    <th></th>
-
+                    <tr>
+                        <th>No.</th>
+                        <th>OLT</th>
+                        <th>Ip OLT</th>
+                        <th>Customer</th>
+                        <th>Type</th>
+                        <th>SN</th>
+                        <th>GPON ONU</th>
+                        <th>Status</th>
+                        <th>Last Online</th>
+                        <th>Last Offline</th>
+                        <th>Power</th>
+                        <th>Last Update </th>
+                        <th></th>
+                    </tr>
                 </thead>
                 <tbody>
                     @forelse($data as $key => $value)
@@ -156,6 +157,8 @@
             });
 
             $('#table-onu').DataTable();
+
+
 
             $('.btn-config').click(function() {
                 var olt = $(this).data('olt')

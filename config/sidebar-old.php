@@ -33,7 +33,7 @@ if (!function_exists('arrCustStatus')) {
 			5 => ['Tidak Aktif', 'black'],
 			6 => ['Trial', 'yellow'],
 			7 => ['Sewa Kusus', 'primary'],
-			8 => ['Blocking', 'danger'],
+			8 => ['Blocking', 'yellow'],
 			9 => ['Eksklusif', 'success'],
 			10 => ['CSR', 'success'],
 		];
@@ -80,7 +80,7 @@ if (!function_exists('spkVal')) {
 if (!function_exists('spkType')) {
 	function spkType($index)
 	{
-		$arrSpk = [1=>'Instalasi', 'Setup', 'Perbaikan', 'Pemblokiran', 'Pencabutan','Upgrade','Downgrade','Blocking','Cabut Pindah','Tambah Titik','Pindah Titik','Tambah STB'];
+		$arrSpk = [1 => 'Instalasi', 'Setup', 'Perbaikan', 'Pemblokiran', 'Pencabutan', 'Upgrade', 'Downgrade', 'Blocking', 'Cabut Pindah', 'Tambah Titik', 'Pindah Titik', 'Tambah STB'];
 
 		if (isset($arrSpk[$index])) {
 			return $arrSpk[$index];
@@ -240,15 +240,18 @@ if (!function_exists('side_menu')) {
 		}
 
 		$menuPelanggan = [];
-		$menuMap =  [
-			'icon' => 'fa fa-map',
-			'title' => 'Peta Pelanggan',
-			//'label' => 'NEW',
-			'url' => route('customer-map'),
-			'route-name' => 'customer-map'
-		];
+		$menuMap = [];
+		if (Auth::user()->level > 8) {
+			$menuMap =  [
+				'icon' => 'fa fa-map',
+				'title' => 'Peta Pelanggan',
+				//'label' => 'NEW',
+				'url' => route('customer-map'),
+				'route-name' => 'customer-map'
+			];
+		}
 		$route = Route::current();
-		if ($route->getName() == 'customer-detail' || $route->getName() == 'customer-porfoma' || $route->getName() == 'porfoma-detail' || $route->getName() == 'customer-cupkg' || $route->getName() =='customer-spk') {
+		if ($route->getName() == 'customer-detail' || $route->getName() == 'customer-porfoma' || $route->getName() == 'porfoma-detail' || $route->getName() == 'customer-cupkg' || $route->getName() == 'customer-spk') {
 			$menuPelanggan = [
 				'icon' => 'fa fa-users',
 				'title' => 'Pelanggan',

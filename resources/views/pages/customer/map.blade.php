@@ -50,24 +50,95 @@
 <!-- begin panel -->
 <div class="panel panel-inverse">
     <div class="panel-body">
+        <form action="" method="get" id="search-filter">
+            <h5>Filter Pencarian</h5>
+            <div class="row ">
+                <div class="col-md-3">
+                    <div class="form-group row m-b-15">
+                        <label class="col-form-label col-md-3">Status Pelanggan</label>
+                        <div class="col-md-9">
+                            <select name="cupkg_status" id="filter_cupkg_status" class="form-control">
+                                <option value="">Select Status</option>
+                                <option value="1">Registrasi</option>
+                                <option value="2">Instalasi</option>
+                                <option value="3">Setup</option>
+                                <option value="4">Sistem Aktif</option>
+                                <option value="5">Tidak Aktif</option>
+                                <option value="6">Trial</option>
+                                <option value="7">Sewa Khusus</option>
+                                <option value="8">Blokir</option>
+                                <option value="9">Eksklusif</option>
+                                <option value="10">CSR</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group row m-b-15">
+                        <label class="col-form-label col-md-3">POP</label>
+                        <div class="col-md-9">
+                            <select name="cust_pop" id="filter_cust_pop" class="form-control">
+                                <option value="">Select POP</option>
+                                @foreach($arr_pop as $key => $value)
+                                <option value="{{$key}}">{{$value}}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group row m-b-15">
+                        <label class="col-form-label col-md-3">Kecamatan</label>
+                        <div class="col-md-9">
+                            <select name="cust_kecamatan" id="filter_kecamatan" class="form-control">
+                                <option value="">Select Kecamatan</option>
+                                @foreach($kecamatan as $key => $value)
+                                <option value="{{$value->area_name}}">{{$value->area_name}}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group row m-b-15">
+                        <label class="col-form-label col-md-3">Kelurahan</label>
+                        <div class="col-md-9">
+                            <select name="cust_kelurahan" id="filter_kelurahan" class="form-control">
+                                <option value="">Select Kelurahan</option>
+                                @foreach($Kelurahan as $key => $value)
+                                <option value="{{$value->area_name}}">{{$value->area_name}}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+
+            </div>
+             
+            <div class="mb-3 text-right">
+                <button type="submit" class="btn btn-pink"><i class="fa fa-search"></i> Cari</button>
+            </div>
+        </form>
         <div id='map' style='height: 500px;'></div>
     </div>
 </div>
-<div class="map-overlay" id="legend">
+
+<div class="map-overlay d-none d-xl-block" id="legend">
     <div>
-        <span class="legend-key" style="background-color: #b600ff;"></span>
+        <span class="legend-key" style="background-color: #727cb6;"></span>
         <span>Registrasi</span>
     </div>
     <div>
-        <span class="legend-key" style="background-color: #9504d3;"></span>
+        <span class="legend-key" style="background-color: #8753de;"></span>
         <span>Instalasi</span>
     </div>
     <div>
-        <span class="legend-key" style="background-color: #7303a3;"></span>
+        <span class="legend-key" style="background-color: #49b6d6;"></span>
         <span>Setup</span>
     </div>
     <div>
-        <span class="legend-key" style="background-color: #19ff00;"></span>
+        <span class="legend-key" style="background-color: #32a932;"></span>
         <span>Sistem Aktif</span>
     </div>
     <div>
@@ -75,22 +146,22 @@
         <span>Tidak Aktif</span>
     </div>
     <div>
-        <span class="legend-key" style="background-color: #e3f210;"></span>
+        <span class="legend-key" style="background-color: #348fe2;"></span>
         <span>Sewa Khusus</span>
     </div>
     <div>
-        <span class="legend-key" style="background-color: #ef1532;"></span>
+        <span class="legend-key" style="background-color: #ffd900;"></span>
         <span>Blokir</span>
     </div>
     <div>
-        <span class="legend-key" style="background-color: #79e5d8;"></span>
+        <span class="legend-key" style="background-color: #00acac;"></span>
         <span>Ekslusif</span>
     </div>
     <div>
-        <span class="legend-key" style="background-color: #4c67d3;"></span>
+        <span class="legend-key" style="background-color: #00acac;"></span>
         <span>CSR</span>
     </div>
-  
+
 </div>
 <!-- end panel -->
 @endsection
@@ -141,25 +212,25 @@
                             'match', // Use the 'match' expression: https://docs.mapbox.com/mapbox-gl-js/style-spec/#expressions-match
                             ['get', 'status'], // Use the result 'STORE_TYPE' property
                             'Registrasi',
-                            '#b600ff',
+                            '#727cb6',
                             'Instalasi',
-                            '#9504d3',
+                            '#8753de',
                             'Setup',
-                            '#7303a3',
+                            '#49b6d6',
                             'Sistem Aktif',
-                            '#19ff00',
+                            '#32a932',
                             'Tidak Aktif',
                             '#000000',
                             'Trial',
-                            '#f40996',
+                            '#ffd900',
                             'Sewa Khusus',
-                            '#e3f210',
+                            '#348fe2',
                             'Blokir',
-                            '#ef1532',
+                            '#ffd900',
                             'Ekslusif',
-                            '#79e5d8',
+                            '#00acac',
                             'CSR',
-                            '#4c67d3',
+                            '#00acac',
                             '#FF0000' // any other store type
                         ]
 
