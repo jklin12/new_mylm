@@ -35,11 +35,14 @@ class CustomerDataTable extends DataTable
                     return $user->cupkg_status ? '<h5><span class="badge badge-' . $status[1] . '">' . $status[0]  . '</span></h5>'  : '';
                 } else {
                     $reason = $user->cuin_reason == 1 ? 'Menunggak' : 'Permintaan Senidiri';
-                    return $user->cupkg_status ? '<h5><a href="javascript:;" class="status_btn" data-cuindate="'.with(new Carbon($user->cuin_date))->isoFormat('dddd, D MMMM YYYY').'" data-cuinreason="'.$reason.'" data-cuininfo="'.$user->cuin_info.'" ><span class="badge badge-' . $status[1] . '">' . $status[0]  . '</span></a></h5>'  : '';
+                    return $user->cupkg_status ? '<h5><a href="javascript:;" class="status_btn" data-cuindate="' . with(new Carbon($user->cuin_date))->isoFormat('dddd, D MMMM YYYY') . '" data-cuinreason="' . $reason . '" data-cuininfo="' . $user->cuin_info . '" ><span class="badge badge-' . $status[1] . '">' . $status[0]  . '</span></a></h5>'  : '';
                 }
             })
             ->editColumn('cust_pop', function ($user) {
                 return $user->cust_pop ? $this->arrPop[$user->cust_pop] : '';
+            })
+            ->editColumn('cuin_reason', function ($user) {
+                return  $user->cuin_reason == 1 ? 'Menunggak' : 'Permintaan Senidiri';
             })
             ->editColumn('cupkg_svc_begin', function ($user) {
                 return $user->cupkg_svc_begin ? with(new Carbon($user->cupkg_svc_begin))->isoFormat('ddd, D MMM YY') : '';
@@ -75,10 +78,10 @@ class CustomerDataTable extends DataTable
      */
     public function query(Customer $model): QueryBuilder
     {
-        return $model->select('t_customer.cust_number', 'cust_name', 'cust_address', 'cust_phone', DB::raw('trel_cust_pkg.sp_code'), 'cust_hp', 'cupkg_status', 'cupkg_svc_begin', 'cust_pop', 'cupkg_acct_manager', 'cuin_type', 'cuin_date', 'cuin_reason', 'cuin_info')
+        return $model->select('t_customer.cust_number', 'cust_name', 'cust_address', 'cust_phone', DB::raw('trel_cust_pkg.sp_code'), 'cust_hp', 'cupkg_status', 'cupkg_svc_begin', 'cust_pop', 'cupkg_acct_manager', 'cuin_type', 'cuin_date', 'cuin_reason', 'cuin_info', 'cust_member_card', 'cust_kecamatan', 'cust_kelurahan', 'cust_rw', 'cust_rt')
             ->leftJoin('trel_cust_pkg', 't_customer.cust_number', '=', 'trel_cust_pkg.cust_number')
             ->leftJoin('t_customer_inactive', 't_customer.cust_number', '=', 't_customer_inactive.cust_number')
-            ->groupBy('t_customer.cust_number')
+            ->groupBy('trel_cust_pkg._nomor')
             ->newQuery();
     }
 
@@ -100,6 +103,8 @@ class CustomerDataTable extends DataTable
                     _token            = '{{ csrf_token() }}',
                     data.cupkg_status    = $('#filter_cupkg_status').val();
                     data.cust_pop    = $('#filter_cust_pop').val(); 
+                    data.cust_kelurahan    = $('#filter_kelurahan').val(); 
+                    data.cust_kecamatan    = $('#filter_kecamatan').val(); 
                 }",
             ])
             ->dom('Bfrtip')
@@ -125,15 +130,18 @@ class CustomerDataTable extends DataTable
         $tableColumn[$i]['orderable'] = 'false';
         $tableColumn[$i]['searchable'] = 'false';
         foreach ($arrfield as $key => $value) {
+
             $i++;
             $tableColumn[$i]['data'] = $key;
             $tableColumn[$i]['name'] = $key;
             $tableColumn[$i]['title'] = $value['label'];
             $tableColumn[$i]['orderable'] = $value['orderable'];
             $tableColumn[$i]['searchable'] = $value['searchable'];
+            $tableColumn[$i]['visible'] = $value['visible'];
         }
         $tableColumn[$i + 1]['data'] = 'action';
         $tableColumn[$i + 1]['name'] = 'action';
+
 
         return $tableColumn;
     }
@@ -156,36 +164,77 @@ class CustomerDataTable extends DataTable
                 'orderable' => true,
                 'searchable' => true,
                 'form_type' => 'text',
+                'visible' => true
             ],
             'cust_name' => [
                 'label' => 'Nama',
                 'orderable' => false,
                 'searchable' => true,
                 'form_type' => 'text',
+                'visible' => true
+            ],
+            'cust_kecamatan' => [
+                'label' => 'Kecamatan',
+                'orderable' => false,
+                'searchable' => true,
+                'form_type' => 'text',
+                'visible' => false
+            ],
+            'cust_kelurahan' => [
+                'label' => 'Kelurahan',
+                'orderable' => false,
+                'searchable' => true,
+                'form_type' => 'text',
+                'visible' => false
+            ],
+            'cust_rw' => [
+                'label' => 'RW',
+                'orderable' => false,
+                'searchable' => true,
+                'form_type' => 'text',
+                'visible' => false
+            ],
+            'cust_rt' => [
+                'label' => 'RT',
+                'orderable' => false,
+                'searchable' => true,
+                'form_type' => 'text',
+                'visible' => false
             ],
             'cust_address' => [
                 'label' => 'Alamat',
                 'orderable' => false,
                 'searchable' => true,
                 'form_type' => 'text',
+                'visible' => false
             ],
             'cust_phone' => [
                 'label' => 'No Telp',
                 'orderable' => false,
                 'searchable' => true,
                 'form_type' => 'text',
+                'visible' => true
+            ],
+            'cust_member_card' => [
+                'label' => 'Member Card',
+                'orderable' => true,
+                'searchable' => false,
+                'form_type' => 'text',
+                'visible' => false
             ],
             'cupkg_acct_manager' => [
                 'label' => 'AM',
                 'orderable' => false,
                 'searchable' => false,
                 'form_type' => 'text',
+                'visible' => true
             ],
             'sp_code' => [
                 'label' => 'Layanan',
                 'orderable' => false,
                 'searchable' => false,
                 'form_type' => 'text',
+                'visible' => true
             ],
 
             'status_plg' => [
@@ -194,22 +243,52 @@ class CustomerDataTable extends DataTable
                 'searchable' => false,
                 'form_type' => 'select',
                 //'keyvaldata' => $this->arrStatus
+                'visible' => true
             ],
             'cust_pop' => [
                 'label' => 'POP',
                 'orderable' => false,
                 'searchable' => false,
                 'form_type' => 'select',
+                'visible' => true
                 //'keyvaldata' => $this->arrPop
-            ],
 
+            ],
             'cupkg_svc_begin' => [
                 'label' => 'Mulai Layanan',
                 'orderable' => true,
                 'searchable' => false,
                 'form_type' => 'text',
+                'visible' => true
             ],
-
+            'durasi' => [
+                'label' => 'Lama Langganan',
+                'orderable' => true,
+                'searchable' => false,
+                'form_type' => 'text',
+                'visible' => false
+            ],
+            'cuin_date' => [
+                'label' => 'Tanggal Berhenti',
+                'orderable' => true,
+                'searchable' => false,
+                'form_type' => 'text',
+                'visible' => false
+            ], 
+            'cuin_reason' => [
+                'label' => 'Alasan Berhenti',
+                'orderable' => true,
+                'searchable' => false,
+                'form_type' => 'text',
+                'visible' => false
+            ],
+             'cuin_info' => [
+                'label' => 'Info Behenti',
+                'orderable' => true,
+                'searchable' => false,
+                'form_type' => 'text',
+                'visible' => false
+            ]
         ];
     }
 }

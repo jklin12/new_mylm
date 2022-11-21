@@ -165,6 +165,7 @@ class ReportController extends Controller
             ->where('cupkg_status', '!=', '9')
             ->where('cupkg_status', '!=', '10')
             //->whereRaw("YEAR(created) = '" . $year . "'")
+            
             ->groupBy('cupkg_status')
             ->orderBy('total')
             ->get();

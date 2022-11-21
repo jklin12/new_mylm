@@ -38,12 +38,16 @@ class CustomerController extends Controller
         $load['arr_pop'] = $this->arrPop;
         $load['cupkg_status'] = $request->has('cupkg_status') ? $request->input('cupkg_status') : '';
         $load['cust_pop'] = $request->has('cust_pop') ? $request->input('cust_pop') : '';
-        
+        $load['Kelurahan'] = DB::table('tlkp_kelurahan')->get()->toArray();
+        $load['kecamatan'] = DB::table('tlkp_kecamatan')->get()->toArray();
+        $load['arr_field'] = $this->arrField();
+
+        //dd($load['kecamatan']);
 
         return $dataTable->addScope(new CustomerScope($request))->render('pages/customer/index', $load);
     }
 
-    public function list(Request $request)
+    /*public function list(Request $request)
     {
         if ($request->ajax()) {
             $data = Customer::select('t_customer.cust_number', 'cust_name', 'cust_address', 'cust_phone', 'sp_code', 'cust_hp', 'cupkg_status', 'cupkg_svc_begin', 'cust_pop', 'cupkg_acct_manager')
@@ -78,9 +82,9 @@ class CustomerController extends Controller
                 ->rawColumns(['detail', 'durasi'])
                 ->make(true);
         }
-    }
+    }*/
 
-    public function map()
+    public function map(Request $request)
     {
         $title = 'Data Pelanggan';
         $subTitle = 'Data seluruh Pelanggan lifemedia';
@@ -88,18 +92,31 @@ class CustomerController extends Controller
         $load['title'] = $title;
         $load['sub_title'] = $subTitle;
 
-        $data = Customer::select('t_customer.cust_number', 'cust_name', 'cust_address', 'cust_phone', 'sp_code', 'cust_hp', 'cupkg_status', 'cupkg_tech_coord')
+        $models =  Customer::select('t_customer.cust_number', 'cust_name', 'cust_address', 'cust_phone', 'sp_code', 'cust_hp', 'cupkg_status', 'cupkg_tech_coord')
             ->leftJoin('trel_cust_pkg', 't_customer.cust_number', '=', 'trel_cust_pkg.cust_number')
-            ->where('cupkg_tech_coord', '!=', '')
-            //->limit(10)
-            ->latest()->get();
+            ->where('cupkg_tech_coord', '!=', '');
+        if ($request->has('cupkg_status') && $request->input('cupkg_status')) {
+            $models->where('cupkg_status',$request->input('cupkg_status')) ;
+        }
+        if ($request->has('cust_pop') && $request->input('cust_pop')) {
+            $models->where('cust_pop',$request->input('cust_pop')) ;
+        }
+        if ($request->has('cust_kecamatan') && $request->input('cust_kecamatan')) {
+            $models->where('cust_kecamatan',$request->input('cust_kecamatan')) ;
+        }
+        if ($request->has('cust_kelurahan') && $request->input('cust_kelurahan')) {
+            $models->where('cust_kelurahan',$request->input('cust_kelurahan')) ;
+        }
+        $data = $models->latest()->get();
+        
 
         $susunData = [];
         foreach ($data as $key => $value) {
             $explodeCoord  = explode(',', $value['cupkg_tech_coord']);
             //print_r($explodeCoord);die;
+            $status = arrCustStatus($value['cupkg_status']);
             $susunData[$key]['type'] = 'Feature';
-            $susunData[$key]['properties']['description'] = '<strong>' . $value['cust_number'] . '</strong>&nbsp;<span class="badge badge-danger">'.$this->arrStatus[$value['cupkg_status']] .'</span><p>' . $value['cust_name'] . '<br>' . $value['cust_address'] . '<br>' . $value['cust_phone'] . '<br>' . $value['sp_code'] . '<br></p>';
+            $susunData[$key]['properties']['description'] = '<strong>' . $value['cust_number'] . '</strong>&nbsp;<span class="badge badge-' . $status[1] . '">' . $status[0] . '</span><p>' . $value['cust_name'] . '<br>' . $value['cust_address'] . '<br>' . $value['cust_phone'] . '<br>' . $value['sp_code'] . '<br></p>';
             $susunData[$key]['properties']['status'] = $this->arrStatus[$value['cupkg_status']];
             $susunData[$key]['geometry']['type'] = 'Point';
             $susunData[$key]['geometry']['coordinates'][] = isset($explodeCoord[1]) ? doubleval($explodeCoord[1]) : 0;
@@ -107,6 +124,18 @@ class CustomerController extends Controller
         }
 
         $load['datas'] = json_encode($susunData);
+        $susunStatus = [];
+        foreach (arrCustStatus() as $key => $value) {
+            foreach ($value as $keys => $values) {
+                $susunStatus[] = $values;
+            }
+        }
+        //dd(count($susunData));
+        $load['arr_pop'] = $this->arrPop;
+        $load['cupkg_status'] = $request->has('cupkg_status') ? $request->input('cupkg_status') : '';
+        $load['cust_pop'] = $request->has('cust_pop') ? $request->input('cust_pop') : '';
+        $load['Kelurahan'] = DB::table('tlkp_kelurahan')->get()->toArray();
+        $load['kecamatan'] = DB::table('tlkp_kecamatan')->get()->toArray();
 
         return view('pages/customer/map', $load);
     }
@@ -150,13 +179,12 @@ class CustomerController extends Controller
             }
             $response = Http::get('http://202.169.224.46:8080/index.php/onu/detailCust/' . $cust_number);
             $response = $response->object();
-            
+
             $oltData = [];
             if (isset($response->status) && $response->status) {
                 $responseData = $response->data;
                 $oltData['onu_gpon'] = $responseData->onu_gpon;
                 $oltData['onu_olt_ip'] = $responseData->onu_olt_ip;
-                
             }
         }
 
@@ -473,66 +501,131 @@ class CustomerController extends Controller
                 'orderable' => true,
                 'searchable' => true,
                 'form_type' => 'text',
+                'visible' => true
             ],
             'cust_name' => [
                 'label' => 'Nama',
                 'orderable' => false,
                 'searchable' => true,
                 'form_type' => 'text',
+                'visible' => true
+            ],
+            'cust_kecamatan' => [
+                'label' => 'Kecamatan',
+                'orderable' => false,
+                'searchable' => true,
+                'form_type' => 'text',
+                'visible' => false
+            ],
+            'cust_kelurahan' => [
+                'label' => 'Kelurahan',
+                'orderable' => false,
+                'searchable' => true,
+                'form_type' => 'text',
+                'visible' => false
+            ],
+            'cust_rw' => [
+                'label' => 'RW',
+                'orderable' => false,
+                'searchable' => true,
+                'form_type' => 'text',
+                'visible' => false
+            ],
+            'cust_rt' => [
+                'label' => 'RT',
+                'orderable' => false,
+                'searchable' => true,
+                'form_type' => 'text',
+                'visible' => false
             ],
             'cust_address' => [
                 'label' => 'Alamat',
                 'orderable' => false,
                 'searchable' => true,
                 'form_type' => 'text',
+                'visible' => false
             ],
             'cust_phone' => [
                 'label' => 'No Telp',
                 'orderable' => false,
                 'searchable' => true,
                 'form_type' => 'text',
+                'visible' => true
+            ],
+            'cust_member_card' => [
+                'label' => 'Member Card',
+                'orderable' => true,
+                'searchable' => false,
+                'form_type' => 'text',
+                'visible' => false
             ],
             'cupkg_acct_manager' => [
                 'label' => 'AM',
                 'orderable' => false,
                 'searchable' => false,
                 'form_type' => 'text',
+                'visible' => true
             ],
             'sp_code' => [
                 'label' => 'Layanan',
                 'orderable' => false,
                 'searchable' => false,
                 'form_type' => 'text',
+                'visible' => true
             ],
 
-            'cupkg_status' => [
+            'status_plg' => [
                 'label' => 'Status',
                 'orderable' => false,
                 'searchable' => false,
                 'form_type' => 'select',
-                'keyvaldata' => $this->arrStatus
+                //'keyvaldata' => $this->arrStatus
+                'visible' => true
             ],
             'cust_pop' => [
                 'label' => 'POP',
                 'orderable' => false,
                 'searchable' => false,
                 'form_type' => 'select',
-                'keyvaldata' => $this->arrPop
-            ],
+                'visible' => true
+                //'keyvaldata' => $this->arrPop
 
+            ],
             'cupkg_svc_begin' => [
                 'label' => 'Mulai Layanan',
                 'orderable' => true,
                 'searchable' => false,
                 'form_type' => 'text',
+                'visible' => true
             ],
-
             'durasi' => [
-                'label' => 'Durasi Layanan',
+                'label' => 'Lama Langganan',
                 'orderable' => true,
                 'searchable' => false,
                 'form_type' => 'text',
+                'visible' => false
             ],
+            'cuin_date' => [
+                'label' => 'Tanggal Berhenti',
+                'orderable' => true,
+                'searchable' => false,
+                'form_type' => 'text',
+                'visible' => false
+            ],
+            'cuin_reason' => [
+                'label' => 'Alasan Berhenti',
+                'orderable' => true,
+                'searchable' => false,
+                'form_type' => 'text',
+                'visible' => false
+            ],
+            'cuin_info' => [
+                'label' => 'Info Behenti',
+                'orderable' => true,
+                'searchable' => false,
+                'form_type' => 'text',
+                'visible' => false
+            ]
         ];
     }
 
