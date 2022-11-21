@@ -270,7 +270,7 @@ class DokuController extends Controller
     {
         $inv_number = $request->input('inv');
         if ($inv_number) {
-
+    
             $query = DB::table('t_pay_request')->selectRaw('inv_numb, status_type, result_msg, t_pay_channel.description as channel_pembayaran, cupkg_status,amount,responseCode,paymen_code,insert_date,t_customer.cust_number,t_invoice_porfoma.inv_number,inv_status,t_invoice_porfoma.sp_nom,t_invoice_porfoma.sp_code,inv_start,inv_end,inv_paid,inv_post,inv_info,cust_name,cust_pop,cust_hp,cust_address,cust_phone,cust_email')
                 ->leftJoin('t_invoice_porfoma', 't_pay_request.inv_numb', '=', 't_invoice_porfoma.inv_number')
                 ->leftJoin('t_customer', 't_invoice_porfoma.cust_number', '=', 't_customer.cust_number')
@@ -298,12 +298,12 @@ class DokuController extends Controller
 
                 $getLastSpk = DB::table('t_field_task')
                     ->select('ft_number')
-                    ->where('ft_number', 'like', 'SP0%')
+                    ->where('ft_number', 'like', 'SP%')
                     ->whereRaw('MONTH(ft_received) =' . date('m'))
                     ->whereRaw('YEAR(ft_received) =' . date('Y'))
                     ->orderByDesc('ft_number')
                     ->first();
-                //print_r($getLastSpk);
+                //print_r($getLastSpk);die;
                 if (isset($getLastSpk->ft_number)) {
                     $explodeSpkNumber = explode('/', $getLastSpk->ft_number);
                     //echo $getLastSpk->ft_number.'<br>';
@@ -589,12 +589,12 @@ class DokuController extends Controller
                 //dd($arr);
                 if ($arr['status'] == 'success') {
                     return redirect()->back()
-                    //->withInput()
-                    ->withErrors(['success' => 'Kirim Invoice Berhasil']);
+                        //->withInput()
+                        ->withErrors(['success' => 'Kirim Invoice Berhasil']);
                 } else {
                     return redirect()->back()
-                    ->withInput()
-                    ->withErrors(['erorr' => 'Gagal Kirim Invoice']);
+                        ->withInput()
+                        ->withErrors(['erorr' => 'Gagal Kirim Invoice']);
                 }
             }
         }
