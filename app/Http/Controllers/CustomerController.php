@@ -100,7 +100,7 @@ class CustomerController extends Controller
             $models->whereIn('cupkg_status', $request->input('cupkg_status'));
         }
         if ($request->has('sp_code') && $request->input('sp_code')) {
-            $models->whereIn('sp_codek', $request->input('sp_code'));
+            $models->whereIn('sp_code', $request->input('sp_code'));
         }
         if ($request->has('cust_pop') && $request->input('cust_pop')) {
             $models->whereIn('cust_pop', $request->input('cust_pop'));
