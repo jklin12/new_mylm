@@ -5,6 +5,7 @@ namespace App\DataTables;
 use App\Models\Customer;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder as QueryBuilder;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Yajra\DataTables\EloquentDataTable;
 use Yajra\DataTables\Html\Builder as HtmlBuilder;
@@ -42,7 +43,7 @@ class CustomerDataTable extends DataTable
                 return $user->cust_pop ? $this->arrPop[$user->cust_pop] : '';
             })
             ->editColumn('cuin_reason', function ($user) {
-                return  $user->cuin_reason == 1 ?   'Permintaan Senidiri' : 'Menunggak';
+                return  $user->cuin_reason == 1 ?   'Permintaan Sendiri' : 'Menunggak';
             })
             ->editColumn('cupkg_svc_begin', function ($user) {
                 return $user->cupkg_svc_begin ? with(new Carbon($user->cupkg_svc_begin))->isoFormat('ddd, D MMM YY') : '';
@@ -92,6 +93,10 @@ class CustomerDataTable extends DataTable
      */
     public function html(): HtmlBuilder
     {
+        $button =[];
+        if (Auth::user()->level >= 8) {
+           $button[] = 'export';
+        }
         return $this->builder()
             ->setTableId('customer-table')
             ->columns($this->getColumns())
@@ -110,7 +115,7 @@ class CustomerDataTable extends DataTable
             ->dom('Bfrtip')
             ->orderBy(1)
             ->buttons(
-                Button::make(['export']),
+                Button::make($button),
                 Button::make('reload'),
             );
     }

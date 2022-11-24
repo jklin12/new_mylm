@@ -92,23 +92,28 @@ class CustomerController extends Controller
         $load['title'] = $title;
         $load['sub_title'] = $subTitle;
 
+
         $models =  Customer::select('t_customer.cust_number', 'cust_name', 'cust_address', 'cust_phone', 'sp_code', 'cust_hp', 'cupkg_status', 'cupkg_tech_coord')
             ->leftJoin('trel_cust_pkg', 't_customer.cust_number', '=', 'trel_cust_pkg.cust_number')
             ->where('cupkg_tech_coord', '!=', '');
         if ($request->has('cupkg_status') && $request->input('cupkg_status')) {
-            $models->where('cupkg_status',$request->input('cupkg_status')) ;
+            $models->whereIn('cupkg_status', $request->input('cupkg_status'));
+        }
+        if ($request->has('sp_code') && $request->input('sp_code')) {
+            $models->whereIn('sp_codek', $request->input('sp_code'));
         }
         if ($request->has('cust_pop') && $request->input('cust_pop')) {
-            $models->where('cust_pop',$request->input('cust_pop')) ;
+            $models->whereIn('cust_pop', $request->input('cust_pop'));
         }
         if ($request->has('cust_kecamatan') && $request->input('cust_kecamatan')) {
-            $models->where('cust_kecamatan',$request->input('cust_kecamatan')) ;
+            $models->whereIn('cust_kecamatan', $request->input('cust_kecamatan'));
         }
         if ($request->has('cust_kelurahan') && $request->input('cust_kelurahan')) {
-            $models->where('cust_kelurahan',$request->input('cust_kelurahan')) ;
+            $models->whereIn('cust_kelurahan', $request->input('cust_kelurahan'));
         }
         $data = $models->latest()->get();
-        
+
+
 
         $susunData = [];
         foreach ($data as $key => $value) {
