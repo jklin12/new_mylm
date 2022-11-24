@@ -116,7 +116,7 @@ class FinanceController extends Controller
                 $insertInv['inv_type'] = 2;
                 $insertInv['inv_due'] = $value->inv_end;
                 $insertInv['inv_post'] = $request->post('tanggal');
-                $insertInv['inv_paid'] = date('Y-m-d H:m:i');
+                $insertInv['inv_paid'] = $request->post('tanggal').' 00:00:00';
                 $insertInv['inv_status'] = 1;
                 $insertInv['inv_start'] = $value->inv_start;
                 $insertInv['inv_end'] = $value->inv_end;

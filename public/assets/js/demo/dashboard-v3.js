@@ -97,9 +97,7 @@ var handleTotalSalesSparkline = function() {
 			}
 		}]
 	};
-	if ($('#total-sales-sparkline').length !== 0) {
-		new ApexCharts(document.querySelector('#total-sales-sparkline'), options).render();
-	}
+	
 };
 
 var handleConversionRateSparkline = function() {
@@ -211,9 +209,7 @@ var handleConversionRateSparkline = function() {
 			}
 		}]
 	}
-	if ($('#conversion-rate-sparkline').length !== 0) {
-		new ApexCharts(document.querySelector("#conversion-rate-sparkline"), options).render();
-	}
+	 
 };
 
 var handleStoreSessionSparkline = function() {
@@ -326,9 +322,7 @@ var handleStoreSessionSparkline = function() {
 			}
 		}]
 	};
-	if ($('#store-session-sparkline').length !== 0) {
-		new ApexCharts(document.querySelector('#store-session-sparkline'), options).render();
-	}
+
 };
 
 var handleVisitorsAreaChart = function() {

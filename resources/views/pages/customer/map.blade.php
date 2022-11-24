@@ -5,6 +5,7 @@
 @section('content')
 @push('css')
 <link href="https://api.mapbox.com/mapbox-gl-js/v2.10.0/mapbox-gl.css" rel="stylesheet">
+<link href="/assets/plugins/select2/dist/css/select2.min.css" rel="stylesheet" />
 <style>
     .map-overlay {
         position: absolute;
@@ -53,11 +54,11 @@
         <form action="" method="get" id="search-filter">
             <h5>Filter Pencarian</h5>
             <div class="row ">
-                <div class="col-md-3">
+                <div class="col-md-4">
                     <div class="form-group row m-b-15">
                         <label class="col-form-label col-md-3">Status Pelanggan</label>
                         <div class="col-md-9">
-                            <select name="cupkg_status" id="filter_cupkg_status" class="form-control">
+                            <select name="cupkg_status[]" id="filter_cupkg_status" class="multiple-select2 form-control" multiple="multiple">
                                 <option value="">Select Status</option>
                                 <option value="1">Registrasi</option>
                                 <option value="2">Instalasi</option>
@@ -73,11 +74,50 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-4">
+                    <div class="form-group row m-b-15">
+                        <label class="col-form-label col-md-3">Layanan</label>
+                        <div class="col-md-9">
+                            <select name="sp_code[]" id="filter_sp_code" class="multiple-select2 form-control" multiple="multiple">
+                                <option></option>
+                                <option value="Life Vu">Life Vu</option>
+                                <option value="Life Vision - K">Life Vision - K</option>
+                                <option value="Life Vision - T">Life Vision - T</option>
+                                <option value="Big Pipe 2">Big Pipe 2 Core</option>
+                                <option value="Life - VPN 4">Life - VPN 4</option>
+                                <option value="Life - Corp 125">Life - Corp 125</option>
+                                <option value="Life - Corp 150">Life - Corp 150</option>
+                                <option value="Life - Corp 70">Life - Corp 70</option>
+                                <option value="Life Style 200">Life Style 200</option>
+                                <option value="Life - VPN 3">Life - VPN 3</option>
+                                <option value="Life - VPN 6">Life - VPN 6</option>
+                                <option value="Life - Corp 5">Life - Corp 5 </option>
+                                <option value="Life - Corp 200">Life - Corp 200</option>
+                                <option value="Life - VPN 1 ">Life - VPN 1 </option>
+                                <option value="Life - Corp 80">Life - Corp 80</option>
+                                <option value="Life - Corp 50">Life - Corp 50</option>
+                                <option value="Life - Corp 30">Life - Corp 30</option>
+                                <option value="Life - Corp 300">Life - Corp 300</option>
+                                <option value="Life - Corp 10">Life - Corp 10</option>
+                                <option value="Life - Corp 100">Life - Corp 100</option>
+                                <option value="Life - Corp 60">Life - Corp 60</option>
+                                <option value="Life - Corp 15">Life - Corp 15</option>
+                                <option value="Life Style 10">Life Style 10</option>
+                                <option value="Life Style 20">Life Style 20</option>
+                                <option value="Life Style - Trusty ">Life Style - Trusty 30</option>
+                                <option value="Life Style 50">Life Style 50</option>
+                                <option value="Life Style 100">Life Style 100</option>
+                                <option value="Life - Corp 20 ">Life - Corp 20</option>
+                                <option value="EMPTY">EMPTY</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
                     <div class="form-group row m-b-15">
                         <label class="col-form-label col-md-3">POP</label>
                         <div class="col-md-9">
-                            <select name="cust_pop" id="filter_cust_pop" class="form-control">
+                            <select name="cust_pop" id="filter_cust_pop" class="multiple-select2 form-control" multiple="multiple">
                                 <option value="">Select POP</option>
                                 @foreach($arr_pop as $key => $value)
                                 <option value="{{$key}}">{{$value}}</option>
@@ -86,11 +126,11 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-4">
                     <div class="form-group row m-b-15">
                         <label class="col-form-label col-md-3">Kecamatan</label>
                         <div class="col-md-9">
-                            <select name="cust_kecamatan" id="filter_kecamatan" class="form-control">
+                            <select name="cust_kecamatan" id="filter_kecamatan" class="multiple-select2 form-control" multiple="multiple">
                                 <option value="">Select Kecamatan</option>
                                 @foreach($kecamatan as $key => $value)
                                 <option value="{{$value->area_name}}">{{$value->area_name}}</option>
@@ -99,11 +139,11 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-4">
                     <div class="form-group row m-b-15">
                         <label class="col-form-label col-md-3">Kelurahan</label>
                         <div class="col-md-9">
-                            <select name="cust_kelurahan" id="filter_kelurahan" class="form-control">
+                            <select name="cust_kelurahan" id="filter_kelurahan" class="multiple-select2 form-control" multiple="multiple">
                                 <option value="">Select Kelurahan</option>
                                 @foreach($Kelurahan as $key => $value)
                                 <option value="{{$value->area_name}}">{{$value->area_name}}</option>
@@ -115,7 +155,7 @@
 
 
             </div>
-             
+
             <div class="mb-3 text-right">
                 <button type="submit" class="btn btn-pink"><i class="fa fa-search"></i> Cari</button>
             </div>
@@ -168,7 +208,9 @@
 
 @push('scripts')
 <script src="https://api.mapbox.com/mapbox-gl-js/v2.10.0/mapbox-gl.js"></script>
+<script src="../assets/plugins/select2/dist/js/select2.min.js"></script>
 <script>
+    $(".multiple-select2").select2();
     mapboxgl.accessToken = 'pk.eyJ1IjoiZmFyaXNhaXp5IiwiYSI6ImNrd29tdWF3aDA0ZDAycXVzMWp0b2w4cWQifQ.tja8kdSB4_zpO5rOgGyYrQ';
     const map = new mapboxgl.Map({
         container: 'map',
