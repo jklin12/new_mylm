@@ -29,12 +29,7 @@
 </style>
 @endpush
 
-<div class="pull-right">
-    <a href="javascript:;" id="btn_pppoe_check" data-title="Status PPPOE" class="btn btn-pink m-r-5 m-b-5">Check PPPOE</a>
-    <a href="javascript:;" id="btn_olt_check" data-title="Status OLT" class="btn btn-pink m-r-5 m-b-5">Check OLT</a>
 
-
-</div>
 <!-- begin page-header -->
 <h1 class="page-header">{{ $title}}<small>&nbsp;{{ $sub_title }}</small></h1>
 <!-- end page-header -->
@@ -62,11 +57,16 @@
             @foreach($arr_field as $key => $value)
             <div class="card ">
                 <div class="card-header bg-pink text-white pointer-cursor d-flex align-items-center" data-toggle="collapse" data-target="#collapse-{{$key}}" aria-expanded="true">
-                    <i class="fa fa-circle fa-fw text-warning mr-2 f-s-8"></i> {{ $values->sp_code}}
+                    <i class="fa fa-circle fa-fw text-warning mr-2 f-s-8"></i> {{ $values->sp_code. $values->cupkg_status}}
+
                 </div>
                 <div id="collapse-{{$key}}" class="collapse show" data-parent="#accordion">
-
                     <div class="table-responsive">
+                        <div class="pull-right mt-2 mr-2">
+                            @if($values->cupkg_status == '8' || $values->cupkg_status == '5')
+                            <a href="#" class="btn btn-pink " data-toggle="modal" data-target="#reaktivasiModal">Reaktivasi</a>
+                            @endif
+                        </div>
                         <table class="table table-striped m-b-0">
                             <thead>
                                 <tr>
@@ -139,6 +139,29 @@
             <div class="modal-footer">
 
                 <button type="button" class="btn btn-white" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="reaktivasiModal" tabindex="-1" role="dialog" aria-labelledby="reaktivasiModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="reaktivasiModalLabel">Raktivasi Pelanggan</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                Apakah anda yakin untuk Reaktivasi pelanggan <b>{{ $cust_number }}</b>
+                <form action="{{ route('customer-reaktivasi')}}" method="post" id="raktivasi_form">
+                    @csrf
+                    <input type="hidden" name="cust_number" value="{{ $cust_number }}">
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+                <button type="submit" form="raktivasi_form" class="btn btn-pink">Ya</button>
             </div>
         </div>
     </div>

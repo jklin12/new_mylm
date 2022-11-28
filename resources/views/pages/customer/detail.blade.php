@@ -30,6 +30,7 @@
 @endpush
 
 <div class="pull-right">
+    
     <a href="javascript:;" id="btn_pppoe_check" data-title="Status PPPOE" class="btn btn-pink m-r-5 m-b-5">Check PPPOE</a>
     <!--<a href="javascript:;" id="btn_olt_check" data-title="Status OLT" class="btn btn-pink m-r-5 m-b-5">Check OLT</a>-->
     @if($olt_data)
