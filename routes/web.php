@@ -32,6 +32,7 @@ Route::middleware(['cek_login'])->group(function () {
     Route::get('/cust_map', 'App\Http\Controllers\CustomerController@map')->name('customer-map');
     Route::get('/cust_detail/{cust_number}', 'App\Http\Controllers\CustomerController@detail')->name('customer-detail');
     Route::get('/cust_cupkg/{cust_number}', 'App\Http\Controllers\CustomerController@cupkg')->name('customer-cupkg');
+    Route::post('/cust_reaktivasi', 'App\Http\Controllers\CustomerController@reaktivasi')->name('customer-reaktivasi');
 
     Route::get('/cust_porfoma/{cust_number}', 'App\Http\Controllers\PorfomaController@index')->name('customer-porfoma');
     Route::get('/porfoma_list/{cust_number}', 'App\Http\Controllers\PorfomaController@list')->name('porfoma-list');

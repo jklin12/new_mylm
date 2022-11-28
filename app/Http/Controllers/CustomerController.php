@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\DataTables\CustomerDataTable;
 use App\DataTables\Scopes\CustomerScope;
 use App\Models\Customer;
+use App\Models\InvoicePorfoma;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -14,6 +15,7 @@ use Illuminate\Support\Facades\Http;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use PhpOffice\PhpSpreadsheet\IOFactory;
+use Illuminate\Support\Facades\Validator;
 
 class CustomerController extends Controller
 {
@@ -227,6 +229,68 @@ class CustomerController extends Controller
 
 
         return view('pages/customer/cupkg', $load);
+    }
+
+    public function reaktivasi(Request $request)
+    {
+
+        request()->validate(
+            [
+                'cust_number' => 'required',
+            ]
+        );
+
+        $porfoma = InvoicePorfoma::leftJoin('trel_cust_pkg', function ($join) {
+            $join->on('t_invoice_porfoma.cust_number', '=', 'trel_cust_pkg.cust_number')
+                ->on('t_invoice_porfoma.sp_nom', '=', 'trel_cust_pkg._nomor');
+        })
+            ->whereRaw("t_invoice_porfoma.cust_number = '" . $request['cust_number'] . "'")
+            ->orderByDesc('inv_post')
+            ->first();
+        //dd($porfoma->toArray());
+
+        $lastPi = substr($porfoma->inv_number, -2);
+        $newPi = "PI" . $request['cust_number'] . date('my') . sprintf("%02d", $lastPi + 1);
+
+        $postVal['inv_number'] = $newPi;
+        $postVal['cust_number'] = $porfoma->cust_number;
+        $postVal['sp_code'] = $porfoma->sp_code;
+        $postVal['inv_type'] = '2';
+        $postVal['inv_due'] = date('Y-m-d', strtotime('+7 days'));
+        $postVal['inv_post'] = date('Y-m-d H:m:s');
+        $postVal['inv_status'] = '0';
+        $postVal['inv_start'] = date('Y-m-d');
+        $postVal['inv_end'] = date('Y-m-d', strtotime('+30 days'));
+        $postVal['inv_currency'] = "IDR";
+        $postVal['wa_sent'] = date('Y-m-d H:m:s');
+        $postVal['wa_sent_number'] = '6285600200913';
+        $postVal['reaktivasi_pi'] = 1;
+
+        //dd($postVal);
+        $insertPi = DB::table('t_invoice_porfoma')->insert($postVal);
+
+        $pkg = DB::table('t_service_pkg')->where('sp_name', $porfoma->sp_code)->first();
+
+        $postValItem[0]['ii_type'] = '2';
+        $postValItem[0]['inv_number'] = $newPi;
+        $postValItem[0]['ii_info'] = 'Biaya Layanan ' . $porfoma->sp_code . '  ' . Carbon::parse($postVal['inv_start'])->isoFormat('D MMMM Y') . '-' . Carbon::parse($postVal['inv_end'])->isoFormat('D MMMM Y');
+        $postValItem[0]['ii_amount'] = $pkg->sp_reguler;
+        $postValItem[0]['ii_order'] = '1';
+        $postValItem[0]['ii_recycle'] = '2';
+
+        $postValItem[1]['ii_type'] = '7';
+        $postValItem[1]['inv_number'] = $newPi;
+        $postValItem[1]['ii_info'] = 'PPN 11 %';
+        $postValItem[1]['ii_amount'] = ($pkg->sp_reguler * 11) / 100;
+        $postValItem[1]['ii_order'] = '2';
+        $postValItem[1]['ii_recycle'] = '2';
+
+        $insertItemPi = DB::table('t_inv_item_porfoma')->insert($postValItem);
+
+        session()->flash('success', 'Raktivasi Berhasil');
+        return redirect(route('porfoma-detail'),$newPi);
+
+        //dd($postVal,$postValItem);
     }
 
     private function getMessageTemplate()
