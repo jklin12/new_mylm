@@ -79,7 +79,8 @@ class SpkerjaController extends Controller
     public function detail(Request $request){
 
         $spk = $request->get('spk');
-        $data = Spkerja::find($spk)
+
+        $data = Spkerja::where('ft_number',$spk)
             ->leftJoin('t_employee','t_field_task.ft_updated_by','=','t_employee.emp_number')
             ->first();
 
@@ -89,8 +90,6 @@ class SpkerjaController extends Controller
         $load['title'] = $title;
         $load['sub_title'] = $subTitle;
         $load['datas'] = $data;
-
-        //dd($data->toArray());
         return view('pages/spkerja/detail', $load);
     }
 
