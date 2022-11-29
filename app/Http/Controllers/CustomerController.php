@@ -268,12 +268,11 @@ class CustomerController extends Controller
                 'jenis' => 'required',
                 'sp_code' => 'required',
                 'inv_start' => 'required',
-                'inv_end' => 'required',
             ]
         );
 
         $invStart = $request->input('inv_start') ?? date('Y-m-d');
-        $invEnd = $request->input('inv_end') ?? date('Y-m-d', strtotime('+30 days'));
+        $invEnd = date('d-m-Y', strtotime($invStart. ' +30 days'));
         $spCode = $request->input('sp_code');
         $jenis = $request->input('jenis');
 
@@ -307,6 +306,7 @@ class CustomerController extends Controller
         $postVal['reaktivasi_pi'] = $jenis;
 
 
+        //$insertPi = DB::table('t_invoice_porfoma')->insert($postVal);
         $pkg = DB::table('t_service_pkg')->where('sp_name', $spCode)->first();
 
         $postValItem[0]['ii_type'] = '2';
@@ -325,31 +325,15 @@ class CustomerController extends Controller
 
         //dd($postVal,$postValItem);
 
-        $lastSpk = DB::table('t_field_task')->select('ft_number')->whereRaw("MONTH(ft_received) = '" . date('m') . "' and YEAR(ft_received) = '" . date('Y') . "'")->where('ft_number', 'like', 'SP%')->first();
-        $explodeSpkNumber = explode('/', $lastSpk->ft_number);
-        //echo $getLastSpk['ft_number'].'<br>';
-        $newSpkNumber = sprintf("%05d", substr($explodeSpkNumber[0], 2) + 1);
-        //echo 'SP'.$newSpkNumber."/NOC/".date('m').'/'.date('y');
+        //dd($postVal,$postValItem);
+        //$insertItemPi = DB::table('t_inv_item_porfoma')->insert($postValItem);
 
+        if ($porfoma->cupkg_status == 5) {
+            //DB::table('trel_cust_pkg')->where('_nomor', $porfoma->sp_nom)->update(['cupkg_status', 8]);
+        }
 
-
-        $ftNumber =  'SP' . $newSpkNumber . "/NOC/" . date('m') . '/' . date('y');
-        $spkInfo = 'Perubahan Layanan '.$porfoma->sp_code.' --> '.$spCode.' Mulai '.  Carbon::parse($invStart)->isoFormat('dddd, D MMMM Y');
-        $postValSpk['ft_number'] = $ftNumber;
-        $postValSpk['ft_received'] = date('Y-m-d H:i:s');
-        $postValSpk['ft_type'] = $jenis == 2 ? 7 : 8;
-        $postValSpk['cust_number'] = $porfoma->cust_number;
-        $postValSpk['sp_code'] = $spCode;
-        $postValSpk['sp_nom'] = $porfoma->sp_nom;
-        $postValSpk['ft_recycle'] = 2;
-        $postValSpk['ft_reactive'] = 1;
-        $postValSpk['ft_desc'] = $spkInfo;
-
-        $custBillInfo = $porfoma->cust_bill_info;
-        $custBillInfo .= "\r\n";
-        $custBillInfo .= "======================\r\n";
-        $custBillInfo .= '- '.$spkInfo;
-        dd($custBillInfo,$postVal,$postValItem,$postValSpk);
+        session()->flash('success', 'Perubahan Layanan Berhasil Berhasil');
+        return redirect(route('porfoma-detail', $newPi));
     }
 
     public function reaktivasi(Request $request)
@@ -362,7 +346,7 @@ class CustomerController extends Controller
         );
 
         $invStart = $request->input('inv_start') ?? date('Y-m-d');
-        $invEnd = $request->input('inv_end') ?? date('Y-m-d', strtotime('+30 days'));
+        $invEnd = date('d-m-Y', strtotime($invStart. ' +30 days'));
 
         $porfoma = InvoicePorfoma::leftJoin('trel_cust_pkg', function ($join) {
             $join->on('t_invoice_porfoma.cust_number', '=', 'trel_cust_pkg.cust_number')
