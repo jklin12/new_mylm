@@ -240,6 +240,9 @@ class CustomerController extends Controller
             ]
         );
 
+        $invStart = $request->input('inv_start') ?? date('Y-m-d');
+        $invEnd = $request->input('inv_end') ?? date('Y-m-d', strtotime('+30 days'));
+
         $porfoma = InvoicePorfoma::leftJoin('trel_cust_pkg', function ($join) {
             $join->on('t_invoice_porfoma.cust_number', '=', 'trel_cust_pkg.cust_number')
                 ->on('t_invoice_porfoma.sp_nom', '=', 'trel_cust_pkg._nomor');
@@ -259,11 +262,11 @@ class CustomerController extends Controller
         $postVal['inv_due'] = date('Y-m-d', strtotime('+7 days'));
         $postVal['inv_post'] = date('Y-m-d H:m:s');
         $postVal['inv_status'] = '0';
-        $postVal['inv_start'] = date('Y-m-d');
-        $postVal['inv_end'] = date('Y-m-d', strtotime('+30 days'));
+        $postVal['inv_start'] = $invStart;
+        $postVal['inv_end'] = $invEnd;
         $postVal['inv_currency'] = "IDR";
-        $postVal['wa_sent'] = date('Y-m-d H:m:s');
-        $postVal['wa_sent_number'] = '6285600200913';
+        //$postVal['wa_sent'] = date('Y-m-d H:m:s');
+        //$postVal['wa_sent_number'] = '6285600200913';
         $postVal['reaktivasi_pi'] = 1;
 
         //dd($postVal);
@@ -288,7 +291,7 @@ class CustomerController extends Controller
         $insertItemPi = DB::table('t_inv_item_porfoma')->insert($postValItem);
 
         session()->flash('success', 'Raktivasi Berhasil');
-        return redirect(route('porfoma-detail'),$newPi);
+        return redirect(route('porfoma-detail'), $newPi);
 
         //dd($postVal,$postValItem);
     }

@@ -4,29 +4,7 @@
 
 @section('content')
 @push('css')
-<style>
-    .pagination>li>a,
-    .pagination>li>span {
-        color: #b64260;
-    }
-
-    .pagination>.active>a,
-    .pagination>.active>a:focus,
-    .pagination>.active>a:hover,
-    .pagination>.active>span,
-    .pagination>.active>span:focus,
-    .pagination>.active>span:hover {
-        background-color: green;
-        border-color: green;
-    }
-
-    .page-item.active .page-link {
-        z-index: 1;
-        color: #fff;
-        background-color: #b64260;
-        border-color: #b64260;
-    }
-</style>
+<link href="/assets/plugins/bootstrap-datepicker/dist/css/bootstrap-datepicker.css" rel="stylesheet" />
 @endpush
 
 
@@ -154,9 +132,22 @@
             </div>
             <div class="modal-body">
                 Apakah anda yakin untuk Reaktivasi pelanggan <b>{{ $cust_number }}</b>
-                <form action="{{ route('customer-reaktivasi')}}" method="post" id="raktivasi_form">
+                <form action="{{ route('customer-reaktivasi')}}" method="post" id="raktivasi_form" class="mt-2">
                     @csrf
                     <input type="hidden" name="cust_number" value="{{ $cust_number }}">
+                    <div class="form-group row">
+                        <label class="col-lg-2 col-form-label">Periode</label>
+                        <div class="col-lg-8">
+                            <div class="row row-space-10">
+                                <div class="col-xs-6 mb-2 mb-sm-0">
+                                    <input type="text" class="form-control" id="datetimepicker3" name="inv_start" placeholder="Mulai Layanan" />
+                                </div> 
+                                <div class="col-xs-6">
+                                    <input type="text" class="form-control" id="datetimepicker4" name="inv_end" placeholder="Akhir Layanan" />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </form>
             </div>
             <div class="modal-footer">
@@ -169,6 +160,7 @@
 @endsection
 
 @push('scripts')
+<script src="/assets/plugins/bootstrap-datepicker/dist/js/bootstrap-datepicker.js"></script>
 <script>
     $('#btn_pppoe_check').click(function() {
         var element = '';
@@ -187,7 +179,13 @@
         });
 
     })
-
+    $('#datetimepicker3').datepicker({
+        format: 'yyyy-mm-dd',
+    });
+	$('#datetimepicker4').datepicker({
+        format: 'yyyy-mm-dd',
+    });
+	
     $('#btn_olt_check').click(function() {
         var element = '';
         var title = $(this).data('title');
@@ -203,6 +201,8 @@
             $('#modal-cek-pppoe #title').html(title);
             $('#modal-cek-pppoe').modal('show');
         });
+
+        
 
     })
 </script>
