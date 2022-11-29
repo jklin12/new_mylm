@@ -68,7 +68,7 @@ if (!function_exists('arrPiStatus')) {
 if (!function_exists('spkVal')) {
 	function spkVal($index)
 	{
-		$arrSpk = ['Tunggu', 'Pelaksanaan', 'OK', 'Batal', 'Reschedule'];
+		$arrSpk = ['Tunggu', 'Pelaksanaan', 'OK', 'Batal', 'Reschedule', 9 => 'OK'];
 
 		if (isset($arrSpk[$index])) {
 			return $arrSpk[$index];
@@ -80,7 +80,24 @@ if (!function_exists('spkVal')) {
 if (!function_exists('spkType')) {
 	function spkType($index)
 	{
-		$arrSpk = [1 => 'Instalasi', 'Setup', 'Perbaikan', 'Pemblokiran', 'Pencabutan', 'Upgrade', 'Downgrade', 'Blocking', 'Cabut Pindah', 'Tambah Titik', 'Pindah Titik', 'Tambah STB'];
+		$arrSpk = [
+			1 => 'Instalasi',
+			'Setup',
+			'Perbaikan',
+			'Pemblokiran',
+			'Pencabutan',
+			'Lain-lain',
+			'Upgrade',
+			'Downgrade',
+			'Blocking',
+			'VoIP',
+			'Technical Support',
+			'Cabut Pindah',
+			'Tambah Titik',
+			'Pindah Titik',
+			'Dismantle',
+			'Tambah STB',
+		];
 
 		if (isset($arrSpk[$index])) {
 			return $arrSpk[$index];
@@ -250,6 +267,17 @@ if (!function_exists('side_menu')) {
 				'route-name' => 'customer-map'
 			];
 		}
+		$menuWi = [];
+		if (Auth::user()->level > 8) {
+			$menuWi =  [
+				'icon' => 'fa fa-clock',
+				'title' => 'Waiting List',
+				//'label' => 'NEW',
+				'url' => route('waitinglist-index'),
+				'route-name' => 'waitinglist'
+			];
+		}
+
 		$route = Route::current();
 		if ($route->getName() == 'customer-detail' || $route->getName() == 'customer-porfoma' || $route->getName() == 'porfoma-detail' || $route->getName() == 'customer-cupkg' || $route->getName() == 'customer-spk') {
 			$menuPelanggan = [
@@ -306,6 +334,7 @@ if (!function_exists('side_menu')) {
 					'route-name' => '/'
 				],
 				$menuPelanggan,
+				//$menuWi,
 				$menuMap,
 				$menuReport,
 				$menuDoku,

@@ -33,10 +33,15 @@ Route::middleware(['cek_login'])->group(function () {
     Route::get('/cust_detail/{cust_number}', 'App\Http\Controllers\CustomerController@detail')->name('customer-detail');
     Route::get('/cust_cupkg/{cust_number}', 'App\Http\Controllers\CustomerController@cupkg')->name('customer-cupkg');
     Route::post('/cust_reaktivasi', 'App\Http\Controllers\CustomerController@reaktivasi')->name('customer-reaktivasi');
+    Route::post('/cust_upgrade', 'App\Http\Controllers\CustomerController@upgrade')->name('customer-upgrade');
 
     Route::get('/cust_porfoma/{cust_number}', 'App\Http\Controllers\PorfomaController@index')->name('customer-porfoma');
     Route::get('/porfoma_list/{cust_number}', 'App\Http\Controllers\PorfomaController@list')->name('porfoma-list');
     Route::get('/porfoma_detail/{inv_number}', 'App\Http\Controllers\PorfomaController@detail')->name('porfoma-detail');
+
+    Route::get('/waitinglist/index', 'App\Http\Controllers\WaitinglistController@index')->name('waitinglist-index');
+    Route::post('/waitinglist/store', 'App\Http\Controllers\WaitinglistController@store')->name('waitinglist-store');
+    Route::get('/waitinglist/list', 'App\Http\Controllers\WaitinglistController@list')->name('waitinglist-list');
 
     Route::get('/cust_spk/{cust_number}', 'App\Http\Controllers\SpkerjaController@index')->name('customer-spk');
     Route::get('/spk_list/{cust_number}', 'App\Http\Controllers\SpkerjaController@list')->name('spk-list');
