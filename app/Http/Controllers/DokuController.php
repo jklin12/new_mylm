@@ -455,7 +455,7 @@ class DokuController extends Controller
 
         //dd($request->all());
         $query = DB::table('t_invoice_porfoma')
-            ->selectRaw('t_invoice_porfoma.sp_nom,t_invoice_porfoma.inv_number, t_invoice_porfoma.inv_status,inv_start,inv_end,trel_cust_pkg.sp_code,t_customer.cust_number,t_customer.cust_name,t_customer.cust_email,t_customer.cust_address,t_customer.cust_city,t_customer.cust_prov,t_customer.cust_zip,t_customer.cust_hp ,cupkg_status,_nomor,sum(t_inv_item_porfoma.ii_amount) as totals')
+            ->selectRaw('t_invoice_porfoma.sp_nom,t_invoice_porfoma.inv_number, t_invoice_porfoma.inv_status,inv_start,inv_end,t_invoice_porfoma.sp_code,t_customer.cust_number,t_customer.cust_name,t_customer.cust_email,t_customer.cust_address,t_customer.cust_city,t_customer.cust_prov,t_customer.cust_zip,t_customer.cust_hp ,cupkg_status,_nomor,sum(t_inv_item_porfoma.ii_amount) as totals')
             ->leftJoin('t_customer', 't_invoice_porfoma.cust_number', '=', 't_customer.cust_number')
             ->leftJoin('trel_cust_pkg', function ($join) {
                 $join->on('t_customer.cust_number', '=', 'trel_cust_pkg.cust_number')->on('trel_cust_pkg._nomor', '=', 't_invoice_porfoma.sp_nom');
@@ -469,7 +469,7 @@ class DokuController extends Controller
         if ($query) {
             $periode = Carbon::parse($query->inv_start)->isoFormat('D MMMM') . ' s/d ' . Carbon::parse($query->inv_end)->isoFormat('D MMMM Y');
 
-            if ($request->has('form_phone')) {
+            if ($request->input('form_phone')) {
                 $phoneNumber = $request->input('form_phone');
             } else {
                 if ($query->cust_hp) {
@@ -483,9 +483,11 @@ class DokuController extends Controller
                 }
 
                 //$phoneNumber = '6285600200913';
+                //
             }
 
-
+            
+            
             if (substr($phoneNumber, 0, 1) === '0') {
                 $phoneNumber = '62' . substr($phoneNumber, 1);
             } else {
@@ -568,7 +570,7 @@ class DokuController extends Controller
             ];
 
             $url = $this->baseUrl . 'broadcasts/whatsapp/direct';
-
+            //print_r($postVal);
             $curl = curl_init();
             curl_setopt($curl, CURLOPT_URL, $url);
             curl_setopt($curl, CURLOPT_POST, 1);
@@ -583,7 +585,7 @@ class DokuController extends Controller
             if (isset($error_msg)) {
                 print_r($error_msg);
             }
-            curl_close($curl);
+            //curl_close($curl);
             if ($response) {
                 $arr = json_decode($response, true);
                 //dd($arr);

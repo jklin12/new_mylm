@@ -47,7 +47,10 @@ class SpkerjaController extends Controller
         //dd($data);
 
         if ($request->ajax()) {
-            $data = Spkerja::where('cust_number', $cust_number)->get();
+            $data = Spkerja::where('cust_number', $cust_number)
+                ->where('ft_recycle',2)
+                ->orderByDesc('ft_received')
+                ->get();
 
             return Datatables::of($data)
                 ->addIndexColumn()
@@ -61,7 +64,7 @@ class SpkerjaController extends Controller
                     return $user->ft_type ? spkType($user->ft_type) : '';
                 })
                 ->editColumn('ft_status', function ($user) {
-                    return $user->ft_status ? spkVal($user->ft_type) : '';
+                    return $user->ft_status ? spkVal($user->ft_type) : 'Tunggu';
                 })
                 ->addColumn('detail', function ($row) {
                     $actionBtn = '<a href="' . route('spk-detail', 'spk='.urlencode($row->ft_number)) . '" class="btn btn-pink btn-icon btn-circle"><i class="fa fa-search-plus"></i></a>';
@@ -99,13 +102,7 @@ class SpkerjaController extends Controller
                 'orderable' => true,
                 'searchable' => true,
                 'form_type' => 'text',
-            ],
-            /*'ft_svc_type' => [
-                'label' => 'Diterima',
-                'orderable' => false,
-                'searchable' => false,
-                'form_type' => 'text',
-            ],**/
+            ], 
             'ft_received' => [
                 'label' => 'Diterima',
                 'orderable' => false,
