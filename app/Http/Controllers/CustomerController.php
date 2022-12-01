@@ -272,7 +272,7 @@ class CustomerController extends Controller
         );
 
         $invStart = $request->input('inv_start') ?? date('Y-m-d');
-        $invEnd = date('d-m-Y', strtotime($invStart. ' +30 days'));
+        $invEnd = date('Y-m-d', strtotime($invStart. ' +29 days'));
         $spCode = $request->input('sp_code');
         $jenis = $request->input('jenis');
 
@@ -306,7 +306,7 @@ class CustomerController extends Controller
         $postVal['reaktivasi_pi'] = $jenis;
 
 
-        //$insertPi = DB::table('t_invoice_porfoma')->insert($postVal);
+        $insertPi = DB::table('t_invoice_porfoma')->insert($postVal);
         $pkg = DB::table('t_service_pkg')->where('sp_name', $spCode)->first();
 
         $postValItem[0]['ii_type'] = '2';
@@ -324,12 +324,10 @@ class CustomerController extends Controller
         $postValItem[1]['ii_recycle'] = '2';
 
         //dd($postVal,$postValItem);
-
-        //dd($postVal,$postValItem);
-        //$insertItemPi = DB::table('t_inv_item_porfoma')->insert($postValItem);
+        $insertItemPi = DB::table('t_inv_item_porfoma')->insert($postValItem);
 
         if ($porfoma->cupkg_status == 5) {
-            //DB::table('trel_cust_pkg')->where('_nomor', $porfoma->sp_nom)->update(['cupkg_status', 8]);
+            DB::table('trel_cust_pkg')->where('_nomor', $porfoma->sp_nom)->update(['cupkg_status', 8]);
         }
 
         session()->flash('success', 'Perubahan Layanan Berhasil Berhasil');
@@ -346,7 +344,7 @@ class CustomerController extends Controller
         );
 
         $invStart = $request->input('inv_start') ?? date('Y-m-d');
-        $invEnd = date('d-m-Y', strtotime($invStart. ' +30 days'));
+        $invEnd = date('Y-m-d', strtotime($invStart. ' +29 days'));
 
         $porfoma = InvoicePorfoma::leftJoin('trel_cust_pkg', function ($join) {
             $join->on('t_invoice_porfoma.cust_number', '=', 'trel_cust_pkg.cust_number')
@@ -375,7 +373,7 @@ class CustomerController extends Controller
         //$postVal['wa_sent_number'] = '6285600200913';
         $postVal['sp_nom'] = $porfoma->sp_nom;
         $postVal['reaktivasi_pi'] = 1;
-
+        //dd($postVal);
 
         $insertPi = DB::table('t_invoice_porfoma')->insert($postVal);
 
