@@ -36,13 +36,13 @@
             @foreach($arr_field as $key => $value)
 
             <div class="card-header bg-pink text-white pointer-cursor d-flex align-items-center" data-toggle="collapse" data-target="#collapse-{{$key}}" aria-expanded="true">
-                <i class="fa fa-circle fa-fw text-warning mr-2 f-s-8"></i> {{ $values->sp_code. $values->cupkg_status}}
+                <i class="fa fa-circle fa-fw text-warning mr-2 f-s-8"></i> {{ $values->sp_code}}
 
             </div>
             <div id="collapse-{{$key}}" class="collapse show" data-parent="#accordion">
                 <div class="table-responsive">
                     <div class="pull-right mt-2 mr-2">
-                        <!--<a href="#" class="btn btn-pink mr-2" data-toggle="modal" data-target="#perubahanLayananModal">Perubahan Layanan</a>-->
+                        <a href="#" class="btn btn-pink mr-2" data-toggle="modal" data-target="#perubahanLayananModal">Perubahan Layanan</a>
                         @if($values->cupkg_status == '8' || $values->cupkg_status == '5')
                         <a href="#" class="btn btn-pink " data-toggle="modal" data-target="#reaktivasiModal">Reaktivasi</a>
                         @endif
@@ -262,9 +262,9 @@
                                 <div class="col-xs-6 mb-2 mb-sm-0">
                                     <input type="text" class="form-control datetimepicker_input" name="inv_start" placeholder="Mulai Layanan" />
                                 </div>
-                                <div class="col-xs-6">
+                                <!--<div class="col-xs-6">
                                     <input type="text" class="form-control datetimepicker_input"  name="inv_end" placeholder="Akhir Layanan" />
-                                </div>
+                                </div>-->
                             </div>
                         </div>
                     </div>
@@ -321,9 +321,9 @@
                                 <div class="col-xs-6 mb-2 mb-sm-0">
                                     <input type="text" class="form-control datetimepicker_input" name="inv_start" placeholder="Mulai Layanan" />
                                 </div>
-                                <div class="col-xs-6">
+                                <!--<div class="col-xs-6">
                                     <input type="text" class="form-control datetimepicker_input"  name="inv_end" placeholder="Akhir Layanan" />
-                                </div>
+                                </div>-->
                             </div>
                         </div>
                     </div>

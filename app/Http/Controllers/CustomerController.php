@@ -241,7 +241,7 @@ class CustomerController extends Controller
             # code...
         }
 
-        //dd($ketidakaktifan);
+        //dd($customer->toArray());
 
         $arrfield = $this->arrFieldCupkg();
 
@@ -311,7 +311,7 @@ class CustomerController extends Controller
 
         $postValItem[0]['ii_type'] = '2';
         $postValItem[0]['inv_number'] = $newPi;
-        $postValItem[0]['ii_info'] = 'Biaya Layanan ' . $porfoma->sp_code . '  ' . Carbon::parse($postVal['inv_start'])->isoFormat('D MMMM Y') . '-' . Carbon::parse($postVal['inv_end'])->isoFormat('D MMMM Y');
+        $postValItem[0]['ii_info'] = 'Biaya Layanan ' . $spCode . '  ' . Carbon::parse($postVal['inv_start'])->isoFormat('D MMMM Y') . '-' . Carbon::parse($postVal['inv_end'])->isoFormat('D MMMM Y');
         $postValItem[0]['ii_amount'] = $pkg->sp_reguler;
         $postValItem[0]['ii_order'] = '1';
         $postValItem[0]['ii_recycle'] = '2';
