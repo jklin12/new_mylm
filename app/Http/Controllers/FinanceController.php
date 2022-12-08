@@ -33,6 +33,150 @@ class FinanceController extends Controller
         return view('pages/generateInv', $load);
     }
 
+    public function qris()
+    {
+        $title = 'Generate invoice';
+        $subTitle = 'Generate Incoe dari statement QRIS ';
+
+        $load['title'] = $title;
+        $load['sub_title'] = $subTitle;
+
+        //$datas = ImportInvoiceResult::latest()->paginate(10);
+        //$load['datas'] = $datas;
+        return view('pages/generateInvQris', $load);
+    }
+
+    public function importStatementQris(Request $request)
+    {
+        request()->validate([
+            'file' => 'required',
+            'note' => 'required',
+            'tanggal' => 'required',
+        ]);
+
+
+        // upload ke folder file_siswa di dalam folder public
+        $file = $request->file('file');
+        $fileName = rand() . $file->getClientOriginalName();
+        //$file->move('files/statement_qris', $fileName);
+
+        //$fullPath = 'files/statement_qris/' . $fileName;
+        $fullPath = 'files/statement_qris/601204287Settlement_dw_Life_Media_04-11-2022.xlsx';
+        $reader     = new \PhpOffice\PhpSpreadsheet\Reader\Xlsx();
+        $spreadsheet     = $reader->load($fullPath);
+        $sheet_data     = $spreadsheet->getActiveSheet()->toArray();
+        $arrTrxId  = [];
+        $newArrayPi = [];
+        foreach ($sheet_data as $key => $value) {
+            if ($key > 10) {
+                $arrPiNumber[] = $value[15];
+                $newArrayPi[$key] = $value;
+            }
+        }
+
+        $piData = InvoicePorfoma::selectRaw('t_invoice_porfoma.*,t_invoice.inv_number as nomor_invoice,cupkg_status')
+            ->whereIn('transactionid', $arrPiNumber)
+            ->leftJoin('t_qr_request', 't_invoice_porfoma.inv_number', '=', 't_qr_request.porfoma')
+            ->leftJoin('t_invoice', 't_invoice_porfoma.inv_number', '=', 't_invoice.pi_number')
+            ->leftJoin('trel_cust_pkg', function ($join) {
+                $join->on('t_invoice_porfoma.cust_number', '=', 'trel_cust_pkg.cust_number')->on('trel_cust_pkg._nomor', '=', 't_invoice_porfoma.sp_nom');
+            })
+            ->get();
+
+        $susunReport  = [];
+        foreach ($piData as $key => $value) {
+            //echo $value->inv_number.'||'.$value->inv_status.'<br>';
+            $susunReport[$value->inv_number]['cust_number'] = $value->cust_number;
+            $susunReport[$value->inv_number]['cupkg_status'] = $value->cupkg_status ? $this->arrStatus[$value->cupkg_status] : '';
+            $susunReport[$value->inv_number]['pi_number'] = $value->inv_number;
+            $susunReport[$value->inv_number]['pi_status'] = $value->inv_status == 1 ? 'lunas' : 'selain lunas';
+            $status = 'Gagal';
+            $message = 'Invoice Sudah ada ' . $value->nomor_invoice;
+            $nomorInv = $value->nomor_invoice;
+
+            if ($value->inv_status == 0) {
+                $updateDataPi['inv_status'] = 1;
+                $updateDataPi['inv_pay_method'] = '12';
+                $updateDataPi['inv_paid'] = date('Y-m-d H:m:i');
+                $updateDataPi['inv_info'] = 'Di bayar dengan QRIS  pada ' . Carbon::parse($newArrayPi[$value->inv_number][3])->isoFormat('dddd, D MMMM Y');
+                //print_r($updateDataPi);
+                //InvoicePorfoma::where('inv_number', $value->inv_number)->update($updateDataPi);
+            }
+
+            if (!$value->nomor_invoice) {
+                //echo $value->cust_number;
+                $lastInvoice = Invoice::where('cust_number', $value->cust_number)->whereRaw('MONTH(inv_post) = ' . date('m'))->whereRaw('YEAR(inv_post) =' . date('Y'))->orderBy('inv_post', 'desc')->first();
+                //print_r($lastInvoice);die;
+                $newNum = 1;
+                if ($lastInvoice) {
+                    $lastNum = substr($lastInvoice->inv_number, -2);
+                    $newNum =   sprintf('%02d', $lastNum + 1);
+                }
+                $newInvNumber = 'INV' . $value->cust_number . date('my') . sprintf('%02d', $newNum);
+                $nomorInv = $newInvNumber;
+
+                $reCheckInv = Invoice::find($newInvNumber);
+
+                if (isset($reCheckInv->inv_number) && $reCheckInv->inv_number) {
+                    $lastNum = substr($reCheckInv->inv_number, -2);
+                    $newNum =   sprintf('%02d', $lastNum + 1);
+                    $newInvNumber = 'INV' . $value->cust_number . date('my') . sprintf('%02d', $newNum);
+                    $nomorInv = $newInvNumber;
+                }
+
+                $insertInv['inv_number'] = $newInvNumber;
+                $insertInv['cust_number'] = $value->cust_number;
+                $insertInv['sp_code'] = $value->sp_code;
+                $insertInv['inv_type'] = 2;
+                $insertInv['inv_due'] = $value->inv_end;
+                $insertInv['inv_post'] = $request->post('tanggal');
+                $insertInv['inv_paid'] = $request->post('tanggal') . ' 00:00:00';
+                $insertInv['inv_status'] = 1;
+                $insertInv['inv_start'] = $value->inv_start;
+                $insertInv['inv_end'] = $value->inv_end;
+                $insertInv['inv_info'] = 'Di bayar dengan ' . $newArrayPi[$value->inv_number][2] . '  pada ' . Carbon::parse($newArrayPi[$value->inv_number][3])->isoFormat('dddd, D MMMM Y') . '\n Digenerate otomatis pada ' . Carbon::parse(date('Y-m-d H:m:i'))->isoFormat('dddd, D MMMM Y H:mm');
+                $insertInv['inv_pay_method'] = $newArrayPi[$value->inv_number][2] == 'Alfa-VA' ? '13' : '12';
+                $insertInv['pi_number'] = $value->inv_number;
+                $insertInv['sp_nom'] = $value->sp_nom;
+                $insertInv['inv_receipt'] = 0;
+
+
+                //$qInsertInv = Invoice::create($insertInv);
+
+                $invItem = DB::table('t_inv_item_porfoma')
+                    ->where('inv_number', $value->inv_number)
+                    ->where('ii_recycle', '<>', '1')
+                    ->get();
+
+                $insertInvItem = [];
+                foreach ($invItem as $keys => $values) {
+                    $insertInvItem[$keys]['inv_number'] = $newInvNumber;
+                    $insertInvItem[$keys]['ii_type'] = $values->ii_type;
+                    $insertInvItem[$keys]['ii_info'] = $values->ii_info;
+                    $insertInvItem[$keys]['ii_amount'] = $values->ii_amount;
+                    $insertInvItem[$keys]['ii_order'] = $values->ii_order;
+                }
+                //print_r($insertInvItem);
+                //print_r($insertInv);die;
+                //$qInsertInvItem = DB::table('t_inv_item')->insert($insertInvItem);
+
+                $status = 'Sukses';
+                $message = 'Generate Invoice sukses dengan nomor ' . $nomorInv;
+            }
+            $susunReport[$value->inv_number]['inv_status'] = $status;
+            $susunReport[$value->inv_number]['inv_number'] = $nomorInv;
+            $susunReport[$value->inv_number]['inv_message'] = $message;
+        }
+        //print_r($susunReport);die;
+        //$export = $this->downloadExcel(array_values($susunReport));
+        //dd($newArrayPi);
+
+
+        $request->session()->flash('success', 'Import Data berhasil!');
+
+        return redirect(route('generateInv'));
+    }
+
     public function importStatement(Request $request)
     {
 
@@ -116,7 +260,7 @@ class FinanceController extends Controller
                 $insertInv['inv_type'] = 2;
                 $insertInv['inv_due'] = $value->inv_end;
                 $insertInv['inv_post'] = $request->post('tanggal');
-                $insertInv['inv_paid'] = $request->post('tanggal').' 00:00:00';
+                $insertInv['inv_paid'] = $request->post('tanggal') . ' 00:00:00';
                 $insertInv['inv_status'] = 1;
                 $insertInv['inv_start'] = $value->inv_start;
                 $insertInv['inv_end'] = $value->inv_end;
@@ -157,7 +301,11 @@ class FinanceController extends Controller
             $susunReport[$value->inv_number]['inv_message'] = $message;
         }
         //print_r($susunReport);die;
-        $export = $this->downloadExcel(array_values($susunReport));
+        $newSusunreport = [];
+        foreach ($arrPiNumber as $key => $value) {
+            $newSusunreport[$key] = $susunReport[$value];
+        }
+        $export = $this->downloadExcel(array_values($newSusunreport));
 
         if ($export['status']) {
             $request->session()->flash('success', 'Import Data berhasil!');

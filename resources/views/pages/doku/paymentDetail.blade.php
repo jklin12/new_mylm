@@ -86,7 +86,7 @@
                 </table>
             </div>
             <div class="modal-footer">
-                <a href="{{ route('update-request','inv='.$inv_number) }}" class="btn btn-warning">Update Status</a>
+                <a href="{{ route('update-request','inv='.$inv_number) }}" class="btn btn-warning" id="btnUpdateStatus">Update Status</a>
                 <button type="button" class="btn btn-white" data-dismiss="modal">Close</button>
             </div>
         </div>
@@ -125,10 +125,16 @@
             var element = '';
             $.get("<?php echo route('cek-request', 'inv=' . $inv_number) ?>", function(data, status) {
                 element += '<tbody>';
+                var status = '';
                 $.each(data, function(k, v) {
+                    if (k == 'RESULTMSG') {
+                        status = v;
+                    }
                     element += '<tr><td class="col-1">' + k + '</td><td>:</td><td>' + v + '</td></tr>';
                 });
-                //alert(element);
+                if (status != 'SUCCESS') {
+                    $('#btnUpdateStatus').css('display','none')
+                }
                 element += '</tbody>';
 
                 $('#modal-cek-payment #table-data').html(element);
@@ -141,10 +147,11 @@
             var element = '';
             $.get("<?php echo route('cek-status-pppoe', 'cust_number=' . $cust_number) ?>", function(data, status) {
                 element += '<tbody>';
+                
                 $.each(data, function(k, v) {
+                  
                     element += '<tr><td class="col-2">' + k + '</td><td>:</td><td>' + v + '</td></tr>';
                 });
-                //alert(element);
                 element += '</tbody>';
 
                 $('#modal-cek-pppoe #table-data').html(element);
