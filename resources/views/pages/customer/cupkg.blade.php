@@ -15,6 +15,15 @@
 <!-- begin panel -->
 @include('includes.component.erorr-message')
 @include('includes.component.success-message')
+@if ($errors->any())
+    <div class="alert alert-danger">
+        <ul>
+            @foreach ($errors->all() as $error)
+                <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+    </div>
+@endif
 
 @if($datas)
 <ul class="nav nav-tabs">
