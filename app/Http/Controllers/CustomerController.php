@@ -203,7 +203,7 @@ class CustomerController extends Controller
         $load['datas'] = $datas;
         $load['arr_field'] = $arrfield;
         $load['message_template'] = $messageTemplate;
-        $load['olt_data'] = $oltData;
+        $load['olt_data'] = $oltData ?? '';
 
         return view('pages/customer/detail', $load);
     }
@@ -272,15 +272,15 @@ class CustomerController extends Controller
         );
 
         $invStart = $request->input('inv_start') ?? date('Y-m-d');
-        $invEnd = date('Y-m-d', strtotime($invStart. ' +29 days'));
+        $invEnd = date('Y-m-d', strtotime($invStart . ' +29 days'));
         $spCode = $request->input('sp_code');
         $jenis = $request->input('jenis');
 
         $porfoma = InvoicePorfoma::selectRaw('t_invoice_porfoma.inv_number,t_customer.cust_number,sp_nom,cust_bill_info')
-        ->leftJoin('trel_cust_pkg', function ($join) {
-            $join->on('t_invoice_porfoma.cust_number', '=', 'trel_cust_pkg.cust_number')
-                ->on('t_invoice_porfoma.sp_nom', '=', 'trel_cust_pkg._nomor');
-        })
+            ->leftJoin('trel_cust_pkg', function ($join) {
+                $join->on('t_invoice_porfoma.cust_number', '=', 'trel_cust_pkg.cust_number')
+                    ->on('t_invoice_porfoma.sp_nom', '=', 'trel_cust_pkg._nomor');
+            })
             ->leftJoin('t_customer', 't_invoice_porfoma.cust_number', '=', 't_customer.cust_number')
             ->whereRaw("t_invoice_porfoma.cust_number = '" . $request['cust_number'] . "'")
             ->orderByDesc('inv_post')
@@ -307,7 +307,8 @@ class CustomerController extends Controller
 
 
         $insertPi = DB::table('t_invoice_porfoma')->insert($postVal);
-        $pkg = DB::table('t_service_pkg')->where('sp_name', $spCode)->first();
+
+        $pkg = DB::table('t_service_pkg')->where('sp_code', $spCode)->first();
 
         $postValItem[0]['ii_type'] = '2';
         $postValItem[0]['inv_number'] = $newPi;
@@ -327,7 +328,7 @@ class CustomerController extends Controller
         $insertItemPi = DB::table('t_inv_item_porfoma')->insert($postValItem);
 
         if ($porfoma->cupkg_status == 5) {
-            DB::table('trel_cust_pkg')->where('_nomor', $porfoma->sp_nom)->update(['cupkg_status', 8]);
+            DB::table('trel_cust_pkg')->where('_nomor', $porfoma->sp_nom)->update(['cupkg_status' => 8]);
         }
 
         session()->flash('success', 'Perubahan Layanan Berhasil Berhasil');
@@ -344,17 +345,17 @@ class CustomerController extends Controller
         );
 
         $invStart = $request->input('inv_start') ?? date('Y-m-d');
-        $invEnd = date('Y-m-d', strtotime($invStart. ' +29 days'));
+        $invEnd = date('Y-m-d', strtotime($invStart . ' +29 days'));
 
         $porfoma = InvoicePorfoma::leftJoin('trel_cust_pkg', function ($join) {
             $join->on('t_invoice_porfoma.cust_number', '=', 'trel_cust_pkg.cust_number')
                 ->on('t_invoice_porfoma.sp_nom', '=', 'trel_cust_pkg._nomor');
         })
-            //->leftJoin('t_customer', 't_invoice_porfoma.cust_number', '=', 't_customer.cust_number')
+            ->leftJoin('t_customer', 't_invoice_porfoma.cust_number', '=', 't_customer.cust_number')
             ->whereRaw("t_invoice_porfoma.cust_number = '" . $request['cust_number'] . "'")
             ->orderByDesc('inv_post')
             ->first();
-        //dd($porfoma->toArray());
+        
 
         $lastPi = substr($porfoma->inv_number, -2);
         $newPi = "PI" . $request['cust_number'] . date('my') . sprintf("%02d", $lastPi + 1);
@@ -378,25 +379,32 @@ class CustomerController extends Controller
         $insertPi = DB::table('t_invoice_porfoma')->insert($postVal);
 
         $pkg = DB::table('t_service_pkg')->where('sp_name', $porfoma->sp_code)->first();
-
+        
+        if ($porfoma->cust_pop != 3) {
+            $biayaLayanan =  $pkg->sp_reguler;
+        } else {
+            $biayaLayanan = $porfoma->cupkg_bill_regular;
+        }
         $postValItem[0]['ii_type'] = '2';
         $postValItem[0]['inv_number'] = $newPi;
         $postValItem[0]['ii_info'] = 'Biaya Layanan ' . $porfoma->sp_code . '  ' . Carbon::parse($postVal['inv_start'])->isoFormat('D MMMM Y') . '-' . Carbon::parse($postVal['inv_end'])->isoFormat('D MMMM Y');
-        $postValItem[0]['ii_amount'] = $pkg->sp_reguler;
+        $postValItem[0]['ii_amount'] = $biayaLayanan;
         $postValItem[0]['ii_order'] = '1';
         $postValItem[0]['ii_recycle'] = '2';
 
         $postValItem[1]['ii_type'] = '7';
         $postValItem[1]['inv_number'] = $newPi;
         $postValItem[1]['ii_info'] = 'PPN 11 %';
-        $postValItem[1]['ii_amount'] = ($pkg->sp_reguler * 11) / 100;
+        $postValItem[1]['ii_amount'] =   ($biayaLayanan * 11) / 100;
         $postValItem[1]['ii_order'] = '2';
         $postValItem[1]['ii_recycle'] = '2';
+
+        //dd($postValItem);
 
         $insertItemPi = DB::table('t_inv_item_porfoma')->insert($postValItem);
 
         if ($porfoma->cupkg_status == 5) {
-            DB::table('trel_cust_pkg')->where('_nomor', $porfoma->sp_nom)->update(['cupkg_status', 8]);
+            DB::table('trel_cust_pkg')->where('_nomor', $porfoma->sp_nom)->update(['cupkg_status' => 8]);
         }
 
         session()->flash('success', 'Raktivasi Berhasil');
