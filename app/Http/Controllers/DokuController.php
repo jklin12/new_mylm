@@ -15,6 +15,7 @@ class DokuController extends Controller
 {
     var $arrStatus = [1 => 'Registrasi', 'Instalasi', 'Setup', 'Sistem Aktif', 'Tidak Aktif', 'Trial', 'Sewa Khusus', 'Blokir', 'Ekslusif', 'CSR'];
     var $arrPiStatus = ['Blum Bayar', 'Lunas', 'Expired'];
+    var $invStatus = [['belum lunas', 'danger'], ['lunas', 'green'], ['expired', 'warning']];
     var $arrPop = ['Bogor Valley', 'LIFEMEDIA', 'HABITAT', 'SINDUADI', 'GREENNET', 'X-LIFEMEDIA', 'LDP LIFEMEDIA', 'LDP X-LIFEMEDIA', 'JIP', 'Jogja Tronik', 'LDP JIP'];
 
     var $mallid = 9265;
@@ -27,6 +28,7 @@ class DokuController extends Controller
     var $chanelId = 'f08493be-7d5e-4e08-8c30-30d31557b7f0';
     //var $messageId = 'f4d9b5fa-ced8-4edd-a22f-b9c5887b2551';
     var $messageId = 'f209655f-c572-41db-b291-baf0559007ee';
+    
 
 
     public function paymentRequest()
@@ -61,7 +63,7 @@ class DokuController extends Controller
     {
 
         if ($request->ajax()) {
-            $data =   DB::table('t_pay_request')->selectRaw('inv_numb, status_type, result_msg, t_pay_channel.description as channel_pembayaran, cupkg_status,amount,t_customer.cust_number,inv_status')
+            $data =   DB::table('t_pay_request')->selectRaw('inv_numb, status_type, result_msg, t_pay_channel.description as channel_pembayaran, cupkg_status,amount,t_customer.cust_number,inv_status,insert_date')
                 ->leftJoin('t_invoice_porfoma', 't_pay_request.inv_numb', '=', 't_invoice_porfoma.inv_number')
                 ->leftJoin('t_customer', 't_invoice_porfoma.cust_number', '=', 't_customer.cust_number')
                 ->leftJoin('trel_cust_pkg', function ($join) {
@@ -70,7 +72,8 @@ class DokuController extends Controller
                 ->leftJoin('t_pay_channel', 't_pay_request.payment_channel', '=', 't_pay_channel.code')
                 ->groupBy('inv_numb', 't_customer.cust_number')
                 ->whereRaw("YEAR(insert_date) = '2022'")
-                ->orderByDesc('payment_time')
+                ->whereRaw("MONTH(insert_date) > '06'")
+                ->orderByDesc('insert_date')
                 //->limit(1000)
                 ->get();
 
@@ -85,6 +88,9 @@ class DokuController extends Controller
                     }
                     return $badges;
                 })*/
+                ->editColumn('insert_date', function ($row) {
+                    return Carbon::parse($row->insert_date)->isoFormat('D MMMM Y, HH:mm');
+                })
                 ->addColumn('rp_amount', function ($row) {
                     return 'Rp. ' . (intval($row->amount));
                 })
@@ -93,12 +99,16 @@ class DokuController extends Controller
                     return $actionBtn;
                 })
                 ->addColumn('status_cust', function ($row) {
-                    return $row->cupkg_status ? $this->arrStatus[$row->cupkg_status] : '';
-                })
+                    $status = arrCustStatus($row->cupkg_status);
+                    return $row->cupkg_status ? '<h5><span class="badge badge-' . $status[1] . '">' . $status[0]  . '</span></h5>'  : '';
+                }) 
                 ->addColumn('pi_status', function ($row) {
-                    return isset($this->arrPiStatus[$row->inv_status]) ? $this->arrPiStatus[$row->inv_status] : $row->inv_status;
+                    return isset($this->invStatus[$row->inv_status]) ?  '<h5><span class="badge badge-' . $this->invStatus[$row->inv_status][1] . '">' . $this->invStatus[$row->inv_status][0] . '</span></h5>' : $row->inv_status;
                 })
-                ->rawColumns(['detail', 'status_cust', 'rp_amount', 'pi_status'])
+                ->addColumn('payment_status', function ($row) {
+                    return $row->result_msg == 'SUCCESS'?  '<h5><span class="badge badge-primary">' . $row->result_msg . '</h5></span>' : '<h5><span class="badge badge-warning">' . $row->result_msg . '</span></h5>';
+                })
+                ->rawColumns(['detail', 'status_cust', 'rp_amount', 'pi_status','payment_status'])
                 ->toJson();
             //->make(true);
             //die;
@@ -270,7 +280,7 @@ class DokuController extends Controller
     {
         $inv_number = $request->input('inv');
         if ($inv_number) {
-    
+
             $query = DB::table('t_pay_request')->selectRaw('inv_numb, status_type, result_msg, t_pay_channel.description as channel_pembayaran, cupkg_status,amount,responseCode,paymen_code,insert_date,t_customer.cust_number,t_invoice_porfoma.inv_number,inv_status,t_invoice_porfoma.sp_nom,t_invoice_porfoma.sp_code,inv_start,inv_end,inv_paid,inv_post,inv_info,cust_name,cust_pop,cust_hp,cust_address,cust_phone,cust_email')
                 ->leftJoin('t_invoice_porfoma', 't_pay_request.inv_numb', '=', 't_invoice_porfoma.inv_number')
                 ->leftJoin('t_customer', 't_invoice_porfoma.cust_number', '=', 't_customer.cust_number')
@@ -294,7 +304,8 @@ class DokuController extends Controller
             }
 
             if ($query->cupkg_status != 4) {
-                //echo 'update status pelanggan\n';
+
+
 
                 $getLastSpk = DB::table('t_field_task')
                     ->select('ft_number')
@@ -304,47 +315,49 @@ class DokuController extends Controller
                     ->orderByDesc('ft_number')
                     ->first();
                 //print_r($getLastSpk);die;
+
                 if (isset($getLastSpk->ft_number)) {
                     $explodeSpkNumber = explode('/', $getLastSpk->ft_number);
                     //echo $getLastSpk->ft_number.'<br>';
                     $newSpkNumber = sprintf("%05d", substr($explodeSpkNumber[0], 2) + 1);
                     //echo 'SP'.$newSpkNumber."/NOC/".date('m').'/'.date('y');die;
+                } else {
+                    $newSpkNumber = '000001';
+                }
+                $ftNumber =  'SP' . $newSpkNumber . "/NOC/" . date('m') . '/' . date('y');
+                $postVal['ft_number'] = $ftNumber;
+                $postVal['ft_received'] = date('Y-m-d H:i:s');
+                $postVal['ft_type'] = 2;
+                $postVal['cust_number'] = $query->cust_number;
+                $postVal['sp_code'] = $query->sp_code;
+                $postVal['sp_nom'] = $query->sp_nom;
+                $postVal['ft_recycle'] = 2;
+                $postVal['ft_reactive'] = 1;
+                $postVal['ft_desc'] = 'SPK Setup Genertae by doku at ' . Carbon::parse(date('Y-m-d H:m:i'))->isoFormat('D MMMM Y, HH:mm');
 
-                    $ftNumber =  'SP' . $newSpkNumber . "/NOC/" . date('m') . '/' . date('y');
-                    $postVal['ft_number'] = $ftNumber;
-                    $postVal['ft_received'] = date('Y-m-d H:i:s');
-                    $postVal['ft_type'] = 2;
-                    $postVal['cust_number'] = $query->cust_number;
-                    $postVal['sp_code'] = $query->sp_code;
-                    $postVal['sp_nom'] = $query->sp_nom;
-                    $postVal['ft_recycle'] = 2;
-                    $postVal['ft_reactive'] = 1;
-                    $postVal['ft_desc'] = 'SPK Setup Genertae by doku at ' . Carbon::parse(date('Y-m-d H:m:i'))->isoFormat('D MMMM Y, HH:mm');
+                print_r($postVal);
+                DB::table('t_field_task')->insert($postVal);
 
-                    //print_r($postVal);
-                    DB::table('t_field_task')->insert($postVal);
+                $status = $this->openBlocking($query->cust_number);
+                if ($status) {
+                    $updateVal['ft_status'] = '2';
+                    $updateVal['ft_updated'] = date('Y-m-d H:m:i');
+                    $updateVal['ft_solved'] = date('Y-m-d H:m:i');
+                    $updateVal['ft_updated_by'] = "admin";
+                    $updateVal['ft_desc'] = $postVal['ft_desc'] . ' <br> ' . 'Setup done by sistem at ' . Carbon::parse(date('Y-m-d H:m:i'))->isoFormat('D MMMM Y, HH:mm');
 
-                    $status = $this->openBlocking($query->cust_number);
-                    if ($status) {
-                        $updateVal['ft_status'] = '2';
-                        $updateVal['ft_updated'] = date('Y-m-d H:m:i');
-                        $updateVal['ft_solved'] = date('Y-m-d H:m:i');
-                        $updateVal['ft_updated_by'] = "admin";
-                        $updateVal['ft_desc'] = $postVal['ft_desc'] . ' <br> ' . 'Setup done by sistem at ' . Carbon::parse(date('Y-m-d H:m:i'))->isoFormat('D MMMM Y, HH:mm');
+                    //print_r($updateVal);
+                    DB::table('t_field_task')
+                        ->where('ft_number', $ftNumber)
+                        ->update($updateVal);
 
-                        //print_r($updateVal);
-                        DB::table('t_field_task')
-                            ->where('ft_number', $ftNumber)
-                            ->update($updateVal);
-
-                        DB::table('trel_cust_pkg')
-                            ->where('cust_number', $query->cust_number)
-                            ->update(['cupkg_status' => 4]);
-                    } else {
-                        DB::table('trel_cust_pkg')
-                            ->where('cust_number', $query->cust_number)
-                            ->update(['cupkg_status' => 3]);
-                    }
+                    DB::table('trel_cust_pkg')
+                        ->where('cust_number', $query->cust_number)
+                        ->update(['cupkg_status' => 4]);
+                } else {
+                    DB::table('trel_cust_pkg')
+                        ->where('cust_number', $query->cust_number)
+                        ->update(['cupkg_status' => 3]);
                 }
             }
 
@@ -486,8 +499,8 @@ class DokuController extends Controller
                 //
             }
 
-            
-            
+
+
             if (substr($phoneNumber, 0, 1) === '0') {
                 $phoneNumber = '62' . substr($phoneNumber, 1);
             } else {
@@ -625,9 +638,9 @@ class DokuController extends Controller
                 'orderable' => true,
                 'searchable' => true
             ],
-            'result_msg' => [
+            'payment_status' => [
                 'label' => 'Status Pemabayaran',
-                'orderable' => false,
+                'orderable' => true,
                 'searchable' => true
             ],
 
@@ -636,12 +649,17 @@ class DokuController extends Controller
                 'orderable' => false,
                 'searchable' => true
             ],
-
             'rp_amount' => [
                 'label' => 'Total',
                 'orderable' => false,
                 'searchable' => true
             ],
+            'insert_date' => [
+                'label' => 'Timestamp',
+                'orderable' => false,
+                'searchable' => true
+            ],
+
 
         ];
     }
