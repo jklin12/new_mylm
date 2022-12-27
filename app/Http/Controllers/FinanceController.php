@@ -134,7 +134,8 @@ class FinanceController extends Controller
                 $insertInv['inv_status'] = 1;
                 $insertInv['inv_start'] = $value->inv_start;
                 $insertInv['inv_end'] = $value->inv_end;
-                $insertInv['inv_info'] = 'Di bayar dengan ' . $newArrayPi[$value->inv_number][2] . '  pada ' . Carbon::parse($newArrayPi[$value->inv_number][3])->isoFormat('dddd, D MMMM Y') . '\n Digenerate otomatis pada ' . Carbon::parse(date('Y-m-d H:m:i'))->isoFormat('dddd, D MMMM Y H:mm');
+                $insertInv['inv_info'] = 'Transfer dari nusa satu inti an Yudy Semuel '.$value->cust_number.'-'.$newInvNumber; 
+                //$insertInv['inv_info'] = 'Di bayar dengan ' . $newArrayPi[$value->inv_number][2] . '  pada ' . Carbon::parse($newArrayPi[$value->inv_number][3])->isoFormat('dddd, D MMMM Y') . '\n Digenerate otomatis pada ' . Carbon::parse(date('Y-m-d H:m:i'))->isoFormat('dddd, D MMMM Y H:mm'); 
                 $insertInv['inv_pay_method'] = $newArrayPi[$value->inv_number][2] == 'Alfa-VA' ? '13' : '12';
                 $insertInv['pi_number'] = $value->inv_number;
                 $insertInv['sp_nom'] = $value->sp_nom;
