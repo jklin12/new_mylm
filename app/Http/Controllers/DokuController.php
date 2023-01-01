@@ -71,9 +71,8 @@ class DokuController extends Controller
                 })
                 ->leftJoin('t_pay_channel', 't_pay_request.payment_channel', '=', 't_pay_channel.code')
                 ->groupBy('inv_numb', 't_customer.cust_number')
-                ->whereRaw("YEAR(insert_date) = '2022'")
-                ->whereRaw("YEAR(insert_date) = '".date('Y')."'")
-                ->whereRaw("MONTH(insert_date) > '06'")
+                ->whereRaw("DATE_FORMAT(insert_date, '%Y-%m') >= '2022-09'")
+                //->whereRaw("MONTH(insert_date) > '06'")
                 ->orderByDesc('insert_date')
                 //->limit(1000)
                 ->get();
