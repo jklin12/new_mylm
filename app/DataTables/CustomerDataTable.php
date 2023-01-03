@@ -48,13 +48,23 @@ class CustomerDataTable extends DataTable
             ->editColumn('cupkg_svc_begin', function ($user) {
                 return $user->cupkg_svc_begin ? with(new Carbon($user->cupkg_svc_begin))->isoFormat('ddd, D MMM YY') : '';
             })
+            ->editColumn('cupkg_bill_autogen', function ($user) {
+                return $user->cupkg_bill_autogen  == '1'? 'Ya' : 'Tidak';
+            })
+            ->editColumn('cupkg_bill_period', function ($user) {
+                return $user->cupkg_bill_period.' Bulan';
+            })
             ->addColumn('durasi', function ($user) {
                 $interval = '';
                 if ($user->cupkg_status != 5) {
                     $datetime1 = date_create($user->cupkg_svc_begin);
                     $datetime2 = date_create(date('Y-m-d'));
                     $interval = date_diff($datetime1, $datetime2);
-                    return $interval->format('%m bulan, %d hari');
+                    if ($interval->format('%y') < 1) {
+                        return $interval->format('%m bulan, %d hari');
+                    } else {
+                        return $interval->format('%y tahun, %m bulan, %d hari');
+                    }
                 } else {
                     $datetime1 = date_create($user->cupkg_svc_begin);
                     $datetime2 = date_create($user->cuin_date);
@@ -79,7 +89,7 @@ class CustomerDataTable extends DataTable
      */
     public function query(Customer $model): QueryBuilder
     {
-        return $model->select('t_customer.cust_number', 'cust_name', 'cust_address', 'cust_phone', DB::raw('trel_cust_pkg.sp_code'), 'cust_hp', 'cupkg_status', 'cupkg_svc_begin', 'cust_pop', 'cupkg_acct_manager', 'cuin_type', 'cuin_date', 'cuin_reason', 'cuin_info', 'cust_member_card', 'cust_kecamatan', 'cust_kelurahan', 'cust_rw', 'cust_rt')
+        return $model->select('t_customer.cust_number', 'cust_name', 'cust_address', 'cust_phone', DB::raw('trel_cust_pkg.sp_code'), 'cust_hp', 'cupkg_status', 'cupkg_svc_begin', 'cust_pop', 'cupkg_acct_manager', 'cuin_type', 'cuin_date', 'cuin_reason', 'cuin_info', 'cust_member_card', 'cust_kecamatan', 'cust_kelurahan', 'cust_rw', 'cust_rt','cupkg_bill_autogen','cupkg_bill_period')
             ->leftJoin('trel_cust_pkg', 't_customer.cust_number', '=', 'trel_cust_pkg.cust_number')
             ->leftJoin('t_customer_inactive', 't_customer.cust_number', '=', 't_customer_inactive.cust_number')
             ->groupBy('trel_cust_pkg._nomor')
@@ -93,9 +103,9 @@ class CustomerDataTable extends DataTable
      */
     public function html(): HtmlBuilder
     {
-        $button =[];
+        $button = [];
         if (Auth::user()->level >= 8) {
-           $button[] = 'export';
+            $button[] = 'export';
         }
         return $this->builder()
             ->setTableId('customer-table')
@@ -110,6 +120,8 @@ class CustomerDataTable extends DataTable
                     data.cust_pop    = $('#filter_cust_pop').val(); 
                     data.cust_kelurahan    = $('#filter_kelurahan').val(); 
                     data.cust_kecamatan    = $('#filter_kecamatan').val(); 
+                    data.cuin_date    = $('#input_cuin_date').val(); 
+                    data.cupkg_bill_period    = $('#filter_periode').val(); 
                 }",
             ])
             ->dom('Bfrtip')
@@ -279,7 +291,7 @@ class CustomerDataTable extends DataTable
                 'searchable' => false,
                 'form_type' => 'text',
                 'visible' => false
-            ], 
+            ],
             'cuin_reason' => [
                 'label' => 'Alasan Berhenti',
                 'orderable' => true,
@@ -287,8 +299,22 @@ class CustomerDataTable extends DataTable
                 'form_type' => 'text',
                 'visible' => false
             ],
-             'cuin_info' => [
+            'cuin_info' => [
                 'label' => 'Info Behenti',
+                'orderable' => true,
+                'searchable' => false,
+                'form_type' => 'text',
+                'visible' => false
+            ], 
+            'cupkg_bill_autogen' => [
+                'label' => 'Invoice Reguler',
+                'orderable' => true,
+                'searchable' => false,
+                'form_type' => 'text',
+                'visible' => false
+            ],
+            'cupkg_bill_period' => [
+                'label' => 'Periode Pembayaran ',
                 'orderable' => true,
                 'searchable' => false,
                 'form_type' => 'text',

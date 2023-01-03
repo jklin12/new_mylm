@@ -17,7 +17,9 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', 'App\Http\Controllers\DashboardController@index')->name('/')->middleware('cek_login');
 Route::get('finance/generateInv', 'App\Http\Controllers\FinanceController@index')->name('generateInv')->middleware('cek_login');
+Route::get('finance/generateQris', 'App\Http\Controllers\FinanceController@qris')->name('generateQris')->middleware('cek_login');
 Route::post('finance/importStatement', 'App\Http\Controllers\FinanceController@importStatement')->name('import-statement')->middleware('cek_login');
+Route::post('finance/importStatementQris', 'App\Http\Controllers\FinanceController@importStatementQris')->name('import-statementQris')->middleware('cek_login');
 Route::get('finance/cekRequest', 'App\Http\Controllers\FinanceController@cekRequest')->name('cek-request-doku')->middleware('cek_login');
 Route::get('finance/cekRequestList', 'App\Http\Controllers\FinanceController@cekRequestList')->name('cek-request-list')->middleware('cek_login');
 
@@ -40,8 +42,12 @@ Route::middleware(['cek_login'])->group(function () {
     Route::get('/porfoma_detail/{inv_number}', 'App\Http\Controllers\PorfomaController@detail')->name('porfoma-detail');
 
     Route::get('/waitinglist/index', 'App\Http\Controllers\WaitinglistController@index')->name('waitinglist-index');
+    Route::get('/waitinglist/form', 'App\Http\Controllers\WaitinglistController@form')->name('waitinglist-form');
+    Route::get('/waitinglist/edit/{wi_id}', 'App\Http\Controllers\WaitinglistController@form')->name('waitinglist-edit');
+    Route::get('/waitinglist/detail/{wi_id}', 'App\Http\Controllers\WaitinglistController@detail')->name('waitinglist-detail');
     Route::post('/waitinglist/store', 'App\Http\Controllers\WaitinglistController@store')->name('waitinglist-store');
     Route::get('/waitinglist/list', 'App\Http\Controllers\WaitinglistController@list')->name('waitinglist-list');
+    Route::post('/waitinglist/konfirmasi', 'App\Http\Controllers\WaitinglistController@konfirmasi')->name('waitinglist-konfirmasi');
 
     Route::get('/cust_spk/{cust_number}', 'App\Http\Controllers\SpkerjaController@index')->name('customer-spk');
     Route::get('/spk_list/{cust_number}', 'App\Http\Controllers\SpkerjaController@list')->name('spk-list');

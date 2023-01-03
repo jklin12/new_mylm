@@ -13,7 +13,7 @@ use DataTables;
 class PorfomaController extends Controller
 {
     var $invStatus = [['belum lunas', 'danger'], ['lunas', 'green'], ['expired', 'warning']];
-    
+
     public function index(Request $request, $cust_number)
     {
         $title = 'Porfoma ' . $cust_number;
@@ -59,7 +59,7 @@ class PorfomaController extends Controller
                     $join->on('t_invoice_porfoma.inv_number', '=', 't_inv_item_porfoma.inv_number')->where('ii_recycle', '<>', 1);
                 })
                 ->groupByRaw('t_invoice_porfoma.inv_number')
-                ->orderByDesc('inv_start');
+                ->orderByDesc('inv_due');
 
             return Datatables::of($data)
                 ->addIndexColumn()
@@ -101,18 +101,24 @@ class PorfomaController extends Controller
         $load['sub_title'] = $subTitle;
 
         $data = InvoicePorfoma::where('t_invoice_porfoma.inv_number', $inv_number)
-            ->leftJoin('t_customer', 't_invoice_porfoma.cust_number', '=', 't_customer.cust_number')
-            ->leftJoin('trel_cust_pkg', 't_invoice_porfoma.cust_number', '=', 'trel_cust_pkg.cust_number')
+            ->leftJoin('trel_cust_pkg', function ($join) {
+                $join->on('t_invoice_porfoma.cust_number', '=', 'trel_cust_pkg.cust_number')
+                    ->on('trel_cust_pkg._nomor', '=', 't_invoice_porfoma.sp_nom');
+            })
             ->leftJoin('t_inv_item_porfoma', function ($join) {
                 $join->on('t_invoice_porfoma.inv_number', '=', 't_inv_item_porfoma.inv_number')->where('ii_recycle', '<>', 1);
-            })->get();
-        $data = $data->toArray();
+            })
+            ->leftJoin('t_customer', 't_invoice_porfoma.cust_number', '=', 't_customer.cust_number')
 
+
+            ->get();
+        $data = $data->toArray();
+        //dd($data);
         $susunData = [];
         $susunDataSummary = [];
 
         $totals = 0;
-        
+
 
         foreach ($data as $key => $value) {
             foreach ($value as $keys => $values) {
@@ -123,10 +129,10 @@ class PorfomaController extends Controller
 
             $susunDataSummary[$key]['ii_order'] = $value['ii_order'];
             $susunDataSummary[$key]['ii_type'] = $value['ii_type'];
-            $susunDataSummary[$key]['ii_amount'] = 'Rp. '.SchRp($value['ii_amount']);
+            $susunDataSummary[$key]['ii_amount'] = 'Rp. ' . SchRp($value['ii_amount']);
             $susunDataSummary[$key]['ii_info'] = $value['ii_info'];
         }
-        
+
         $susunData2 = [];
         $arrfield = $this->arrFieldDetail();
 
@@ -134,23 +140,23 @@ class PorfomaController extends Controller
             //print_r($value);die;
             if ($value['form_type'] == 'text') {
                 $susunData2[$key] = $susunData[$key];
-            }else if ($value['form_type'] == 'date') {
+            } else if ($value['form_type'] == 'date') {
                 $susunData2[$key] = with(new Carbon($susunData[$key]))->isoFormat('dddd, D MMMM Y');
-            }else if ($value['form_type'] == 'date_time') {
+            } else if ($value['form_type'] == 'date_time') {
                 $susunData2[$key] = with(new Carbon($susunData[$key]))->isoFormat('dddd, D MMMM Y H:m');
-            }else if ($value['form_type'] == 'select_status') {
+            } else if ($value['form_type'] == 'select_status') {
                 $susunData2[$key] = '<span class="badge badge-' . $this->invStatus[$susunData[$key]][1] . '">' . $this->invStatus[$susunData[$key]][0] . '</span>';
             }
         }
 
-        $susunData2['totals'] = 'Rp. '.SchRp($totals);
-        //dd($susunData2); 
+        $susunData2['totals'] = 'Rp. ' . SchRp($totals);
+        //dd($susunDataSummary); 
         $load['inv_status'] = $susunData['inv_status'];
         $load['cust_number'] = $susunData['cust_number'];
         $load['datas'] = $susunData2;
         $load['data_summary'] = $susunDataSummary;
         $load['arr_field'] = $arrfield;
-         
+
 
         return view('pages/porfoma/detail', $load);
     }
@@ -202,7 +208,7 @@ class PorfomaController extends Controller
                 'searchable' => false,
                 'form_type' => 'text',
             ],
-           
+
         ];
     }
 
@@ -370,6 +376,4 @@ class PorfomaController extends Controller
 
         ];
     }
-
-     
 }

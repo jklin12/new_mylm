@@ -7,7 +7,8 @@
 <link href="/assets/plugins/datatables.net-bs4/css/dataTables.bootstrap4.min.css" rel="stylesheet" />
 <link href="/assets/plugins/datatables.net-responsive-bs4/css/responsive.bootstrap4.min.css" rel="stylesheet" />
 <link href="/assets/plugins/datatables.net-buttons-bs4/css/buttons.bootstrap4.min.css" rel="stylesheet" />
-
+<link href="/assets/plugins/bootstrap-datepicker/dist/css/bootstrap-datepicker.css" rel="stylesheet" />
+<link href="/assets/plugins/bootstrap-datepicker/dist/css/bootstrap-datepicker3.css" rel="stylesheet" />
 @endpush
 
 <!-- begin page-header -->
@@ -74,6 +75,35 @@
                                 @foreach($Kelurahan as $key => $value)
                                 <option value="{{$value->area_name}}">{{$value->area_name}}</option>
                                 @endforeach
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group row m-b-15">
+                        <label class="col-form-label col-md-3">Bulan Berhenti</label>
+                        <div class="col-md-9">
+                            <div class="input-group date" id="filter_cuin_date">
+                                <input type="text" class="form-control" id="input_cuin_date">
+                                <div class="input-group-addon">
+                                    <i class="fa fa-calendar"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group row m-b-15">
+                        <label class="col-form-label col-md-3">Periode Invoice</label>
+                        <div class="col-md-9">
+                            <select name="cupkg_bill_period" id="filter_periode" class="form-control">
+                                <option value="">Select Periode</option>
+                                <option value="1">1 Bulan</option>
+                                <option value="2">2 Bulan</option>
+                                <option value="3">3 Bulan</option>
+                                <option value="6">6 Bulan</option>
+                                <option value="12">12 Bulan</option>
+                                 
                             </select>
                         </div>
                     </div>
@@ -153,6 +183,7 @@
 <script type="text/javascript" src="https://cdn.datatables.net/1.10.22/js/dataTables.bootstrap4.min.js"></script>
 <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.6.5/js/dataTables.buttons.min.js"></script>
 <script type="text/javascript" src="https://cdn.datatables.net/buttons/1.6.5/js/buttons.bootstrap4.min.js"></script>
+<script src="/assets/plugins/bootstrap-datepicker/dist/js/bootstrap-datepicker.js"></script>
 <script src="/vendor/datatables/buttons.server-side.js"></script>
 
 {!! $dataTable->scripts() !!}
@@ -166,6 +197,13 @@
         $('#filter_cupkg_status').val('<?php echo $cupkg_status ?>');
         $('#filter_cust_pop').val('<?php echo $cust_pop ?>');
         $('#search-filter').submit();
+        $("#filter_cuin_date").datepicker({
+            format: "mm",
+            startView: "months",
+            minViewMode: "months",
+            orientation: 'bottom' 
+        }).on('changeDate', function(ev) {
+        });
 
         $('#customer-table').on('click', '.status_btn', function() {
             $('#cuin_modal').modal('toggle')

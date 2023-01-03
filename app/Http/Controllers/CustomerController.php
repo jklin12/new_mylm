@@ -355,7 +355,7 @@ class CustomerController extends Controller
             ->whereRaw("t_invoice_porfoma.cust_number = '" . $request['cust_number'] . "'")
             ->orderByDesc('inv_post')
             ->first();
-        
+
 
         $lastPi = substr($porfoma->inv_number, -2);
         $newPi = "PI" . $request['cust_number'] . date('my') . sprintf("%02d", $lastPi + 1);
@@ -379,7 +379,7 @@ class CustomerController extends Controller
         $insertPi = DB::table('t_invoice_porfoma')->insert($postVal);
 
         $pkg = DB::table('t_service_pkg')->where('sp_name', $porfoma->sp_code)->first();
-        
+
         if ($porfoma->cust_pop != 3) {
             $biayaLayanan =  $pkg->sp_reguler;
         } else {
@@ -810,6 +810,20 @@ class CustomerController extends Controller
             ],
             'cuin_info' => [
                 'label' => 'Info Behenti',
+                'orderable' => true,
+                'searchable' => false,
+                'form_type' => 'text',
+                'visible' => false
+            ], 
+            'cupkg_bill_autogen' => [
+                'label' => 'Invoice Reguler',
+                'orderable' => true,
+                'searchable' => false,
+                'form_type' => 'text',
+                'visible' => false
+            ],
+            'cupkg_bill_period' => [
+                'label' => 'Periode Pembayaran ',
                 'orderable' => true,
                 'searchable' => false,
                 'form_type' => 'text',

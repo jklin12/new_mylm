@@ -98,7 +98,7 @@ class ReportController extends Controller
             $susundrilldown2[$key]['data'] = array_values($value['data']);
         }
 
-        $susundrilldown = array_merge_recursive($susundrilldown,( $susundrilldown2));
+        $susundrilldown = array_merge_recursive($susundrilldown, ($susundrilldown2));
         //dd($susundrilldown);
 
         $monthlyAm = DB::table('t_customer')
@@ -165,7 +165,7 @@ class ReportController extends Controller
             ->where('cupkg_status', '!=', '9')
             ->where('cupkg_status', '!=', '10')
             //->whereRaw("YEAR(created) = '" . $year . "'")
-            
+
             ->groupBy('cupkg_status')
             ->orderBy('total')
             ->get();
@@ -271,11 +271,13 @@ class ReportController extends Controller
     }
     public function invoice(Request $request)
     {
-        $year = isset($xplodeFilter[1]) && $xplodeFilter[1] ? $xplodeFilter[1] : date('Y');
-        $month = isset($xplodeFilter[0]) && $xplodeFilter[0] ? $xplodeFilter[0] : date('m');
+        $year = $request->has('tahun') ? $request->input('tahun') : date('Y');
+
+        //$year = isset($xplodeFilter[1]) && $xplodeFilter[1] ? $xplodeFilter[1] : date('Y');
+        //$month = isset($xplodeFilter[0]) && $xplodeFilter[0] ? $xplodeFilter[0] : date('m');
 
         $title = "Report Invoice Lifemedia";
-        $subTitle = 'Sampai Bulan ' . Carbon::parse($year . '-' . $month . '-01')->isoFormat('MMMM YY');;
+        $subTitle = 'Tahun '.$year;
 
         $invoiceMonthlyChart = DB::table('t_invoice')
             ->select([DB::raw('SUM(CASE WHEN inv_status = 1 THEN t_inv_item.ii_amount ELSE 0 END) as total_pi_lunas'), DB::raw('SUM(CASE WHEN inv_status = 0 THEN t_inv_item.ii_amount ELSE 0 END) as total_pi_tidak_lunas'), DB::raw("SUM(CASE WHEN inv_status = 2 THEN t_inv_item.ii_amount ELSE 0 END) as total_pi_expired"), DB::raw("month(inv_start) as bulan")])
@@ -283,7 +285,7 @@ class ReportController extends Controller
                 $join->on('t_invoice.inv_number', '=', 't_inv_item.inv_number')->where('ii_recycle', '<>', 1);;
             })
             ->whereRaw("MONTH(inv_start) != '0'")
-            ->whereRaw("MONTH(inv_start) <= '" . $month . "'")
+            //->whereRaw("MONTH(inv_start) <= '" . $month . "'")
             ->whereRaw("YEAR(inv_start) = '" . $year . "'")
             //->where('inv_status', '1')
             ->groupByRaw("MONTH(inv_start)")
@@ -311,7 +313,7 @@ class ReportController extends Controller
                 $join->on('t_invoice_porfoma.inv_number', '=', 't_inv_item_porfoma.inv_number')->where('ii_recycle', '<>', 1);;
             })
             ->whereRaw("MONTH(inv_start) != '0'")
-            ->whereRaw("MONTH(inv_start) <= '" . $month . "'")
+            //->whereRaw("MONTH(inv_start) <= '" . $month . "'")
             ->whereRaw("YEAR(inv_start) = '" . $year . "'")
             //->where('inv_status', '1')
             ->groupByRaw("MONTH(inv_start)")
@@ -333,7 +335,7 @@ class ReportController extends Controller
         $load['title'] = $title;
         $load['sub_title'] = $subTitle;
         $load['year'] = $year;
-        $load['month'] =  Carbon::parse($year . '-' . $month . '-01')->isoFormat('MMMM');;
+        //$load['month'] =  Carbon::parse($year . '-' . $month . '-01')->isoFormat('MMMM');;
         $load['porfomaChartMonthly'] = $susunChartMonthly;
         $load['invoiceChartMonthly'] = $susunInvMonthly;
 
@@ -565,7 +567,26 @@ class ReportController extends Controller
         $title = "Pelanggan Berhenti ";
         $subTitle = 'Berdasarakn SPK Pencabutan ' . $year;
 
+        /*$pelangganBerhenti = DB::select("SELECT one.cust_number,two.cuin_date,two.cuin_reason,two.cuin_type,two.cuin_info
+       FROM t_customer one JOIN
+        t_customer_inactive two
+             ON one.cust_number = two.cust_number  JOIN
+             (SELECT t.cust_number, MAX(cuin_date) as maxt
+              FROM t_customer_inactive t
+              GROUP BY t.cust_number
+             ) t
+             ON two.cust_number = t.cust_number and two.cuin_date = maxt WHERE YEAR(two.cuin_date) = '2022' AND MONTH(two.cuin_date) = '12' AND two.cuin_type = '1' AND  two.cuin_info != 'Blokir otomatis' ");*/
 
+        $pelangganBerhenti = DB::select("SELECT SUM(CASE WHEN two.cuin_type = 1 THEN 1 ELSE 0  END) AS plg_berhenti,SUM(CASE WHEN two.cuin_type = 1 AND two.cuin_reason = '1' THEN 1 ELSE 0  END) AS plg_permintaan,SUM(CASE WHEN two.cuin_type = 1 AND two.cuin_reason = '2' THEN 1 ELSE 0  END) AS plg_menunggak,SUM(CASE WHEN two.cuin_type = 2 THEN 1 ELSE 0  END) as reaktivasi
+        FROM t_customer one JOIN
+        t_customer_inactive two
+             ON one.cust_number = two.cust_number  JOIN
+             (SELECT t.cust_number, MAX(cuin_date) as maxt
+              FROM t_customer_inactive t
+              GROUP BY t.cust_number
+             ) t
+             ON two.cust_number = t.cust_number and two.cuin_date = maxt WHERE YEAR(two.cuin_date) = '2022' AND MONTH(two.cuin_date) = '12' GROUP BY two.cuin_date ");
+        print_r($pelangganBerhenti);die;
         $spkPencabutan = DB::table('t_field_task')
             //->selectRaw('count(ft_number) as jumlah,ft_status')
             ->select(DB::raw("t_customer.cust_number,trel_cust_pkg.sp_code,DATE_FORMAT(ft_received,'%Y-%m-%d') as tgl_spk"), 'cupkg_status', 'cupkg_svc_begin', 'ft_status')
@@ -576,7 +597,7 @@ class ReportController extends Controller
             ->groupBy(DB::raw("t_customer.cust_number"))
             //->limit('10')
             ->get()->toArray();
-        //dd($spkPencabutan);
+
 
         $aktifKembali = 0;
         $totalPencabutan = 0;
@@ -607,6 +628,7 @@ class ReportController extends Controller
                 $dateDiv[] = $interval->format('%m');
             }
         }
+
         $numbers = array();
 
         foreach ($dateDiv as $field) {
@@ -639,6 +661,7 @@ class ReportController extends Controller
             $susunChartBulan[$key]['name'] =  $key;
             $susunChartBulan[$key]['y'] =  $value;
         }
+
 
         $load['title'] = $title;
         $load['sub_title'] = $subTitle;

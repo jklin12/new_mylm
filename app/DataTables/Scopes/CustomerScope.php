@@ -3,6 +3,7 @@
 namespace App\DataTables\Scopes;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Yajra\DataTables\Contracts\DataTableScope;
 
 class CustomerScope implements DataTableScope
@@ -27,7 +28,9 @@ class CustomerScope implements DataTableScope
             'cupkg_status',
             'cust_pop',
             'cust_kecamatan',
-            'cust_kelurahan'
+            'cust_kelurahan',
+            'cuin_date',
+            'cupkg_bill_period'
         ];
         //dd($this->request->input('inv_status'));
         //dd($this->request->all());
@@ -40,8 +43,9 @@ class CustomerScope implements DataTableScope
                         //$query->where($field, '>=', date('Y-m-d',strtotime($this->request->get($exxplode[0]),)));   
                         //$query->whereBetween($field,  [$this->request->get($exxplode[0]),$this->request->get($exxplode[1])]);   
                         $query->whereRaw("(inv_start >= '" . $exxplode[0] . "' and inv_start <= '" . $exxplode[1] . "')");
+                    } if ($field == 'cuin_date') {
+                        $query->where(DB::raw('MONTH(cuin_date)'), '=', $this->request->get($field));
                     } else {
-
                         $query->where($field, '=', $this->request->get($field));
                     }
                 }

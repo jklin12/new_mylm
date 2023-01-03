@@ -274,7 +274,7 @@ if (!function_exists('side_menu')) {
 				'title' => 'Waiting List',
 				//'label' => 'NEW',
 				'url' => route('waitinglist-index'),
-				'route-name' => 'waitinglist'
+				'route-name' => 'waitinglist-index'
 			];
 		}
 
@@ -334,7 +334,7 @@ if (!function_exists('side_menu')) {
 					'route-name' => '/'
 				],
 				$menuPelanggan,
-				//$menuWi,
+				$menuWi,
 				$menuMap,
 				$menuReport,
 				$menuDoku,

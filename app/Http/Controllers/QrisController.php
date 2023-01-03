@@ -183,7 +183,7 @@ class QrisController extends Controller
                 $tokenData = DB::table('t_qris_token')->where('status', 1)->orderByDesc('created_at')->first();
 
 
-                //dd($tok->systrace);
+               
                 $token = $tokenData->token;
                 $systrace = $tokenData->systrace;
 
@@ -224,8 +224,8 @@ class QrisController extends Controller
 
                 curl_close($curl);
                 if ($response) {
+                    
                     $arr = json_decode($response, true);
-                    //dd($arr);
                     if ($arr['responseCode'] == '0000') {
                         //dd($arr);
                         $susunData['transactionid'] = $arr['transactionId'];
@@ -240,6 +240,9 @@ class QrisController extends Controller
                             'message' => 'sukses Generate qr',
                             'qr' => '<img src="' . (new QRCode)->render($arr['qrCode']) . '" alt="QR Code" />',
                         ];
+                    } else if ($arr['responseCode'] == '3009') {
+                        $this->auth();
+                        $this->generate($request, $inv_number);
                     } else if ($arr['responseCode'] == '3010') {
                         $this->auth();
                         $this->generate($request, $inv_number);
@@ -264,11 +267,10 @@ class QrisController extends Controller
             ->leftJoin('trel_cust_pkg', function ($join) {
                 $join->on('t_customer.cust_number', '=', 'trel_cust_pkg.cust_number')->on('trel_cust_pkg._nomor', '=', 't_invoice_porfoma.sp_nom');
             })
-
             ->groupBy('porfoma', 't_customer.cust_number')
             ->where('porfoma', $inv_number)
             ->first();
-
+        //dd($query);
 
         $transactionid = $query->transactionid;
         $url = $this->baseUrl . '/dokupay/h2h/checkstatusqris';
@@ -285,7 +287,8 @@ class QrisController extends Controller
         $postVal['words'] = $this->words($systrace . $this->clientId . $transactionid, false);
         $postVal['version'] = '3.0';
         $postVal['transactionId'] = $transactionid;
-
+        
+        
         $curl = curl_init();
         $header = [
             'Content-Type: application/x-www-form-urlencoded',
@@ -308,7 +311,7 @@ class QrisController extends Controller
         curl_close($curl);
         if ($response) {
             $arr = json_decode($response, true);
-
+            dd($arr);
             $susunData = [];
             foreach ($arr as $key => $value) {
 
@@ -473,7 +476,6 @@ class QrisController extends Controller
     {
 
         if ($inv_number) {
-
             $query = DB::table('t_qr_request')->selectRaw('porfoma, txnstatus,txndate , cupkg_status,amount,t_customer.cust_number,t_invoice_porfoma.inv_number,inv_status,t_invoice_porfoma.sp_nom,t_invoice_porfoma.sp_code,inv_start,inv_end,inv_paid,inv_post,inv_info,cust_name,cust_pop,cust_hp,cust_address,cust_phone,cust_email')
                 ->leftJoin('t_invoice_porfoma', 't_qr_request.porfoma', '=', 't_invoice_porfoma.inv_number')
                 ->leftJoin('t_customer', 't_invoice_porfoma.cust_number', '=', 't_customer.cust_number')
