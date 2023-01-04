@@ -223,8 +223,9 @@ class FinanceController extends Controller
             $susunReport[$value->inv_number]['pi_status'] = $value->inv_status == 1 ? 'lunas' : 'selain lunas';
             $status = 'Gagal';
             $message = 'Invoice Sudah ada ' . $value->nomor_invoice;
+            
             $nomorInv = $value->nomor_invoice;
-
+            
             if ($value->inv_status == 0) {
                 $updateDataPi['inv_status'] = 1;
                 $updateDataPi['inv_pay_method'] = $newArrayPi[$value->inv_number][2] == 'Alfa-VA' ? '13' : '12';
@@ -434,7 +435,7 @@ class FinanceController extends Controller
 
         $num = 5;
         $numAlpa = 1;
-        dd($data);
+        //dd($data);
         foreach ($data as $dKey => $dVal) {
             $sheet->setCellValue('A' . $num, $dKey + 1);
             $sheet->getStyle('A' . $num)->getAlignment()->setHorizontal('center');
