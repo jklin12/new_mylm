@@ -93,6 +93,6 @@ class DashboardController extends Controller
 
     private function precentage($value, $total)
     {
-        return round(($value / $total) * 100, 2);
+        return $total ? round(($value / $total) * 100, 2) : 0;
     }
 }

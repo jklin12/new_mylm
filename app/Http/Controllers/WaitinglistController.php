@@ -635,7 +635,7 @@ class WaitinglistController extends Controller
                 'orderable' => false,
                 'searchable' => true,
                 'form_type' => 'select',
-                'keyvaldata' => $susunProv,
+                'keyvaldata' => $susunCity,
                 'visible' => true
             ],
             'wi_city' => [
@@ -643,7 +643,7 @@ class WaitinglistController extends Controller
                 'orderable' => false,
                 'searchable' => true,
                 'form_type' => 'select',
-                'keyvaldata' => $susunCity,
+                'keyvaldata' => $susunProv,
                 'visible' => true
             ],
             'wi_kecamatan' => [
