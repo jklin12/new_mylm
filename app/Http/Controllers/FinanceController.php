@@ -135,7 +135,7 @@ class FinanceController extends Controller
                 $insertInv['inv_start'] = $value->inv_start;
                 $insertInv['inv_end'] = $value->inv_end;
                 //$insertInv['inv_info'] = 'Transfer dari nusa satu inti an Yudy Semuel '.$value->cust_number.'-'.$newInvNumber; 
-                $insertInv['inv_info'] = 'Di bayar dengan ' . $newArrayPi[$value->inv_number][2] . '  pada ' . Carbon::parse($newArrayPi[$value->inv_number][3])->isoFormat('dddd, D MMMM Y') . '\n Digenerate otomatis pada ' . Carbon::parse(date('Y-m-d H:m:i'))->isoFormat('dddd, D MMMM Y H:mm'); 
+                $insertInv['inv_info'] = 'Di bayar dengan ' . $newArrayPi[$value->inv_number][2] . '  pada ' . Carbon::parse($newArrayPi[$value->inv_number][3])->isoFormat('dddd, D MMMM Y') . '\n Digenerate otomatis pada ' . Carbon::parse(date('Y-m-d H:m:i'))->isoFormat('dddd, D MMMM Y H:mm');
                 $insertInv['inv_pay_method'] = $newArrayPi[$value->inv_number][2] == 'Alfa-VA' ? '13' : '12';
                 $insertInv['pi_number'] = $value->inv_number;
                 $insertInv['sp_nom'] = $value->sp_nom;
@@ -205,14 +205,20 @@ class FinanceController extends Controller
                 $newArrayPi[$value[4]] = $value;
             }
         }
-        //print_r($arrPiNumber);die;
-        $piData = InvoicePorfoma::selectRaw('t_invoice_porfoma.*,t_invoice.inv_number as nomor_invoice,cupkg_status')
+
+        $piData = InvoicePorfoma::selectRaw('t_customer.cust_name,t_invoice_porfoma.*,t_invoice.inv_number as nomor_invoice,cupkg_status,ii_amount')
             ->whereIn('t_invoice_porfoma.inv_number', $arrPiNumber)
+            ->leftJoin('t_customer', 't_invoice_porfoma.cust_number', '=', 't_customer.cust_number')
             ->leftJoin('t_invoice', 't_invoice_porfoma.inv_number', '=', 't_invoice.pi_number')
             ->leftJoin('trel_cust_pkg', function ($join) {
                 $join->on('t_invoice_porfoma.cust_number', '=', 'trel_cust_pkg.cust_number')->on('trel_cust_pkg._nomor', '=', 't_invoice_porfoma.sp_nom');
             })
+            ->leftJoin('t_inv_item_porfoma', function ($join) {
+                $join->on('t_invoice_porfoma.inv_number', '=', 't_inv_item_porfoma.inv_number')->where('t_inv_item_porfoma.ii_type', '=', 2);
+            })
             ->get();
+
+        //dd($piData->toArray());
 
         $susunReport  = [];
         foreach ($piData as $key => $value) {
@@ -223,9 +229,9 @@ class FinanceController extends Controller
             $susunReport[$value->inv_number]['pi_status'] = $value->inv_status == 1 ? 'lunas' : 'selain lunas';
             $status = 'Gagal';
             $message = 'Invoice Sudah ada ' . $value->nomor_invoice;
-            
+
             $nomorInv = $value->nomor_invoice;
-            
+
             if ($value->inv_status == 0) {
                 $updateDataPi['inv_status'] = 1;
                 $updateDataPi['inv_pay_method'] = $newArrayPi[$value->inv_number][2] == 'Alfa-VA' ? '13' : '12';
@@ -297,18 +303,20 @@ class FinanceController extends Controller
 
                 $status = 'Sukses';
                 //$message = 'Generate Invoice sukses dengan nomor ' . $nomorInv;
-                $message = 'Transfer dari nusa satu inti an Yudy Semuel '.$value->cust_number.'-'.$newInvNumber;
-                
+                $message = 'Transfer dari nusa satu inti an Yudy Semuel ' . $value->cust_number . '-' . $newInvNumber;
             }
             $susunReport[$value->inv_number]['inv_status'] = $status;
             $susunReport[$value->inv_number]['inv_number'] = $nomorInv;
             $susunReport[$value->inv_number]['inv_message'] = $message;
+            $susunReport[$value->inv_number]['harga'] = $value->ii_amount;
+            $susunReport[$value->inv_number]['ppn'] = (intval($value->ii_amount) * 11) / 100;
         }
         //print_r($susunReport);die;
         $newSusunreport = [];
         foreach ($arrPiNumber as $key => $value) {
             $newSusunreport[$key] = $susunReport[$value];
         }
+        //dd($newSusunreport);
         $export = $this->downloadExcel(array_values($newSusunreport));
 
         if ($export['status']) {
@@ -410,7 +418,7 @@ class FinanceController extends Controller
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
 
-        $arrTitle = ['Nomor Pelanggan', 'Status Pelanggan', 'Nomor PI', 'Status PI', 'Status Generate', 'Nomor Invoice', 'Pesan'];
+        $arrTitle = ['Nomor Pelanggan', 'Status Pelanggan', 'Nomor PI', 'Status PI', 'Status Generate', 'Nomor Invoice', 'Pesan', 'Harga', 'PPN'];
         $alphas = range('A', 'Z');
         $dateExport = Carbon::parse(date('Y-m-d H:m:i'))->isoFormat('dddd, D MMMM Y H:mm');
 
