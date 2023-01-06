@@ -303,7 +303,7 @@ class FinanceController extends Controller
 
                 $status = 'Sukses';
                 //$message = 'Generate Invoice sukses dengan nomor ' . $nomorInv;
-                $message = 'Transfer dari nusa satu inti an Yudy Semuel ' . $value->cust_number . '-' . $newInvNumber;
+                $message = 'Transfer dari nusa satu inti an '.$value->cust_name.' ' . $value->cust_number . '-' . $newInvNumber;
             }
             $susunReport[$value->inv_number]['inv_status'] = $status;
             $susunReport[$value->inv_number]['inv_number'] = $nomorInv;
