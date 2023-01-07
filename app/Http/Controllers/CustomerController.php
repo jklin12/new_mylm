@@ -17,6 +17,7 @@ use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use Illuminate\Support\Facades\Validator;
 
+
 class CustomerController extends Controller
 {
     var $arrPop = ['Bogor Valley', 'LIFEMEDIA', 'HABITAT', 'SINDUADI', 'GREENNET', 'X-LIFEMEDIA', 'LDP LIFEMEDIA', 'LDP X-LIFEMEDIA', 'JIP', 'Jogja Tronik', 'LDP JIP'];
@@ -51,10 +52,60 @@ class CustomerController extends Controller
 
     /*public function list(Request $request)
     {
+        $data = Customer::select('t_customer.cust_number', 'cust_name','cust_sex',DB::raw("TIMESTAMPDIFF(YEAR,cust_birth_date,now()) as umur"), 'sp_name', 'cupkg_svc_begin', 'created', 'sp_reguler', DB::raw("TIMESTAMPDIFF(MONTH,IF(cupkg_svc_begin != '0000-00-00',cupkg_svc_begin,created),now()) as months"))
+            ->leftJoin('trel_cust_pkg', 't_customer.cust_number', '=', 'trel_cust_pkg.cust_number')
+            ->leftJoin('t_service_pkg', 'trel_cust_pkg.sp_code', '=', 't_service_pkg.sp_code')
+            ->where('cupkg_status', 4)
+            //->limit(100)
+            ->orderBy('cupkg_svc_begin')
+            ->latest()->get();
+
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+
+        $arrTitle = ['Customer Number', 'Customer Name','Jenis Kelamin','Umur', 'Layanan', 'Mulai Layanan', 'Tanggal Input','Biaya Layanan', 'Lama Berlangganan'];
+        $alphas = range('A', 'Z');
+        $dateExport = Carbon::parse(date('Y-m-d H:m:i'))->isoFormat('dddd, D MMMM Y H:mm');
+
+        $sheet->setCellValue('A1', 'Data Customer '); // Set kolom A1 dengan tulisan "DATA SISWA"
+        $sheet->setCellValue('A2', 'Pada ' . $dateExport); // Set kolom A1 dengan tulisan "DATA SISWA"
+        $sheet->mergeCells('A1:' . $alphas[count($arrTitle) - 1] . '1'); // Set Merge Cell pada kolom A1 sampai E1
+        $sheet->mergeCells('A2:' . $alphas[count($arrTitle) - 1] . '2'); // Set Merge Cell pada kolom A1 sampai E1
+        $sheet->getStyle('A1')->getFont()->setBold(true); // Set bold kolom A1
+        $sheet->getStyle('A1')->getAlignment()->setHorizontal('center');
+        $sheet->getStyle('A2')->getAlignment()->setHorizontal('center');
+
+        $sheet->setCellValue('A4', 'No.');
+        $sheet->getStyle('A4')->getFont()->setBold(true);
+        $sheet->getStyle('A4')->getAlignment()->setHorizontal('center');
+
+        foreach (array_values($arrTitle) as $key => $value) {
+
+            $sheet->setCellValue($alphas[$key + 1] . '4', $value);
+            $sheet->getStyle($alphas[$key + 1] . '4')->getFont()->setBold(true);
+            $sheet->getStyle($alphas[$key + 1] . '4')->getAlignment()->setHorizontal('center');
+        }
+
+        $num = 5;
+        $numAlpa = 1;
+        foreach ($data->toArray() as $dKey => $dVal) {
+            $sheet->setCellValue('A' . $num, $dKey + 1);
+            $sheet->getStyle('A' . $num)->getAlignment()->setHorizontal('center');
+            foreach ($dVal as $key => $value) {
+                $sheet->setCellValue($alphas[$numAlpa] . $num, $value);
+                $sheet->getStyle($alphas[$numAlpa] . $num)->getAlignment()->setHorizontal('left');
+                $sheet->getColumnDimension($alphas[$numAlpa])->setAutoSize(true);
+                $numAlpa++;
+            }
+            $numAlpa = 1;
+            $num++;
+        }
+        $writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
+        $filePath = 'files/export/Cust_Data' .  rand()  . '.xlsx';
+        $writer->save($filePath);
+        //dd($data->toArray());
         if ($request->ajax()) {
-            $data = Customer::select('t_customer.cust_number', 'cust_name', 'cust_address', 'cust_phone', 'sp_code', 'cust_hp', 'cupkg_status', 'cupkg_svc_begin', 'cust_pop', 'cupkg_acct_manager')
-                ->leftJoin('trel_cust_pkg', 't_customer.cust_number', '=', 'trel_cust_pkg.cust_number')
-                ->latest()->get();
+
             return Datatables::of($data)
                 ->addIndexColumn()
                 ->editColumn('cupkg_status', function ($user) {
@@ -814,7 +865,7 @@ class CustomerController extends Controller
                 'searchable' => false,
                 'form_type' => 'text',
                 'visible' => false
-            ], 
+            ],
             'cupkg_bill_autogen' => [
                 'label' => 'Invoice Reguler',
                 'orderable' => true,
