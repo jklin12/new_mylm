@@ -28,14 +28,11 @@
                 <thead>
                     <tr>
                         <th width="1%"></th>
-                        <th >Wi Number</th>
-                        @foreach($arr_field as $key=>$value)
-                        @if($key < 1)
-                        @foreach($value[1] as $vf)
+                        <th>Wi Number</th>
+                        @foreach($arr_field as $vf)
                         @if ($vf['visible'])
                         <th class="text-nowrap">{{ $vf['label'] }}</th>
-                        @endif
-                        @endforeach
+
                         @endif
                         @endforeach
                         <th></th>

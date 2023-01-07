@@ -13,6 +13,8 @@ class WaitinglistController extends Controller
 {
     var $arrPop = ['Bogor Valley', 'LIFEMEDIA', 'HABITAT', 'SINDUADI', 'GREENNET', 'X-LIFEMEDIA', 'LDP LIFEMEDIA', 'LDP X-LIFEMEDIA', 'JIP', 'Jogja Tronik', 'LDP JIP'];
     var $arrPopCode = ['BV', 'LM', 'HB', 'SN',  'GN', 'XM', 'LD', 'LX',  'JP', 'JT', 'LJ'];
+    var $arrPiStatus = [['Blum Bayar', 'danger'], ['Lunas', 'green'], ['Expired', 'dark']];
+    
 
     public function index()
     {
@@ -22,7 +24,7 @@ class WaitinglistController extends Controller
 
         $load['title'] = $title;
         $load['sub_title'] = $subTitle;
-        $arrfield = $this->arrField();
+        $arrfield = $this->arrFieldIndex();
         $i = 0;
         $tableColumn[$i]['data'] = 'DT_RowIndex';
         $tableColumn[$i]['name'] = 'DT_RowIndex';
@@ -35,21 +37,19 @@ class WaitinglistController extends Controller
         $tableColumn[$i]['orderable'] = 'true';
         $tableColumn[$i]['searchable'] = 'true';
         $tableColumn[$i]['visible'] = true;
-        foreach ($arrfield as $kf => $vf) {
-            if ($kf < 1) {
-                foreach ($vf[1] as  $key => $value) {
 
-                    $i++;
-                    if ($value['visible']) {
-                        $tableColumn[$i]['data'] = $key;
-                        $tableColumn[$i]['name'] = $value['label'];
-                        $tableColumn[$i]['orderable'] = $value['orderable'];
-                        $tableColumn[$i]['searchable'] = $value['searchable'];
-                        $tableColumn[$i]['visible'] = $value['visible'];
-                    }
-                }
+        foreach ($arrfield as  $key => $value) {
+            $i++;
+            if ($value['visible']) {
+                $tableColumn[$i]['data'] = $key;
+                $tableColumn[$i]['name'] = $value['label'];
+                $tableColumn[$i]['orderable'] = $value['orderable'];
+                $tableColumn[$i]['searchable'] = $value['searchable'];
+                $tableColumn[$i]['visible'] = $value['visible'];
             }
         }
+
+
         $tableColumn[$i + 1]['data'] = 'detail';
         $tableColumn[$i + 1]['name'] = 'detail';
         $tableColumn[$i + 1]['visible'] = true;
@@ -117,7 +117,18 @@ class WaitinglistController extends Controller
         }
 
         if ($action == 'addData') {
-            $insert = DB::table('t_waiting_list_new')->insertGetId($postVal);
+            $lastId = DB::table('t_waiting_list_new')->orderByDesc('wi_number')->first();
+
+            if (str_contains($lastId->wi_number, 'WI')) {
+                $num = substr($lastId->wi_number, 2);
+                $newWiNum = 'WI' . sprintf('%06d', $num + 1);
+            } else {
+                $newWiNum = 'Wi' . sprintf('%06d', $lastId->wi_number + 1);
+            }
+            //dd($newWiNum,$lastId);
+            $postVal['wi_number'] = $newWiNum;
+
+            DB::table('t_waiting_list_new')->insertGetId($postVal);
 
             $postfile = [];
             $path = 'files/pelanggan_baru';
@@ -133,15 +144,15 @@ class WaitinglistController extends Controller
                     $file->move($path, $fileName);
                     $fullPath = $path . '/' . $fileName;
 
-                    $postfile[$value]['wi_number'] = $insert;
+                    $postfile[$value]['wi_number'] = $newWiNum;
                     $postfile[$value]['wi_file_key'] = $value;
                     $postfile[$value]['wi_file_title'] = $arrfield[3][1][$value]['label'];
                     $postfile[$value]['wi_file_name'] = $fullPath;
                 }
             }
-            DB::table('t_waiting_list_fie')->insert($postfile);
-            $this->createInv($insert);
-
+            //DB::table('t_waiting_list_fie')->insert($postfile);
+            $this->createInv($newWiNum, $postVal['wi_bill_instalinv']);
+            
             $request->session()->flash('success', 'Add Waitinglist Success!');
 
             return redirect(route('waitinglist-index'));
@@ -201,18 +212,17 @@ class WaitinglistController extends Controller
         $wiData = WaitingList::where('wi_number', $wiId)->first();
 
 
-        $invoice = DB::table('t_invoice_wi')->where('cust_number', $wiId)
-            ->leftJoin('t_inv_item_wi', function ($join) {
-                $join->on('t_invoice_wi.inv_number', '=', 't_inv_item_wi.inv_number')->where('ii_recycle', '<>', 1);
+        $invoice = DB::table('t_invoice_porfoma')->where('cust_number', $wiId)
+            ->leftJoin('t_inv_item_porfoma', function ($join) {
+                $join->on('t_invoice_porfoma.inv_number', '=', 't_inv_item_porfoma.inv_number')->where('ii_recycle', '<>', 1);
             })->get();
 
         $file = DB::table('t_waiting_list_fie')->where('wi_number', $wiId)
             ->get();
 
-        //dd($file);
+        //dd($wiId);
 
-
-        $susunData = [];
+        $susunData = []; 
         $susunDataSummary = [];
 
         $totals = 0;
@@ -220,27 +230,38 @@ class WaitinglistController extends Controller
             foreach ($value as $keys => $values) {
                 $susunData[$keys] = $values;
             }
-            $totals += $value->ii_amount;
-
-
-            $susunDataSummary[$key]['ii_order'] = $value->ii_order;
-            $susunDataSummary[$key]['ii_type'] = $value->ii_type;
-            $susunDataSummary[$key]['ii_amount'] = 'Rp. ' . SchRp($value->ii_amount);
-            $susunDataSummary[$key]['ii_info'] = $value->ii_info;
+            $susunDataSummary[$value->inv_number]['code'] = urlencode(base64_encode($value->inv_number.':'.$value->inv_number));
+            $susunDataSummary[$value->inv_number]['inv_number'] = $value->inv_number;
+            $susunDataSummary[$value->inv_number]['inv_status'] = $this->arrPiStatus[$value->inv_status];
+            $susunDataSummary[$value->inv_number]['inv_post'] = Carbon::parse($value->inv_post)->isoFormat('D MMMM Y');
+            $susunDataSummary[$value->inv_number]['inv_due'] = Carbon::parse($value->inv_due)->isoFormat('D MMMM Y');
+            $susunDataSummary[$value->inv_number]['inv_paid'] = Carbon::parse($value->inv_paid)->isoFormat('D MMMM Y - HH:mm');
+            $susunDataSummary[$value->inv_number]['inv_start'] = Carbon::parse($value->inv_start)->isoFormat('D MMMM Y');
+            $susunDataSummary[$value->inv_number]['inv_end'] = Carbon::parse($value->inv_end)->isoFormat('D MMMM Y');
+            $susunDataSummary[$value->inv_number]['inv_info'] = $value->inv_info; 
+            $susunDataSummary[$value->inv_number]['inv_type'] = $value->inv_info; 
+            $susunDataSummary[$value->inv_number]['sp_code'] = $value->inv_info; 
+            $susunDataSummary[$value->inv_number]['item'][$key]['total'] = 0;
+            $susunDataSummary[$value->inv_number]['item'][$key]['ii_order'] = $value->ii_order;
+            $susunDataSummary[$value->inv_number]['item'][$key]['ii_type'] = $value->ii_type;
+            $susunDataSummary[$value->inv_number]['item'][$key]['ii_amount'] = 'Rp. ' . SchRp($value->ii_amount);
+            $susunDataSummary[$value->inv_number]['item'][$key]['ii_info'] = $value->ii_info;
+            $susunDataSummary[$value->inv_number]['item'][$key]['total'] += $value->ii_amount;
+            
         }
+        
+        //$originalCode = $susunData['inv_number'] . ';' . $susunData['inv_number'];
+        //$encryptionCode = urlencode(base64_encode($originalCode));
 
-        $originalCode = $susunData['inv_number'] . ';' . $susunData['inv_number'];
-        $encryptionCode = urlencode(base64_encode($originalCode));
-
-        $susunData['totals'] = 'Rp. ' . SchRp($totals);
-        //dd($susunData2); 
+       
+        //dd($encryptionCode); 
         $load['inv_status'] = $susunData['inv_status'];
         $load['cust_number'] = $susunData['cust_number'];
         $load['wiData'] = $wiData->toArray();
         $load['datas'] = $susunData;
         $load['data_summary'] = $susunDataSummary;
         $load['data_file'] = $file;
-        $load['url'] = 'http://localhost/paylifemedia/registrationPay?code=' . $encryptionCode;
+        //$load['url'] = 'http://webhook.lifemedia.id/checkout?code=' . $encryptionCode;
         //dd($load);
         $load['arr_field'] = $this->arrField();
 
@@ -251,12 +272,15 @@ class WaitinglistController extends Controller
     {
 
         $wiNumber = $request->input('wi_number');
-        $wiData = WaitingList::where('wi_number', $wiNumber)->first();
+        $wiData = WaitingList::where('wi_number', $wiNumber)
+            ->leftJoin('t_invoice_porfoma', 't_waiting_list_new.wi_number', '=', 't_invoice_porfoma.cust_number')
+            ->get();
 
 
-        $pop = $this->arrPopCode[$wiData->wi_pop];
 
-        $lastCust = Customer::where('cust_pop', $wiData->wi_pop)->orderByDesc('cust_number')->first();
+        $pop = $this->arrPopCode[$wiData[0]->wi_pop];
+
+        $lastCust = Customer::where('cust_pop', $wiData[0]->wi_pop)->orderByDesc('cust_number')->first();
         if (isset($lastCust->cust_number)) {
             $lastnum = $lastCust->cust_number;
         } else {
@@ -265,107 +289,13 @@ class WaitinglistController extends Controller
         $numCustNumber =  sprintf('%06d', substr($lastnum, -6) + 1);
         $newCustNumber = $pop . $numCustNumber;
 
-        $postCust['cust_number'] = $newCustNumber;
-        $postCust['hp_number'] = $wiData->wi_home_pass;
-        $postCust['cust_member_card'] = $wiData->wi_member_card;
-        $postCust['cust_pop'] = $wiData->wi_pop;
-        $postCust['cust_job'] = $wiData->wi_job;
-        $postCust['cust_city'] = $wiData->wi_city;
-        $postCust['cust_prov'] = $wiData->wi_prov;
-        $postCust['cust_name'] = $wiData->wi_name;
-        $postCust['cust_company'] = $wiData->wi_company;
-        $postCust['cust_business'] = $wiData->wi_business;
-        $postCust['cust_npwp'] = $wiData->wi_npwp;
-        $postCust['cust_sex'] = $wiData->wi_sex;
-        $postCust['cust_birth_date'] = $wiData->wi_birth_date;
-        $postCust['cust_ident_type'] = $wiData->wi_ident_type;
-        $postCust['cust_ident_number'] = $wiData->wi_ident_number;
-        $postCust['cust_address'] = $wiData->wi_address;
-        $postCust['cust_zip'] = $wiData->wi_zip_code;
-        $postCust['cust_phone'] = $wiData->wi_phone;
-        $postCust['cust_hp'] = $wiData->wi_telp;
-        $postCust['cust_hp_contact'] = $wiData->wi_phone_name;
-        $postCust['cust_email'] = $wiData->wi_email;
-        $postCust['created'] = date('Y-m-d');
-        $postCust['cust_kecamatan'] = $wiData->wi_kecamatan;
-        $postCust['cust_kelurahan'] = $wiData->wi_kelurahan;
-        $postCust['cust_bill_address'] = $wiData->wi_bill_address;
-        $postCust['cust_bill_zip'] = $wiData->wi_bill_zip_code;
-        $postCust['cust_bill_email'] = $wiData->wi_bill_email;
-        $postCust['cust_bill_phone'] = $wiData->wi_bill_phone;
-        $postCust['cust_bill_contact'] = $wiData->wi_bill_contact;
-        $postCust['cust_bill_info'] = $wiData->wi_bill_desc;
-
-        DB::table('t_customer')->insert($postCust);
-
-        $piNumber = 'INV' . $newCustNumber . date('ym') . '01';
-
-        $postCupkg['cust_number'] = $newCustNumber;
-        $postCupkg['sp_code'] = $wiData->sp_code;
-        $postCupkg['cupkg_svc_begin'] = $wiData->wi_svc_begin;
-        $postCupkg['cupkg_acc_type'] = $wiData->wi_type;
-        $postCupkg['cupkg_status'] = 3;
-        $postCupkg['cupkg_trial'] = $wiData->wi_trial;
-        $postCupkg['cupkg_bill_period'] = $wiData->wi_bill_period;
-        $postCupkg['cupkg_bill_type'] = $wiData->wi_bill_type;
-        $postCupkg['cupkg_bill_lastpaid'] = $piNumber;
-        $postCupkg['cupkg_bill_autogen'] = $wiData->wi_bill_autogen;
-        $postCupkg['cupkg_bill_ppn'] = $wiData->wi_bill_ppn;
-        $postCupkg['cupkg_bill_debt_accumulation'] = 1;
-        $postCupkg['cupkg_bill_installinv'] = $wiData->wi_bill_instalinv;
-        $postCupkg['cupkg_cont_begin'] = $wiData->wi_cont_begin;
-        $postCupkg['cupkg_cont_end'] = $wiData->wi_cont_end;
-        $postCupkg['cupkg_acct_manager'] = $wiData->wi_acct_manager;
-        $postCupkg['cupkg_tech_coord'] = $wiData->wi_tech_coord;
-        $postCupkg['cupkg_bill_ppn'] = $wiData->wi_bill_ppn;
-        $postCupkg['cupkg_recycle'] = 2;
-
-
-        $spNom = DB::table('trel_cust_pkg')->insertGetId($postCupkg);
-
-        $invStart = $wiData->wi_svc_begin ?? date('Y-m-d');
-        $invEnd = date('Y-m-d', strtotime($invStart . ' +29 days'));
-
-        $postPi['inv_number'] = $piNumber;
-        $postPi['cust_number'] = $newCustNumber;
-        $postPi['sp_code'] =  $wiData->sp_code;
-        $postPi['inv_type'] = '2';
-        $postPi['inv_due'] = $invStart;
-        $postPi['inv_post'] = date('Y-m-d H:m:s');
-        $postPi['inv_status'] = '1';
-        $postPi['inv_start'] = $invStart;
-        $postPi['inv_end'] = $invEnd;
-        $postPi['inv_currency'] = "IDR";
-        $postPi['sp_nom'] = $spNom;
-        $postPi['reaktivasi_pi'] = 0;
-
-        DB::table('t_invoice_porfoma')->insert($postPi);
-
-        $pkg = DB::table('t_service_pkg')->where('sp_name', $wiData->sp_code)->first();
-
-        $postValItem[0]['ii_type'] = '2';
-        $postValItem[0]['inv_number'] = $piNumber;
-        $postValItem[0]['ii_info'] = 'Biaya Layanan ' . $wiData->sp_code . '  Periode Pertama';
-        $postValItem[0]['ii_amount'] = $pkg->sp_reguler;
-        $postValItem[0]['ii_order'] = '1';
-        $postValItem[0]['ii_recycle'] = '2';
-
-        $postValItem[1]['ii_type'] = '7';
-        $postValItem[1]['inv_number'] = $piNumber;
-        $postValItem[1]['ii_info'] = 'PPN 11 %';
-        $postValItem[1]['ii_amount'] = ($pkg->sp_reguler * 11) / 100;
-        $postValItem[1]['ii_order'] = '2';
-        $postValItem[1]['ii_recycle'] = '2';
-
-        DB::table('t_inv_item_porfoma')->insert($postValItem);
-
         $getLastSpk = DB::table('t_field_task')
             ->select('ft_number')
             ->where('ft_number', 'like', 'SP%')
             ->whereRaw('MONTH(ft_received) =' . date('m'))
             ->whereRaw('YEAR(ft_received) =' . date('Y'))
             ->orderByDesc('ft_number')
-            ->first(); 
+            ->first();
 
         if (isset($getLastSpk->ft_number)) {
             $explodeSpkNumber = explode('/', $getLastSpk->ft_number);
@@ -377,35 +307,96 @@ class WaitinglistController extends Controller
             $newSpkNumber1 = '000001';
             $newSpkNumber2 = '000002';
         }
-        $postSpk[0]['ft_number'] = 'SP' . $newSpkNumber1 . "/IKR/" . date('m') . '/' . date('y');
-        $postSpk[0]['ft_received'] = date('Y-m-d H:m:i');
-        $postSpk[0]['ft_type'] = 1;
-        $postSpk[0]['ft_svc_type'] = 2;
-        $postSpk[0]['cust_number'] = $newCustNumber;
-        $postSpk[0]['sp_code'] = $wiData->sp_code;
-        $postSpk[0]['sp_nom'] = $spNom;
 
-        $postSpk[1]['ft_number'] = 'SP' . $newSpkNumber2 . "/NOC/" . date('m') . '/' . date('y');
-        $postSpk[1]['ft_received'] = date('Y-m-d H:m:i');
-        $postSpk[1]['ft_type'] = 2;
-        $postSpk[1]['ft_svc_type'] = 2;
-        $postSpk[1]['cust_number'] = $newCustNumber;
-        $postSpk[1]['sp_code'] = $wiData->sp_code;
+        foreach ($wiData as $key => $value) {
+            DB::table('t_invoice_porfoma')->where('inv_number', $value->inv_number)->update(['cust_number' => $newCustNumber]);
+
+            $postCust['cust_number'] = $newCustNumber;
+            $postCust['hp_number'] = $value->wi_home_pass;
+            $postCust['cust_member_card'] = $value->wi_member_card ?? '';
+            $postCust['cust_pop'] = $value->wi_pop;
+            $postCust['cust_job'] = $value->wi_job;
+            $postCust['cust_city'] = $value->wi_city;
+            $postCust['cust_prov'] = $value->wi_prov;
+            $postCust['cust_name'] = $value->wi_name;
+            $postCust['cust_company'] = $value->wi_company;
+            $postCust['cust_business'] = $value->wi_business;
+            $postCust['cust_npwp'] = $value->wi_npwp;
+            $postCust['cust_sex'] = $value->wi_sex;
+            $postCust['cust_birth_date'] = $value->wi_birth_date;
+            $postCust['cust_ident_type'] = $value->wi_ident_type;
+            $postCust['cust_ident_number'] = $value->wi_ident_number;
+            $postCust['cust_address'] = $value->wi_address;
+            $postCust['cust_zip'] = $value->wi_zip_code;
+            $postCust['cust_phone'] = $value->wi_phone;
+            $postCust['cust_hp'] = $value->wi_telp;
+            $postCust['cust_hp_contact'] = $value->wi_phone_name;
+            $postCust['cust_email'] = $value->wi_email;
+            $postCust['created'] = date('Y-m-d');
+            $postCust['cust_kecamatan'] = $value->wi_kecamatan;
+            $postCust['cust_kelurahan'] = $value->wi_kelurahan;
+            $postCust['cust_bill_address'] = $value->wi_bill_address;
+            $postCust['cust_bill_zip'] = $value->wi_bill_zip_code;
+            $postCust['cust_bill_email'] = $value->wi_bill_email;
+            $postCust['cust_bill_phone'] = $value->wi_bill_phone;
+            $postCust['cust_bill_contact'] = $value->wi_bill_contact;
+            $postCust['cust_bill_info'] = $value->wi_bill_desc;
+
+            $postCupkg['cust_number'] = $newCustNumber;
+            $postCupkg['sp_code'] = $value->sp_code;
+            $postCupkg['cupkg_svc_begin'] = $value->wi_svc_begin;
+            $postCupkg['cupkg_acc_type'] = $value->wi_type;
+            $postCupkg['cupkg_status'] = 3;
+            $postCupkg['cupkg_trial'] = $value->wi_trial;
+            $postCupkg['cupkg_bill_period'] = $value->wi_bill_period;
+            $postCupkg['cupkg_bill_type'] = $value->wi_bill_type;
+            $postCupkg['cupkg_bill_lastpaid'] = $value->inv_number;
+            $postCupkg['cupkg_bill_autogen'] = $value->wi_bill_autogen;
+            $postCupkg['cupkg_bill_ppn'] = $value->wi_bill_ppn;
+            $postCupkg['cupkg_bill_debt_accumulation'] = 1;
+            $postCupkg['cupkg_bill_installinv'] = $value->wi_bill_instalinv;
+            $postCupkg['cupkg_cont_begin'] = $value->wi_cont_begin;
+            $postCupkg['cupkg_cont_end'] = $value->wi_cont_end;
+            $postCupkg['cupkg_acct_manager'] = $value->wi_acct_manager;
+            $postCupkg['cupkg_tech_coord'] = $value->wi_tech_coord;
+            $postCupkg['cupkg_bill_ppn'] = $value->wi_bill_ppn;
+            $postCupkg['cupkg_recycle'] = 2;
+
+            $postSpk[0]['ft_number'] = 'SP' . $newSpkNumber1 . "/IKR/" . date('m') . '/' . date('y');
+            $postSpk[0]['ft_received'] = date('Y-m-d H:m:i');
+            $postSpk[0]['ft_type'] = 1;
+            $postSpk[0]['ft_svc_type'] = 2;
+            $postSpk[0]['cust_number'] = $newCustNumber;
+            $postSpk[0]['sp_code'] = $value->sp_code;
+
+            $postSpk[1]['ft_number'] = 'SP' . $newSpkNumber2 . "/NOC/" . date('m') . '/' . date('y');
+            $postSpk[1]['ft_received'] = date('Y-m-d H:m:i');
+            $postSpk[1]['ft_type'] = 2;
+            $postSpk[1]['ft_svc_type'] = 2;
+            $postSpk[1]['cust_number'] = $newCustNumber;
+            $postSpk[1]['sp_code'] = $value->sp_code;
+        }
+        //dd($postCupkg);
+        DB::table('t_customer')->insert($postCust);
+
+        $spNom = DB::table('trel_cust_pkg')->insertGetId($postCupkg);
+        $postSpk[0]['sp_nom'] = $spNom;
         $postSpk[1]['sp_nom'] = $spNom;
+        DB::table('t_invoice_porfoma')->where('inv_number', $value->inv_number)->update(['sp_nom' => $spNom]);
 
         DB::table('t_field_task')->insert($postSpk);
         //dd($postCust, $postCupkg, $postPi, $postValItem, $postSpk);
+        $wiData = WaitingList::where('wi_number', $wiNumber)
+            ->update(['wi_status' => 1, 'new_cust_number' => $newCustNumber]);
 
 
-        $request->session()->flash('success', 'Add Customer Success!');
+        //$request->session()->flash('success', 'Add Customer Success!');
 
-        //return redirect(route('customer-detail', $newCustNumber));
+        return redirect(route('customer-detail', $newCustNumber));
     }
 
-    public function createInv($wiNumber)
+    public function createInv($wiNumber, $invInstalasi)
     {
-        //dd($request->all());
-
         $wiData = WaitingList::where('wi_number', $wiNumber)->first();
 
         $lastPi = DB::table('t_invoice_wi')
@@ -417,32 +408,31 @@ class WaitinglistController extends Controller
         if (isset($lastPi->inv_number)) {
             $lastPiNum = substr($lastPi->inv_number, -3);
             $lastPiNum += 1;
-            $inv_number = 'PIWI' . sprintf('%06d', $wiData->wi_number) . date('ym') . sprintf('%06d', $lastPiNum);
+            $inv_number = 'PI' . $wiData->wi_number . date('ym') . sprintf('%02d', $lastPiNum);
         } else {
-            $inv_number = 'PIWI' . sprintf('%06d', $wiData->wi_number) . date('ym') . '001';
+            $lastPiNum = '01';
+            $inv_number = 'PI' .  $wiData->wi_number . date('ym') . $lastPiNum;
         }
 
         $invStart = $wiData->wi_svc_begin ?? date('Y-m-d');
         $invEnd = date('Y-m-d', strtotime($invStart . ' +29 days'));
 
-        $postVal['inv_number'] = $inv_number;
-        $postVal['cust_number'] = $wiData->wi_number;
-        $postVal['sp_code'] = $wiData->sp_code;
-        $postVal['inv_type'] = '2';
-        $postVal['inv_due'] = $invStart;
-        $postVal['inv_post'] = date('Y-m-d H:m:s');
-        $postVal['inv_status'] = '0';
-        $postVal['inv_start'] = $invStart;
-        $postVal['inv_end'] = $invEnd;
-        $postVal['inv_currency'] = "IDR";
+        $postPi[0]['inv_number'] = $inv_number;
+        $postPi[0]['cust_number'] = $wiNumber;
+        $postPi[0]['sp_code'] =  $wiData->sp_code;
+        $postPi[0]['inv_type'] = '2';
+        $postPi[0]['inv_due'] = $invStart;
+        $postPi[0]['inv_post'] = date('Y-m-d H:m:s');
+        $postPi[0]['inv_start'] = $invStart;
+        $postPi[0]['inv_end'] = $invEnd;
+        $postPi[0]['inv_currency'] = "IDR";
+        $postPi[0]['reaktivasi_pi'] = 10;
 
-        $pkg = DB::table('t_service_pkg')->where('sp_code', $wiData->sp_code)->first();
-
-        //dd($postVal,$pkg);
+        $pkg = DB::table('t_service_pkg')->where('sp_name', $wiData->sp_code)->first();
 
         $postValItem[0]['ii_type'] = '2';
         $postValItem[0]['inv_number'] = $inv_number;
-        $postValItem[0]['ii_info'] = 'Biaya Layanan ' . $wiData->sp_code . '  ' . Carbon::parse($postVal['inv_start'])->isoFormat('D MMMM Y') . '-' . Carbon::parse($postVal['inv_end'])->isoFormat('D MMMM Y');
+        $postValItem[0]['ii_info'] = 'Biaya Layanan ' . $wiData->sp_code . '  Periode Pertama';
         $postValItem[0]['ii_amount'] = $pkg->sp_reguler;
         $postValItem[0]['ii_order'] = '1';
         $postValItem[0]['ii_recycle'] = '2';
@@ -454,10 +444,40 @@ class WaitinglistController extends Controller
         $postValItem[1]['ii_order'] = '2';
         $postValItem[1]['ii_recycle'] = '2';
 
+        if ($invInstalasi == 1) {
 
-        WaitingList::where('wi_number', $wiData->wi_number)->update(['wi_status' => 1]);
-        $insertPi = DB::table('t_invoice_wi')->insert($postVal);
-        $insertItemPi = DB::table('t_inv_item_wi')->insert($postValItem);
+            $inv_number = 'PI' . $wiData->wi_number . date('ym') . sprintf('%02d', $lastPiNum + 1);
+
+            $postPi[1]['inv_number'] = $inv_number;
+            $postPi[1]['cust_number'] = $wiNumber;
+            $postPi[1]['inv_type'] = '1';
+            $postPi[1]['inv_due'] = $invStart;
+            $postPi[1]['inv_post'] = date('Y-m-d H:m:s');
+            $postPi[1]['inv_start'] = $invStart;
+            $postPi[1]['inv_end'] = $invEnd;
+            $postPi[1]['inv_currency'] = "IDR";
+            $postPi[1]['reaktivasi_pi'] = 0;
+            $postPi[1]['sp_code'] =  $wiData->sp_code;
+
+            $postValItem[2]['ii_type'] = '1';
+            $postValItem[2]['inv_number'] = $inv_number;
+            $postValItem[2]['ii_info'] = 'Biaya Instalasi Layanan ' . $wiData->sp_code;
+            $postValItem[2]['ii_amount'] = $pkg->sp_setup;
+            $postValItem[2]['ii_order'] = '1';
+            $postValItem[2]['ii_recycle'] = '2';
+
+            $postValItem[3]['ii_type'] = '7';
+            $postValItem[3]['inv_number'] = $inv_number;
+            $postValItem[3]['ii_info'] = 'PPN 11 %';
+            $postValItem[3]['ii_amount'] = ($pkg->sp_setup * 11) / 100;
+            $postValItem[3]['ii_order'] = '2';
+            $postValItem[3]['ii_recycle'] = '2';
+        }
+
+        //dd($postPi, $postValItem);
+
+        DB::table('t_invoice_porfoma')->insert($postPi);
+        DB::table('t_inv_item_porfoma')->insert($postValItem);
     }
 
     public function list()
@@ -474,18 +494,15 @@ class WaitinglistController extends Controller
             }
         }*/
 
-        $datatables->editColumn('wi_number', function ($row) {
-
-            return 'WI' . sprintf('%06d', $row->wi_number);
-        });
+        //dd($data->toArray());
 
         return $datatables->addColumn('status', function ($row) {
             $status = '';
             if ($row->wi_status == 0) {
-                $status = 'Baru';
+                $status = 'Menuggu';
                 $warna = 'yellow';
             } elseif ($row->wi_status == 1) {
-                $status = 'Menunggu';
+                $status = 'Selesai';
                 $warna = 'blue';
             }
 
@@ -496,7 +513,7 @@ class WaitinglistController extends Controller
             return $actionBtn;
         })
 
-            ->rawColumns(['detail', 'lokasi', 'foto_ktp', 'foto_lokasi', 'form_survei', 'status'])
+            ->rawColumns(['detail', 'status'])
             ->make(true);
     }
 
@@ -989,5 +1006,151 @@ class WaitinglistController extends Controller
             ['Informasi Penagihan', $infoPenagihan],
             ['Berkas', $berkas],
         ];
+    }
+    private function arrFieldIndex()
+    {
+
+        $prov = DB::table('tlkp_prov')->where('prov_recycle', 2)->get();
+        $susunProv  = [];
+        foreach ($prov as $key => $value) {
+            $susunProv[$value->prov_name] = $value->prov_name;
+        }
+
+        $city = DB::table('tlkp_city')->where('cty_recycle', 2)->get();
+        $susunCity  = [];
+        foreach ($city as $key => $value) {
+            $susunCity[$value->cty_name] = $value->cty_name;
+        }
+
+        $kecamatan = DB::table('tlkp_kecamatan')->where('area_recycle', 0)->get();
+        $susunKecamatan  = [];
+        foreach ($kecamatan as $key => $value) {
+            $susunKecamatan[$value->area_name] = $value->area_name;
+        }
+
+        $kelurahan = DB::table('tlkp_kelurahan')->where('area_recycle', 0)->get();
+        $susunKelurahan  = [];
+        foreach ($kelurahan as $key => $value) {
+            $susunKelurahan[$value->area_name] = $value->area_name;
+        }
+
+
+
+        $pkg = DB::table('t_service_pkg')->where('sp_recycle', 2)->get();
+        $susunPkg  = [];
+        foreach ($pkg as $key => $value) {
+            $susunPkg[$value->sp_code] = $value->sp_name;
+        }
+
+        $infoPelanggan = [
+            'wi_name' => [
+                'label' => 'Nama Pelanggan',
+                'orderable' => false,
+                'searchable' => true,
+                'form_type' => 'text',
+                'keyvaldata' => '',
+                'visible' => true
+            ],
+            'wi_pop' => [
+                'label' => 'POP',
+                'orderable' => false,
+                'searchable' => true,
+                'form_type' => 'select',
+                'keyvaldata' => $this->arrPop,
+                'visible' => true
+            ],
+            'wi_member_card' => [
+                'label' => 'Member Card',
+                'orderable' => false,
+                'searchable' => true,
+                'form_type' => 'text',
+                'keyvaldata' => '',
+                'visible' => true
+            ],
+            'wi_svc_begin' => [
+                'label' => 'Mulai Layanan',
+                'orderable' => false,
+                'searchable' => true,
+                'form_type' => 'date',
+                'keyvaldata' => '',
+                'visible' => true
+            ],
+            'wi_type' => [
+                'label' => 'Jenis Account',
+                'orderable' => false,
+                'searchable' => true,
+                'form_type' => 'select',
+                'keyvaldata' => [1 => 'Personal', 'Perusahaan', 'Pemkot'],
+                'visible' => true
+            ],
+
+            'wi_acct_manager' => [
+                'label' => 'AM',
+                'orderable' => false,
+                'searchable' => true,
+                'form_type' => 'text',
+                'keyvaldata' => '',
+                'visible' => true
+            ],
+            'wi_address' => [
+                'label' => 'Alamat',
+                'orderable' => false,
+                'searchable' => true,
+                'form_type' => 'area',
+                'keyvaldata' => '',
+                'visible' => true
+            ],
+            'wi_city' => [
+                'label' => 'Kota',
+                'orderable' => false,
+                'searchable' => true,
+                'form_type' => 'select',
+                'keyvaldata' => $susunProv,
+                'visible' => true
+            ],
+            'wi_kecamatan' => [
+                'label' => 'Kecamatan',
+                'orderable' => false,
+                'searchable' => true,
+                'form_type' => 'select',
+                'keyvaldata' => $susunKecamatan,
+                'visible' => true
+            ],
+            'wi_kelurahan' => [
+                'label' => 'Kelurahan',
+                'orderable' => false,
+                'searchable' => true,
+                'form_type' => 'select',
+                'keyvaldata' => $susunKelurahan,
+                'visible' => true
+            ],
+            'wi_phone' => [
+                'label' => 'Nomor HP',
+                'orderable' => false,
+                'searchable' => true,
+                'form_type' => 'text',
+                'keyvaldata' => '',
+                'visible' => true
+            ],
+            'status' => [
+                'label' => 'Status',
+                'orderable' => false,
+                'searchable' => true,
+                'form_type' => 'text',
+                'keyvaldata' => '',
+                'visible' => true
+            ],
+            'new_cust_number' => [
+                'label' => 'Nomor pelanggan',
+                'orderable' => false,
+                'searchable' => true,
+                'form_type' => 'text',
+                'keyvaldata' => '',
+                'visible' => true
+            ],
+
+        ];
+
+        return $infoPelanggan;
     }
 }

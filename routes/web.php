@@ -47,7 +47,7 @@ Route::middleware(['cek_login'])->group(function () {
     Route::get('/waitinglist/detail/{wi_id}', 'App\Http\Controllers\WaitinglistController@detail')->name('waitinglist-detail');
     Route::post('/waitinglist/store', 'App\Http\Controllers\WaitinglistController@store')->name('waitinglist-store');
     Route::get('/waitinglist/list', 'App\Http\Controllers\WaitinglistController@list')->name('waitinglist-list');
-    Route::post('/waitinglist/konfirmasi', 'App\Http\Controllers\WaitinglistController@konfirmasi')->name('waitinglist-konfirmasi');
+    Route::get('/waitinglist/konfirmasi', 'App\Http\Controllers\WaitinglistController@konfirmasi')->name('waitinglist-konfirmasi');
 
     Route::get('/cust_spk/{cust_number}', 'App\Http\Controllers\SpkerjaController@index')->name('customer-spk');
     Route::get('/spk_list/{cust_number}', 'App\Http\Controllers\SpkerjaController@list')->name('spk-list');
