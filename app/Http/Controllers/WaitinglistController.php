@@ -230,7 +230,7 @@ class WaitinglistController extends Controller
             foreach ($value as $keys => $values) {
                 $susunData[$keys] = $values;
             }
-            $susunDataSummary[$value->inv_number]['code'] = urlencode(base64_encode($value->inv_number.':'.$value->inv_number));
+            $susunDataSummary[$value->inv_number]['code'] = urlencode(base64_encode($value->inv_number.';'.$value->inv_number));
             $susunDataSummary[$value->inv_number]['inv_number'] = $value->inv_number;
             $susunDataSummary[$value->inv_number]['inv_status'] = $this->arrPiStatus[$value->inv_status];
             $susunDataSummary[$value->inv_number]['inv_post'] = Carbon::parse($value->inv_post)->isoFormat('D MMMM Y');
