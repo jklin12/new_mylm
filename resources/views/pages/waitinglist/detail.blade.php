@@ -52,7 +52,7 @@
                     @if($vf['visible'])
                     <tr>
                         <td class="">
-                            {{ $vf['label'] }}
+                            <strong> {{ $vf['label'] }}</strong>
                         </td>
                         <td class="text-center">:</td>
                         <td>
@@ -98,7 +98,7 @@
 
                     @foreach($data_file as $k => $v)
                     <tr>
-                        <td>{{ $v->wi_file_title }}</td>
+                        <td><strong>{{ $v->wi_file_title }}</strong></td>
                         <td><img src="{{url($v->wi_file_name)}}" alt="Image" width="100" /></td>
                     </tr>
                     @endforeach
@@ -125,7 +125,7 @@
                 <tbody>
                     <tr>
                         <td class="col-1">
-                            Nomor Invoice
+                            <strong>Nomor Invoice</strong>
                         </td>
                         <td class="text-center">:</td>
                         <td colspan="2">
@@ -134,7 +134,7 @@
                     </tr>
                     <tr>
                         <td class="col-1">
-                            Layanan
+                            <strong>Layanan</strong>
                         </td>
                         <td class="text-center">:</td>
                         <td colspan="2">
@@ -143,17 +143,17 @@
                     </tr>
                     <tr>
                         <td class="col-1">
-                            Status
+                            <strong>Status</strong>
                         </td>
                         <td class="text-center">:</td>
                         <td colspan="2">
                             <h5><span class="badge badge-'{{ $value['inv_status'][1]}}">{{ $value['inv_status'][0]}}</span></h5>
-                            
+
                         </td>
                     </tr>
                     <tr>
                         <td class="col-1">
-                            Awal Periode
+                            <strong>Awal Periode</strong>
                         </td>
                         <td class="text-center">:</td>
                         <td colspan="2">
@@ -162,7 +162,7 @@
                     </tr>
                     <tr>
                         <td class="col-1">
-                            Akhir Periode
+                            <strong>Akhir Periode</strong>
                         </td>
                         <td class="text-center">:</td>
                         <td colspan="2">
@@ -171,7 +171,7 @@
                     </tr>
                     <tr>
                         <td class="col-1">
-                            Jatuh Tempo
+                            <strong>Jatuh Tempo</strong>
                         </td>
                         <td class="text-center">:</td>
                         <td colspan="2">
@@ -180,7 +180,7 @@
                     </tr>
                     <tr>
                         <td class="col-1">
-                            Posted
+                            <strong>Posted</strong>
                         </td>
                         <td class="text-center">:</td>
                         <td colspan="2">
@@ -189,7 +189,7 @@
                     </tr>
                     <tr>
                         <td class="col-1">
-                            Dibayar
+                            <strong>Dibayar</strong>
                         </td>
                         <td class="text-center">:</td>
                         <td colspan="2">
@@ -198,7 +198,7 @@
                     </tr>
                     <tr>
                         <td class="col-1">
-                            Info
+                            <strong>Info</strong>
                         </td>
                         <td class="text-center">:</td>
                         <td colspan="2">

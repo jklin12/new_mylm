@@ -23,7 +23,7 @@
     <div class="panel-body">
         @include('includes.component.erorr-message')
         @include('includes.component.success-message')
-        <form action="{{ route('waitinglist-store')}}" method="POST" enctype="multipart/form-data">
+        <form action="{{ route('waitinglist-store')}}" method="POST" enctype="multipart/form-data" data-parsley-validate="true">
             @if($action == 'addData')
             <input type="hidden" name="action" value="{{ $action}}">
             @csrf
@@ -35,16 +35,16 @@
             </div>
             @foreach($vfield[1] as $kf => $vf)
             <div class="form-group row m-b-15">
-                <label class="col-form-label col-md-3">{{ $vf['label'] }}</label>
+                <label class="col-form-label col-md-3"><strong>{{ $vf['label'] }}</strong></label>
                 <div class="col-md-9">
                     @if($vf['form_type'] == 'text')
-                    <input type="text" name="data[{{ $kf }}]" id="input_{{ $kf }}" class="form-control m-b-5" placeholder="Masukan {{ $vf['label'] }}">
+                    <input type="text" name="data[{{ $kf }}]" id="input_{{ $kf }}" class="form-control m-b-5" placeholder="Masukan {{ $vf['label'] }}" {{ $vf['required'] ? 'required' : '' }}>
                     @elseif($vf['form_type'] == 'date')
-                    <input type="text" name="data[{{ $kf }}]" id="input_{{ $kf }}" class="form-control m-b-5 datetimepicker_input" placeholder="Masukan {{ $vf['label'] }}" />
+                    <input type="text" name="data[{{ $kf }}]" id="input_{{ $kf }}" class="form-control m-b-5 datetimepicker_input" placeholder="Masukan {{ $vf['label'] }}" {{ $vf['required'] ? 'required' : '' }}/>
                     @elseif($vf['form_type'] == 'area')
-                    <textarea class="form-control" name="data[{{ $kf }}]" id="input_{{ $kf }}" rows="3"></textarea>
+                    <textarea class="form-control" name="data[{{ $kf }}]" id="input_{{ $kf }}" rows="3" {{ $vf['required'] ? 'required' : '' }}></textarea>
                     @elseif($vf['form_type'] == 'select')
-                    <select class="default-select2 form-control m-b-5" name="data[{{ $kf }}]" id="input_{{ $kf }}">
+                    <select class="default-select2 form-control m-b-5" name="data[{{ $kf }}]" id="input_{{ $kf }}" {{ $vf['required'] ? 'required' : '' }}>
                         <option value="">Pilih {{ $vf['label'] }}</option>
                         @foreach($vf['keyvaldata'] as $kvdata => $vdata)
                         <option value="{{ $kvdata }}">{{$vdata}}</option>
@@ -52,7 +52,7 @@
                     </select>
 
                     @elseif($vf['form_type'] == 'select_bsn')
-                    <select class="default-select2 form-control m-b-5" name="data[{{ $kf }}]" id="input_{{ $kf }}">
+                    <select class="default-select2 form-control m-b-5" name="data[{{ $kf }}]" id="input_{{ $kf }}" {{ $vf['required'] ? 'required' : '' }}>
                         <option value="">Pilih {{ $vf['label'] }}</option>
                         @foreach($vf['keyvaldata'] as $kvdata => $vdata)
                         <optgroup label="{{$vdata['parent']}}">
@@ -67,14 +67,14 @@
                     </select>
                     
                     @elseif($vf['form_type'] == 'file')
-                    <input type="file" name="{{ $kf }}" id="input_{{ $kf }}" class="form-control m-b-5" placeholder="Masukan {{ $vf['label'] }}">
+                    <input type="file" name="{{ $kf }}" id="input_{{ $kf }}" class="form-control m-b-5" placeholder="Masukan {{ $vf['label'] }}" {{ $vf['required'] ? 'required' : '' }}>
                     @endif
                 </div>
             </div>
             @endforeach
             @endforeach
             <div class="pull-right">
-                <button type="submit" class="btn btn-pink">Simpan</button>
+                <button type="submit" class="btn btn-pink">Save</button>
             </div>
         </form>
     </div>
@@ -87,6 +87,7 @@
 <script src="/assets/plugins/bootstrap-datepicker/dist/js/bootstrap-datepicker.js"></script>
 <script src="/assets/plugins/moment/moment.js"></script>
 <script src="/assets/plugins/select2/dist/js/select2.min.js"></script>
+<script src="/assets/plugins/parsleyjs/dist/parsley.min.js"></script>
 <script>
     $(document).ready(function() {
         $(".default-select2").select2();

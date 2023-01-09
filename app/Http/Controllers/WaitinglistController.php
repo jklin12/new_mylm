@@ -150,7 +150,7 @@ class WaitinglistController extends Controller
                     $postfile[$value]['wi_file_name'] = $fullPath;
                 }
             }
-            //DB::table('t_waiting_list_fie')->insert($postfile);
+            DB::table('t_waiting_list_fie')->insert($postfile);
             $this->createInv($newWiNum, $postVal['wi_bill_instalinv']);
             
             $request->session()->flash('success', 'Add Waitinglist Success!');
@@ -573,7 +573,9 @@ class WaitinglistController extends Controller
                 'searchable' => true,
                 'form_type' => 'text',
                 'keyvaldata' => '',
-                'visible' => true
+                'visible' => true,
+                'required' => false,
+
             ],
             'wi_svc_begin' => [
                 'label' => 'Mulai Layanan',
@@ -581,7 +583,8 @@ class WaitinglistController extends Controller
                 'searchable' => true,
                 'form_type' => 'date',
                 'keyvaldata' => '',
-                'visible' => true
+                'visible' => true,
+                'required' => true,
             ],
             'wi_type' => [
                 'label' => 'Jenis Account',
@@ -589,7 +592,8 @@ class WaitinglistController extends Controller
                 'searchable' => true,
                 'form_type' => 'select',
                 'keyvaldata' => [1 => 'Personal', 'Perusahaan', 'Pemkot'],
-                'visible' => true
+                'visible' => true,
+                'required' => true,
             ],
             'wi_business' => [
                 'label' => 'Nama Perusahaan',
@@ -597,7 +601,8 @@ class WaitinglistController extends Controller
                 'searchable' => true,
                 'form_type' => 'text',
                 'keyvaldata' => '',
-                'visible' => true
+                'visible' => true,
+                'required' => false,
             ],
             'wi_business_type' => [
                 'label' => 'Jenis Usaha',
@@ -605,7 +610,8 @@ class WaitinglistController extends Controller
                 'searchable' => true,
                 'form_type' => 'select_bsn',
                 'keyvaldata' => $susunBusines,
-                'visible' => true
+                'visible' => true,
+                'required' => false,
             ],
             'wi_name' => [
                 'label' => 'Nama Pelanggan',
@@ -613,7 +619,8 @@ class WaitinglistController extends Controller
                 'searchable' => true,
                 'form_type' => 'text',
                 'keyvaldata' => '',
-                'visible' => true
+                'visible' => true,
+                'required' => true,
             ],
             'wi_pop' => [
                 'label' => 'POP',
@@ -621,7 +628,8 @@ class WaitinglistController extends Controller
                 'searchable' => true,
                 'form_type' => 'select',
                 'keyvaldata' => $this->arrPop,
-                'visible' => true
+                'visible' => true,
+                'required' => true,
             ],
             'wi_acct_manager' => [
                 'label' => 'AM',
@@ -629,7 +637,8 @@ class WaitinglistController extends Controller
                 'searchable' => true,
                 'form_type' => 'text',
                 'keyvaldata' => '',
-                'visible' => true
+                'visible' => true,
+                'required' => false,
             ],
             'wi_address' => [
                 'label' => 'Alamat',
@@ -637,7 +646,8 @@ class WaitinglistController extends Controller
                 'searchable' => true,
                 'form_type' => 'area',
                 'keyvaldata' => '',
-                'visible' => true
+                'visible' => true,
+                'required' => true,
             ],
             'wi_zip_code' => [
                 'label' => 'Kode POS',
@@ -645,7 +655,8 @@ class WaitinglistController extends Controller
                 'searchable' => true,
                 'form_type' => 'text',
                 'keyvaldata' => '',
-                'visible' => true
+                'visible' => true,
+                'required' => true,
             ],
             'wi_prov' => [
                 'label' => 'Kabupaten',
@@ -653,7 +664,8 @@ class WaitinglistController extends Controller
                 'searchable' => true,
                 'form_type' => 'select',
                 'keyvaldata' => $susunCity,
-                'visible' => true
+                'visible' => true,
+                'required' => true,
             ],
             'wi_city' => [
                 'label' => 'Kota',
@@ -661,7 +673,8 @@ class WaitinglistController extends Controller
                 'searchable' => true,
                 'form_type' => 'select',
                 'keyvaldata' => $susunProv,
-                'visible' => true
+                'visible' => true,
+                'required' => true,
             ],
             'wi_kecamatan' => [
                 'label' => 'Kecamatan',
@@ -669,7 +682,8 @@ class WaitinglistController extends Controller
                 'searchable' => true,
                 'form_type' => 'select',
                 'keyvaldata' => $susunKecamatan,
-                'visible' => true
+                'visible' => true,
+                'required' => true,
             ],
             'wi_kelurahan' => [
                 'label' => 'Kelurahan',
@@ -677,7 +691,8 @@ class WaitinglistController extends Controller
                 'searchable' => true,
                 'form_type' => 'select',
                 'keyvaldata' => $susunKelurahan,
-                'visible' => true
+                'visible' => true,
+                'required' => true,
             ],
             'wi_rw' => [
                 'label' => 'RW',
@@ -685,7 +700,8 @@ class WaitinglistController extends Controller
                 'searchable' => true,
                 'form_type' => 'text',
                 'keyvaldata' => '',
-                'visible' => true
+                'visible' => true,
+                'required' => true,
             ],
             'wi_rt' => [
                 'label' => 'RT',
@@ -693,7 +709,8 @@ class WaitinglistController extends Controller
                 'searchable' => true,
                 'form_type' => 'text',
                 'keyvaldata' => '',
-                'visible' => true
+                'visible' => true,
+                'required' => true,
             ],
             'wi_phone' => [
                 'label' => 'Nomor HP',
@@ -701,7 +718,8 @@ class WaitinglistController extends Controller
                 'searchable' => true,
                 'form_type' => 'text',
                 'keyvaldata' => '',
-                'visible' => true
+                'visible' => true,
+                'required' => true,
             ],
             'wi_phone_name' => [
                 'label' => 'Nama Contact',
@@ -709,7 +727,8 @@ class WaitinglistController extends Controller
                 'searchable' => true,
                 'form_type' => 'text',
                 'keyvaldata' => '',
-                'visible' => true
+                'visible' => true,
+                'required' => true,
             ],
             'wi_telp' => [
                 'label' => 'Nomor Telpon',
@@ -717,7 +736,8 @@ class WaitinglistController extends Controller
                 'searchable' => true,
                 'form_type' => 'text',
                 'keyvaldata' => '',
-                'visible' => true
+                'visible' => true,
+                'required' => true,
             ],
             'wi_email' => [
                 'label' => 'Email',
@@ -725,7 +745,8 @@ class WaitinglistController extends Controller
                 'searchable' => true,
                 'form_type' => 'text',
                 'keyvaldata' => '',
-                'visible' => true
+                'visible' => true,
+                'required' => true,
             ],
             'wi_birth_date' => [
                 'label' => 'Tanggal Lahir',
@@ -733,7 +754,8 @@ class WaitinglistController extends Controller
                 'searchable' => true,
                 'form_type' => 'date',
                 'keyvaldata' => '',
-                'visible' => true
+                'visible' => true,
+                'required' => true,
             ],
             'wi_sex' => [
                 'label' => 'Jenis Kelamin',
@@ -741,7 +763,8 @@ class WaitinglistController extends Controller
                 'searchable' => true,
                 'form_type' => 'select',
                 'keyvaldata' => [1 => "Laki-Laki", 'Perempuan'],
-                'visible' => true
+                'visible' => true,
+                'required' => true,
             ],
             'wi_job' => [
                 'label' => 'Pekerjaan',
@@ -749,7 +772,8 @@ class WaitinglistController extends Controller
                 'searchable' => true,
                 'form_type' => 'text',
                 'keyvaldata' => $susunJob,
-                'visible' => true
+                'visible' => true,
+                'required' => true,
             ],
             'wi_ident_type' => [
                 'label' => 'Jenis Identitas',
@@ -757,7 +781,8 @@ class WaitinglistController extends Controller
                 'searchable' => true,
                 'form_type' => 'select',
                 'keyvaldata' => [1 => 'KTP', 'KITAS', 'NPWP', 'SIM', 'Paspor'],
-                'visible' => true
+                'visible' => true,
+                'required' => true,
             ],
             'wi_ident_number' => [
                 'label' => 'Nomor Identitas',
@@ -765,7 +790,8 @@ class WaitinglistController extends Controller
                 'searchable' => true,
                 'form_type' => 'text',
                 'keyvaldata' => '',
-                'visible' => true
+                'visible' => true,
+                'required' => true,
             ],
             'wi_npwp' => [
                 'label' => 'NPWP',
@@ -773,7 +799,8 @@ class WaitinglistController extends Controller
                 'searchable' => true,
                 'form_type' => 'text',
                 'keyvaldata' => '',
-                'visible' => true
+                'visible' => true,
+                'required' => false,
             ],
         ];
         $infoLayanan = [
@@ -783,7 +810,8 @@ class WaitinglistController extends Controller
                 'searchable' => true,
                 'form_type' => 'text',
                 'keyvaldata' => '',
-                'visible' => true
+                'visible' => true,
+                'required' => false,
             ],
             'sp_code' => [
                 'label' => 'Layanan',
@@ -791,7 +819,8 @@ class WaitinglistController extends Controller
                 'searchable' => true,
                 'form_type' => 'select',
                 'keyvaldata' => $susunPkg,
-                'visible' => true
+                'visible' => true,
+                'required' => true,
             ],
             'wi_cont_begin' => [
                 'label' => 'Kontrak Mulai',
@@ -799,7 +828,8 @@ class WaitinglistController extends Controller
                 'searchable' => true,
                 'form_type' => 'date',
                 'keyvaldata' => '',
-                'visible' => true
+                'visible' => true,
+                'required' => false,
             ],
             'wi_cont_end' => [
                 'label' => 'Kontrak Selesai',
@@ -807,7 +837,8 @@ class WaitinglistController extends Controller
                 'searchable' => true,
                 'form_type' => 'date',
                 'keyvaldata' => '',
-                'visible' => true
+                'visible' => true,
+                'required' => false,
             ],
             'wi_trial' => [
                 'label' => 'Perjanjian Trial',
@@ -815,7 +846,8 @@ class WaitinglistController extends Controller
                 'searchable' => true,
                 'form_type' => 'date',
                 'keyvaldata' => '',
-                'visible' => true
+                'visible' => true,
+                'required' => false,
             ],
             'wi_tech_coord' => [
                 'label' => 'Koordinat',
@@ -823,7 +855,8 @@ class WaitinglistController extends Controller
                 'searchable' => true,
                 'form_type' => 'text',
                 'keyvaldata' => '',
-                'visible' => true
+                'visible' => true,
+                'required' => true,
             ],
         ];
         $berkas = [
@@ -833,7 +866,8 @@ class WaitinglistController extends Controller
                 'searchable' => true,
                 'form_type' => 'file',
                 'keyvaldata' => '',
-                'visible' => true
+                'visible' => true,
+                'required' => true,
             ],
             'form_berlanggan' => [
                 'label' => 'Form Berlangganan',
@@ -841,7 +875,8 @@ class WaitinglistController extends Controller
                 'searchable' => false,
                 'form_type' => 'file',
                 'keyvaldata' => '',
-                'visible' => true
+                'visible' => true,
+                'required' => true,
             ],
             'lembar_survei' => [
                 'label' => 'Lembar Survei',
@@ -849,7 +884,8 @@ class WaitinglistController extends Controller
                 'searchable' => false,
                 'form_type' => 'file',
                 'keyvaldata' => '',
-                'visible' => true
+                'visible' => true,
+                'required' => true,
             ],
             'foto_rumah' => [
                 'label' => 'Foto Rumah',
@@ -857,7 +893,8 @@ class WaitinglistController extends Controller
                 'searchable' => false,
                 'form_type' => 'file',
                 'keyvaldata' => '',
-                'visible' => true
+                'visible' => true,
+                'required' => true,
             ],
         ];
 
@@ -868,7 +905,8 @@ class WaitinglistController extends Controller
                 'searchable' => true,
                 'form_type' => 'text',
                 'keyvaldata' => '',
-                'visible' => true
+                'visible' => true,
+                'required' => true,
             ],
             'wi_bill_address' => [
                 'label' => 'Alamat',
@@ -876,7 +914,8 @@ class WaitinglistController extends Controller
                 'searchable' => true,
                 'form_type' => 'area',
                 'keyvaldata' => '',
-                'visible' => true
+                'visible' => true,
+                'required' => true,
             ],
             'wi_bill_zip_code' => [
                 'label' => 'Kode POS',
@@ -884,23 +923,26 @@ class WaitinglistController extends Controller
                 'searchable' => true,
                 'form_type' => 'text',
                 'keyvaldata' => '',
-                'visible' => true
+                'visible' => true,
+                'required' => true,
             ],
             'wil_bill_prov' => [
                 'label' => 'Kabupaten',
                 'orderable' => false,
                 'searchable' => true,
                 'form_type' => 'select',
-                'keyvaldata' => $susunProv,
-                'visible' => true
+                'keyvaldata' => $susunCity,
+                'visible' => true,
+                'required' => true,
             ],
             'wi_bill_city' => [
                 'label' => 'Kota',
                 'orderable' => false,
                 'searchable' => true,
                 'form_type' => 'select',
-                'keyvaldata' => $susunCity,
-                'visible' => true
+                'keyvaldata' => $susunProv,
+                'visible' => true,
+                'required' => true,
             ],
             'wi_bill_phone' => [
                 'label' => 'Nomor HP',
@@ -908,7 +950,8 @@ class WaitinglistController extends Controller
                 'searchable' => true,
                 'form_type' => 'text',
                 'keyvaldata' => '',
-                'visible' => true
+                'visible' => true,
+                'required' => true,
             ],
             'wi_bill_telp' => [
                 'label' => 'Nomor Telpon',
@@ -916,7 +959,8 @@ class WaitinglistController extends Controller
                 'searchable' => true,
                 'form_type' => 'text',
                 'keyvaldata' => '',
-                'visible' => true
+                'visible' => true,
+                'required' => true,
             ],
             'wi_bill_email' => [
                 'label' => 'Email',
@@ -924,7 +968,8 @@ class WaitinglistController extends Controller
                 'searchable' => true,
                 'form_type' => 'text',
                 'keyvaldata' => '',
-                'visible' => true
+                'visible' => true,
+                'required' => true,
             ],
             'wi_bill_type' => [
                 'label' => 'Cara Pembayaran',
@@ -932,7 +977,8 @@ class WaitinglistController extends Controller
                 'searchable' => true,
                 'form_type' => 'select',
                 'keyvaldata' => [1 => 'Cash', 'Giro/Check', 'Transfer Bank', 'Kartu Debit/Kredit'],
-                'visible' => true
+                'visible' => true,
+                'required' => true,
             ],
             'wi_bill_period' => [
                 'label' => 'Periode Pembayaran',
@@ -940,7 +986,8 @@ class WaitinglistController extends Controller
                 'searchable' => true,
                 'form_type' => 'select',
                 'keyvaldata' => [1 => 'Bulanan', 2 => '2 Bulan', 3 => '3 Bulan', 6 => '6 Bulan', 12 => '12 Bulan'],
-                'visible' => true
+                'visible' => true,
+                'required' => true,
             ],
             'wi_bill_instalinv' => [
                 'label' => 'Invoice Instalasi',
@@ -948,7 +995,8 @@ class WaitinglistController extends Controller
                 'searchable' => true,
                 'form_type' => 'select',
                 'keyvaldata' => [1 => 'Terbit', 'Tidak Terbit'],
-                'visible' => true
+                'visible' => true,
+                'required' => true,
             ],
             'wi_bill_autogen' => [
                 'label' => 'Invoice Reguler',
@@ -956,7 +1004,8 @@ class WaitinglistController extends Controller
                 'searchable' => true,
                 'form_type' => 'select',
                 'keyvaldata' => ['Tidak Auto Generate Invoice', 'Auto Generate Invoice'],
-                'visible' => true
+                'visible' => true,
+                'required' => true,
             ],
             'wi_inv_info' => [
                 'label' => 'Kirim Invoice',
@@ -964,7 +1013,8 @@ class WaitinglistController extends Controller
                 'searchable' => true,
                 'form_type' => 'select',
                 'keyvaldata' => ['Tidak', 'Ya'],
-                'visible' => true
+                'visible' => true,
+                'required' => true,
             ],
 
             'wi_bill_curency' => [
@@ -973,7 +1023,8 @@ class WaitinglistController extends Controller
                 'searchable' => true,
                 'form_type' => 'select',
                 'keyvaldata' => ['IDR' => 'IDR', 'USD' => 'USD'],
-                'visible' => true
+                'visible' => true,
+                'required' => true,
             ],
             'wi_bill_regular' => [
                 'label' => 'Biaya Reguler',
@@ -981,7 +1032,8 @@ class WaitinglistController extends Controller
                 'searchable' => true,
                 'form_type' => 'text',
                 'keyvaldata' => '',
-                'visible' => true
+                'visible' => true,
+                'required' => true,
             ],
             'wi_bill_ppn' => [
                 'label' => 'PPN',
@@ -989,7 +1041,8 @@ class WaitinglistController extends Controller
                 'searchable' => true,
                 'form_type' => 'select',
                 'keyvaldata' => ['Tidak', 'Ya'],
-                'visible' => true
+                'visible' => true,
+                'required' => true,
             ],
             'wi_bill_desc' => [
                 'label' => 'Keterangan',
@@ -997,7 +1050,8 @@ class WaitinglistController extends Controller
                 'searchable' => true,
                 'form_type' => 'area',
                 'keyvaldata' => '',
-                'visible' => true
+                'visible' => true,
+                'required' => true,
             ],
         ];
         return [

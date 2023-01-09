@@ -200,8 +200,10 @@ class CustomerController extends Controller
 
     public function detail(Request $request, $cust_number)
     {
+        dd(urlencode(base64_encode('PIJP000690012301;JP000690')));
         $title = 'Detail Pelanggan ' . $cust_number;
         $subTitle = '';
+
         $name = Route::currentRouteName();
 
         $messageTemplate = $this->getMessageTemplate();
