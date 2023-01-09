@@ -13,7 +13,7 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('t_waiting_list_new', function (Blueprint $table) {
+        /*Schema::create('t_waiting_list_new', function (Blueprint $table) {
             $table->id('wi_id');
             $table->string('wi_am');
             $table->string('sp_code')->nullable();
@@ -27,7 +27,7 @@ return new class extends Migration
             $table->text('wi_file_identity')->nullable(); 
             $table->text('wi_file_survei')->nullable(); 
             $table->timestamps();
-        });
+        });*/
     }
 
     /**

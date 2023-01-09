@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\DataTables\CustomerDataTable;
 use App\DataTables\Scopes\CustomerScope;
 use App\Models\Customer;
+use App\Models\HistoryPi;
 use App\Models\InvoicePorfoma;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -200,7 +201,7 @@ class CustomerController extends Controller
 
     public function detail(Request $request, $cust_number)
     {
-        dd(urlencode(base64_encode('PIJP000690012301;JP000690')));
+        //dd(urlencode(base64_encode('PIJP000690012301;JP000690')));
         $title = 'Detail Pelanggan ' . $cust_number;
         $subTitle = '';
 
@@ -325,7 +326,8 @@ class CustomerController extends Controller
         );
 
         $invStart = $request->input('inv_start') ?? date('Y-m-d');
-        $invEnd = date('Y-m-d', strtotime($invStart . ' +29 days'));
+        $newtMonth   =date('Y-m-d', strtotime($invStart . ' +1 month'));
+        $invEnd = date('Y-m-d', strtotime($newtMonth . ' -1 days'));
         $spCode = $request->input('sp_code');
         $jenis = $request->input('jenis');
 
@@ -337,7 +339,7 @@ class CustomerController extends Controller
             })
             //->leftJoin('t_customer', 't_invoice_porfoma.cust_number', '=', 't_customer.cust_number')
             ->whereRaw("t_customer.cust_number = '" . $request['cust_number'] . "'")
-            ->orderByDesc('inv_post')
+            ->orderByDesc('inv_start')
             ->first();
         //dd($porfoma);
 
@@ -364,6 +366,7 @@ class CustomerController extends Controller
         //$postVal['wa_sent_number'] = '6285600200913';
         $postVal['sp_nom'] = $porfoma->_nomor ?? '';
         $postVal['reaktivasi_pi'] = $jenis;
+        //dd($postVal);
 
 
         $insertPi = DB::table('t_invoice_porfoma')->insert($postVal);
@@ -372,7 +375,7 @@ class CustomerController extends Controller
 
         $postValItem[0]['ii_type'] = '2';
         $postValItem[0]['inv_number'] = $newPi;
-        $postValItem[0]['ii_info'] = 'Biaya Layanan ' . $spCode . '  ' . Carbon::parse($postVal['inv_start'])->isoFormat('D MMMM Y') . '-' . Carbon::parse($postVal['inv_end'])->isoFormat('D MMMM Y');
+        $postValItem[0]['ii_info'] = 'Biaya Layanan ' . $spCode . ' Mbps ' . Carbon::parse($postVal['inv_start'])->isoFormat('D MMMM Y') . '-' . Carbon::parse($postVal['inv_end'])->isoFormat('D MMMM Y');
         $postValItem[0]['ii_amount'] = $pkg->sp_reguler;
         $postValItem[0]['ii_order'] = '1';
         $postValItem[0]['ii_recycle'] = '2';
@@ -404,11 +407,14 @@ class CustomerController extends Controller
             ]
         );
 
+        $type = $request->input('type') ?? '';
+
         $invStart = $request->input('inv_start') ?? date('Y-m-d');
-        $invEnd = date('Y-m-d', strtotime($invStart . ' +29 days'));
+        $newtMonth   =date('Y-m-d', strtotime($invStart . ' +1 month'));
+        $invEnd = date('Y-m-d', strtotime($newtMonth . ' -1 days'));
 
         $porfoma = DB::table('t_customer')
-        ->selectRaw('t_invoice_porfoma.inv_number,t_customer.cust_number,_nomor,cust_bill_info,trel_cust_pkg.sp_code,cupkg_status,cust_pop')
+            ->selectRaw('t_invoice_porfoma.inv_number,t_customer.cust_number,_nomor,cust_bill_info,trel_cust_pkg.sp_code,cupkg_status,cust_pop')
             ->leftJoin('t_invoice_porfoma', 't_customer.cust_number', '=', 't_invoice_porfoma.cust_number')
             ->leftJoin('trel_cust_pkg', function ($join) {
                 $join->on('t_customer.cust_number', '=', 'trel_cust_pkg.cust_number');
@@ -419,6 +425,7 @@ class CustomerController extends Controller
             ->first();
 
         //dd($porfoma);
+       
         if (isset($porfoma->inv_number)) {
             $lastPi = substr($porfoma->inv_number, -2) + 1;
         } else {
@@ -426,6 +433,14 @@ class CustomerController extends Controller
         }
 
         $newPi = "PI" . $request['cust_number'] . date('my') . sprintf("%02d", $lastPi);
+
+        if ($type == 'new') {
+            HistoryPi::create(['cust_number'=> $porfoma->cust_number,'inv_number'=> $newPi]);
+            if ($porfoma->inv_number ) {
+                DB::table('t_invoice_porfoma')->where('inv_number', $porfoma->inv_number)->update(['inv_status' => 2]);
+            }    
+            
+        }
 
         $postVal['inv_number'] = $newPi;
         $postVal['cust_number'] = $porfoma->cust_number;
@@ -440,8 +455,8 @@ class CustomerController extends Controller
         //$postVal['wa_sent'] = date('Y-m-d H:m:s');
         //$postVal['wa_sent_number'] = '6285600200913';
         $postVal['sp_nom'] = $porfoma->_nomor ?? '';
-        $postVal['reaktivasi_pi'] = 1;
-        //dd($postVal);
+        $postVal['reaktivasi_pi'] = $type == 'new' ? 0 : 1;
+        //dd($type, $postVal);
 
         $insertPi = DB::table('t_invoice_porfoma')->insert($postVal);
 
@@ -454,7 +469,7 @@ class CustomerController extends Controller
         }
         $postValItem[0]['ii_type'] = '2';
         $postValItem[0]['inv_number'] = $newPi;
-        $postValItem[0]['ii_info'] = 'Biaya Layanan ' . $porfoma->sp_code . '  ' . Carbon::parse($postVal['inv_start'])->isoFormat('D MMMM Y') . '-' . Carbon::parse($postVal['inv_end'])->isoFormat('D MMMM Y');
+        $postValItem[0]['ii_info'] = 'Biaya Layanan ' . $porfoma->sp_code . ' Mbps ' . Carbon::parse($postVal['inv_start'])->isoFormat('D MMMM Y') . '-' . Carbon::parse($postVal['inv_end'])->isoFormat('D MMMM Y');
         $postValItem[0]['ii_amount'] = $biayaLayanan;
         $postValItem[0]['ii_order'] = '1';
         $postValItem[0]['ii_recycle'] = '2';
@@ -473,8 +488,11 @@ class CustomerController extends Controller
         if (isset($porfoma->cupkg_status) && $porfoma->cupkg_status == 5) {
             DB::table('trel_cust_pkg')->where('_nomor', $porfoma->_nomor)->update(['cupkg_status' => 8]);
         }
+        $message = $type == 'new' ? 'Sukses Generate Porfoma' : 'Sukses Reaktifasi';
 
-        session()->flash('success', 'Raktivasi Berhasil');
+       
+
+        session()->flash('success', $message);
         return redirect(route('porfoma-detail', $newPi));
 
         //dd($postVal,$postValItem);

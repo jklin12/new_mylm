@@ -59,7 +59,7 @@ class PorfomaController extends Controller
                     $join->on('t_invoice_porfoma.inv_number', '=', 't_inv_item_porfoma.inv_number')->where('ii_recycle', '<>', 1);
                 })
                 ->groupByRaw('t_invoice_porfoma.inv_number')
-                ->orderByDesc('inv_due');
+                ->orderByDesc('inv_start','inv_number');
 
             return Datatables::of($data)
                 ->addIndexColumn()
@@ -153,6 +153,7 @@ class PorfomaController extends Controller
         //dd($susunDataSummary); 
         $load['inv_status'] = $susunData['inv_status'];
         $load['cust_number'] = $susunData['cust_number'];
+        $load['url'] =urlencode(base64_encode($inv_number.';'.$susunData['cust_number']));
         $load['datas'] = $susunData2;
         $load['data_summary'] = $susunDataSummary;
         $load['arr_field'] = $arrfield;

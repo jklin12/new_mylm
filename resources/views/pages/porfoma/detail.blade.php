@@ -32,7 +32,8 @@
 
 @if($inv_status == 0)
 <div class="pull-right">
-    <a href="javascript:;" id="btn_qris" class="btn btn-pink m-r-5 m-b-5">Qris</a>
+    <!--<a href="http://127.0.0.1:8001/checkout?code={{ $url}}" id="" class="btn btn-pink m-r-5 m-b-5" target="_blank">Link</a>-->
+    <!--<a href="javascript:;" id="btn_qris" class="btn btn-pink m-r-5 m-b-5">Qris</a>-->
     <button type="button" class="btn btn-pink m-r-5 m-b-5" data-toggle="modal" data-target="#message_modal">Kirim Invoice</button>
 </div>
 @endif

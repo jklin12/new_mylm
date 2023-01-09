@@ -4,6 +4,7 @@
 
 @section('content')
 @push('css')
+<link href="/assets/plugins/bootstrap-datepicker/dist/css/bootstrap-datepicker.css" rel="stylesheet" />
 <link href="/assets/plugins/datatables.net-bs4/css/dataTables.bootstrap4.min.css" rel="stylesheet" />
 <link href="/assets/plugins/datatables.net-responsive-bs4/css/responsive.bootstrap4.min.css" rel="stylesheet" />
 <style>
@@ -93,6 +94,44 @@
     </div>
 </div>
 <!-- end panel -->
+<div class="modal fade" id="reaktivasiModal" tabindex="-1" role="dialog" aria-labelledby="reaktivasiModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="reaktivasiModalLabel">Porforma Baru</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                Apakah anda yakin untuk menerbitkan porforma baru <b>{{ $cust_number }}? <br> Porfoma lama akan expired.</b>
+                <form action="{{ route('customer-reaktivasi')}}" method="post" id="raktivasi_form" class="mt-2">
+                    @csrf
+                    <input type="hidden" name="type" value="new">
+                    <input type="hidden" name="cust_number" value="{{ $cust_number }}">
+                    <div class="form-group row">
+                        <label class="col-lg-2 col-form-label">Periode</label>
+                        <div class="col-lg-8">
+                            <div class="row row-space-10">
+                                <div class="col-xs-6 mb-2 mb-sm-0">
+                                    <input type="text" class="form-control datetimepicker_input" name="inv_start" placeholder="Mulai Layanan" />
+                                </div>
+                                <!--<div class="col-xs-6">
+                                    <input type="text" class="form-control datetimepicker_input"  name="inv_end" placeholder="Akhir Layanan" />
+                                </div>-->
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+                <button type="submit" form="raktivasi_form" class="btn btn-pink">Ya</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @endsection
 
 @push('scripts')
@@ -100,11 +139,22 @@
 <script src="/assets/plugins/datatables.net-bs4/js/dataTables.bootstrap4.min.js"></script>
 <script src="/assets/plugins/datatables.net-responsive/js/dataTables.responsive.min.js"></script>
 <script src="/assets/plugins/datatables.net-responsive-bs4/js/responsive.bootstrap4.min.js"></script>
+<script type="text/javascript" src="https://cdn.datatables.net/buttons/1.6.5/js/dataTables.buttons.min.js"></script>
+<script type="text/javascript" src="https://cdn.datatables.net/buttons/1.6.5/js/buttons.bootstrap4.min.js"></script>
+<script src="/assets/plugins/bootstrap-datepicker/dist/js/bootstrap-datepicker.js"></script>
 <script>
     $(function() {
-       var table = $('#table-cust').DataTable({
+        var table = $('#table-cust').DataTable({
             processing: true,
             serverSide: true,
+            dom: 'Bfrtip',
+            buttons: [{
+                className: 'btn-pink',
+                text: 'Add Porfoma',
+                attr: {
+                    id: 'addBtn'
+                }
+            }],
             ajax: {
                 url: "{{ route('porfoma-list',$cust_number) }}",
                 data: function(d) {
@@ -114,7 +164,7 @@
             columns: <?php echo $table_column ?>
         });
 
-       
+
         $('.toggle-vis').on('click', function(e) {
             e.preventDefault();
 
@@ -122,6 +172,14 @@
 
             column.visible(!column.visible());
         })
+
+        $('#addBtn').click(function() {
+            $('#reaktivasiModal').modal('toggle')
+        })
+        $('.datetimepicker_input').datepicker({
+            format: 'yyyy-mm-dd',
+        });
+
     })
 </script>
 @endpush
