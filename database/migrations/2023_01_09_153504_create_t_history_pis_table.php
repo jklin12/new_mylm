@@ -13,12 +13,14 @@ return new class extends Migration
      */
     public function up()
     {
-        /*Schema::table('users', function ($table) {
-            $table->string('api_token', 80)->after('password')
-                ->unique()
-                ->nullable()
-                ->default(null);
-        });*/
+        Schema::create('t_history_pis', function (Blueprint $table) {
+            $table->id();
+            $table->string('cust_number');
+            $table->string('inv_number');
+            $table->integer('created_by')->nullable();
+            $table->integer('updated_by')->nullable();
+            $table->timestamps();
+        });
     }
 
     /**
@@ -28,6 +30,6 @@ return new class extends Migration
      */
     public function down()
     {
-        //
+        Schema::dropIfExists('t_history_pis');
     }
 };
