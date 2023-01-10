@@ -241,6 +241,7 @@ class FinanceController extends Controller
                 InvoicePorfoma::where('inv_number', $value->inv_number)->update($updateDataPi);
             }
 
+            $sunAmount = 0;
             if (!$value->nomor_invoice) {
                 //echo $value->cust_number;
                 $lastInvoice = Invoice::where('cust_number', $value->cust_number)->whereRaw('MONTH(inv_post) = ' . date('m'))->whereRaw('YEAR(inv_post) =' . date('Y'))->orderBy('inv_post', 'desc')->first();
@@ -296,6 +297,7 @@ class FinanceController extends Controller
                     $insertInvItem[$keys]['ii_info'] = $values->ii_info;
                     $insertInvItem[$keys]['ii_amount'] = $values->ii_amount;
                     $insertInvItem[$keys]['ii_order'] = $values->ii_order;
+                    $sunAmount += $values->ii_amount;
                 }
                 //print_r($insertInvItem);
                 //print_r($insertInv);die;
@@ -303,13 +305,13 @@ class FinanceController extends Controller
 
                 $status = 'Sukses';
                 //$message = 'Generate Invoice sukses dengan nomor ' . $nomorInv;
-                $message = 'Transfer dari nusa satu inti an '.$value->cust_name.' ' . $value->cust_number . '-' . $newInvNumber;
+                $message = 'Transfer dari nusa satu inti an ' . $value->cust_name . ' ' . $value->cust_number . '-' . $newInvNumber;
             }
             $susunReport[$value->inv_number]['inv_status'] = $status;
             $susunReport[$value->inv_number]['inv_number'] = $nomorInv;
             $susunReport[$value->inv_number]['inv_message'] = $message;
-            $susunReport[$value->inv_number]['harga'] = $value->ii_amount;
-            $susunReport[$value->inv_number]['ppn'] = (intval($value->ii_amount) * 11) / 100;
+            $susunReport[$value->inv_number]['harga'] = $sunAmount / 1.11;
+            //$susunReport[$value->inv_number]['ppn'] = (intval($sunAmount) * 11) / 100;
         }
         //print_r($susunReport);die;
         $newSusunreport = [];
@@ -318,7 +320,7 @@ class FinanceController extends Controller
         }
         //dd($newSusunreport);
         $export = $this->downloadExcel(array_values($newSusunreport));
-
+        //die;
         if ($export['status']) {
             $request->session()->flash('success', 'Import Data berhasil!');
             $post = ImportInvoiceResult::create([
@@ -418,7 +420,7 @@ class FinanceController extends Controller
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
 
-        $arrTitle = ['Nomor Pelanggan', 'Status Pelanggan', 'Nomor PI', 'Status PI', 'Status Generate', 'Nomor Invoice', 'Pesan', 'Harga', 'PPN'];
+        $arrTitle = ['Nomor Pelanggan', 'Status Pelanggan', 'Nomor PI', 'Status PI', 'Status Generate', 'Nomor Invoice', 'Pesan', 'Harga'];
         $alphas = range('A', 'Z');
         $dateExport = Carbon::parse(date('Y-m-d H:m:i'))->isoFormat('dddd, D MMMM Y H:mm');
 
@@ -453,11 +455,23 @@ class FinanceController extends Controller
                 $sheet->getColumnDimension($alphas[$numAlpa])->setAutoSize(true);
                 $numAlpa++;
             }
+            $num = $num + 1;
+            //echo $num;die;
+            $sheet->setCellValue($alphas[$numAlpa - 2] . $num, 'PPN Keluaran');
+            $sheet->getStyle($alphas[$numAlpa - 2] . $num)->getAlignment()->setHorizontal('left');
+            $sheet->getColumnDimension($alphas[$numAlpa - 2])->setAutoSize(true);
+
+            $sheet->setCellValue($alphas[$numAlpa - 1] . $num, round(($dVal['harga'] * 11) / 100));
+            $sheet->getStyle($alphas[$numAlpa - 1] . $num)->getAlignment()->setHorizontal('left');
+            $sheet->getColumnDimension($alphas[$numAlpa - 1])->setAutoSize(true);
+
+
             $numAlpa = 1;
             $num++;
         }
         $writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
         $filePath = 'files/export/Generate Inv' . date(('Y-m-d')) . rand()  . '.xlsx';
+        //echo $filePath;
         $writer->save($filePath);
 
         $export['status'] = true;
