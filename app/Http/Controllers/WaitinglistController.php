@@ -150,6 +150,7 @@ class WaitinglistController extends Controller
                     $postfile[$value]['wi_file_name'] = $fullPath;
                 }
             }
+
             DB::table('t_waiting_list_fie')->insert($postfile);
             $this->createInv($newWiNum, $postVal['wi_bill_instalinv']);
 
