@@ -382,7 +382,7 @@ class CustomerController extends Controller
         $newPi = "PI" . $request['cust_number'] . date('my') . sprintf("%02d", $lastPi);
 
         if ($type == 'new') {
-            HistoryPi::create(['cust_number' => $porfoma->cust_number, 'inv_number' => $newPi, 'inv_exp' => $porfoma->porfoma->inv_number]);
+            HistoryPi::create(['cust_number' => $porfoma->cust_number, 'inv_number' => $newPi, 'inv_exp' => $porfoma->inv_number]);
             if ($porfoma->inv_number) {
                 DB::table('t_invoice_porfoma')->where('inv_number', $porfoma->inv_number)->update(['inv_status' => 2, 'inv_info' => 'Request PI baru karena tidak bisa bayar']);
             }
