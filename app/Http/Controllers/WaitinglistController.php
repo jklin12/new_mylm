@@ -938,7 +938,7 @@ class WaitinglistController extends Controller
                 'form_type' => 'text',
                 'keyvaldata' => '',
                 'visible' => true,
-                'required' => true,
+                'required' => false,
             ],
             'wil_bill_prov' => [
                 'label' => 'Kabupaten',
@@ -974,7 +974,7 @@ class WaitinglistController extends Controller
                 'form_type' => 'text',
                 'keyvaldata' => '',
                 'visible' => true,
-                'required' => true,
+                'required' => false,
             ],
             'wi_bill_email' => [
                 'label' => 'Email',
