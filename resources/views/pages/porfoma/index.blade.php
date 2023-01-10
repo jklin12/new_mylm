@@ -38,7 +38,7 @@
 <!-- begin panel -->
 <div class="panel panel-inverse">
     <div class="panel-body">
-        <div class="pull-right ">
+       <!-- <div class="pull-right ">
             <div class="dropdown dropleft">
                 <a class=" dropdown-toggle" href="javascript:;" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                     Tampil Kolom
@@ -51,7 +51,7 @@
                     @endforeach
                 </div>
             </div>
-        </div>
+        </div>-->
         <!--<div class="row">
             @foreach($arr_field as $kf=>$vf)
 
@@ -74,10 +74,14 @@
             @endif
             @endforeach
 
-        </div>-->
-        <div class="mb-1"></div>
-        <br>
+        </div>--> 
         <div class="table-responsive">
+            @if(Auth::user()->level >= 8)
+            <div class="dt-buttons btn-group flex-wrap mb-2">
+                <button class="btn btn-secondary btn-pink" tabindex="0" aria-controls="table-cust" type="button" id="addBtn"><span>Add Porfoma</span>
+                </button>
+            </div>
+            @endif
             <table id="table-cust" class="table table-striped table-bordered table-td-valign-middle">
                 <thead>
                     <tr>
@@ -94,6 +98,7 @@
     </div>
 </div>
 <!-- end panel -->
+@if(Auth::user()->level >= 8)
 <div class="modal fade" id="reaktivasiModal" tabindex="-1" role="dialog" aria-labelledby="reaktivasiModalLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
@@ -131,7 +136,7 @@
         </div>
     </div>
 </div>
-
+@endif
 @endsection
 
 @push('scripts')
@@ -147,14 +152,6 @@
         var table = $('#table-cust').DataTable({
             processing: true,
             serverSide: true,
-            dom: 'Bfrtip',
-            buttons: [{
-                className: 'btn-pink',
-                text: 'Add Porfoma',
-                attr: {
-                    id: 'addBtn'
-                }
-            }],
             ajax: {
                 url: "{{ route('porfoma-list',$cust_number) }}",
                 data: function(d) {

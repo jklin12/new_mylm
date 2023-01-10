@@ -273,7 +273,7 @@ class CustomerController extends Controller
         );
 
         $invStart = $request->input('inv_start') ?? date('Y-m-d');
-        $newtMonth   =date('Y-m-d', strtotime($invStart . ' +1 month'));
+        $newtMonth   = date('Y-m-d', strtotime($invStart . ' +1 month'));
         $invEnd = date('Y-m-d', strtotime($newtMonth . ' -1 days'));
         $spCode = $request->input('sp_code');
         $jenis = $request->input('jenis');
@@ -357,7 +357,7 @@ class CustomerController extends Controller
         $type = $request->input('type') ?? '';
 
         $invStart = $request->input('inv_start') ?? date('Y-m-d');
-        $newtMonth   =date('Y-m-d', strtotime($invStart . ' +1 month'));
+        $newtMonth   = date('Y-m-d', strtotime($invStart . ' +1 month'));
         $invEnd = date('Y-m-d', strtotime($newtMonth . ' -1 days'));
 
         $porfoma = DB::table('t_customer')
@@ -372,7 +372,7 @@ class CustomerController extends Controller
             ->first();
 
         //dd($porfoma);
-       
+
         if (isset($porfoma->inv_number)) {
             $lastPi = substr($porfoma->inv_number, -2) + 1;
         } else {
@@ -382,11 +382,10 @@ class CustomerController extends Controller
         $newPi = "PI" . $request['cust_number'] . date('my') . sprintf("%02d", $lastPi);
 
         if ($type == 'new') {
-            HistoryPi::create(['cust_number'=> $porfoma->cust_number,'inv_number'=> $newPi]);
-            if ($porfoma->inv_number ) {
-                DB::table('t_invoice_porfoma')->where('inv_number', $porfoma->inv_number)->update(['inv_status' => 2]);
-            }    
-            
+            HistoryPi::create(['cust_number' => $porfoma->cust_number, 'inv_number' => $newPi, 'inv_exp' => $porfoma->porfoma->inv_number]);
+            if ($porfoma->inv_number) {
+                DB::table('t_invoice_porfoma')->where('inv_number', $porfoma->inv_number)->update(['inv_status' => 2, 'inv_info' => 'Request PI baru karena tidak bisa bayar']);
+            }
         }
 
         $postVal['inv_number'] = $newPi;
@@ -408,7 +407,7 @@ class CustomerController extends Controller
         $insertPi = DB::table('t_invoice_porfoma')->insert($postVal);
 
         $pkg = DB::table('t_service_pkg')->where('sp_name', $porfoma->sp_code)->first();
-        
+
         if ($porfoma->cust_pop != 3) {
             $biayaLayanan =  $pkg->sp_reguler;
         } else {
@@ -437,7 +436,7 @@ class CustomerController extends Controller
         }
         $message = $type == 'new' ? 'Sukses Generate Porfoma' : 'Sukses Reaktifasi';
 
-       
+
 
         session()->flash('success', $message);
         return redirect(route('porfoma-detail', $newPi));
