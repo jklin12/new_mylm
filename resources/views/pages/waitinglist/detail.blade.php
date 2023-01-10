@@ -59,6 +59,8 @@
 
                             @if($vf['form_type']=='select')
                             {!! ($vf['keyvaldata'][$wiData[$kf]]) ?? $wiData[$kf] !!}
+                            @elseif($vf['form_type']=='select_bsn')
+                            {!! ($vf['keyvaldata2'][$wiData[$kf]]) ?? $wiData[$kf] !!}
                             @elseif($vf['form_type']=='date')
                             {!! Carbon\Carbon::parse($wiData[$kf])->isoFormat('D MMMM Y') !!}
                             @else

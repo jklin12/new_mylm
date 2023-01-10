@@ -14,7 +14,7 @@ class WaitinglistController extends Controller
     var $arrPop = ['Bogor Valley', 'LIFEMEDIA', 'HABITAT', 'SINDUADI', 'GREENNET', 'X-LIFEMEDIA', 'LDP LIFEMEDIA', 'LDP X-LIFEMEDIA', 'JIP', 'Jogja Tronik', 'LDP JIP'];
     var $arrPopCode = ['BV', 'LM', 'HB', 'SN',  'GN', 'XM', 'LD', 'LX',  'JP', 'JT', 'LJ'];
     var $arrPiStatus = [['Blum Bayar', 'danger'], ['Lunas', 'green'], ['Expired', 'dark']];
-    
+
 
     public function index()
     {
@@ -152,7 +152,7 @@ class WaitinglistController extends Controller
             }
             DB::table('t_waiting_list_fie')->insert($postfile);
             $this->createInv($newWiNum, $postVal['wi_bill_instalinv']);
-            
+
             $request->session()->flash('success', 'Add Waitinglist Success!');
 
             return redirect(route('waitinglist-index'));
@@ -222,7 +222,7 @@ class WaitinglistController extends Controller
 
         //dd($wiId);
 
-        $susunData = []; 
+        $susunData = [];
         $susunDataSummary = [];
 
         $totals = 0;
@@ -230,7 +230,7 @@ class WaitinglistController extends Controller
             foreach ($value as $keys => $values) {
                 $susunData[$keys] = $values;
             }
-            $susunDataSummary[$value->inv_number]['code'] = urlencode(base64_encode($value->inv_number.';'.$value->inv_number));
+            $susunDataSummary[$value->inv_number]['code'] = urlencode(base64_encode($value->inv_number . ';' . $value->inv_number));
             $susunDataSummary[$value->inv_number]['inv_number'] = $value->inv_number;
             $susunDataSummary[$value->inv_number]['inv_status'] = $this->arrPiStatus[$value->inv_status];
             $susunDataSummary[$value->inv_number]['inv_post'] = Carbon::parse($value->inv_post)->isoFormat('D MMMM Y');
@@ -238,22 +238,21 @@ class WaitinglistController extends Controller
             $susunDataSummary[$value->inv_number]['inv_paid'] = Carbon::parse($value->inv_paid)->isoFormat('D MMMM Y - HH:mm');
             $susunDataSummary[$value->inv_number]['inv_start'] = Carbon::parse($value->inv_start)->isoFormat('D MMMM Y');
             $susunDataSummary[$value->inv_number]['inv_end'] = Carbon::parse($value->inv_end)->isoFormat('D MMMM Y');
-            $susunDataSummary[$value->inv_number]['inv_info'] = $value->inv_info; 
-            $susunDataSummary[$value->inv_number]['inv_type'] = $value->inv_info; 
-            $susunDataSummary[$value->inv_number]['sp_code'] = $value->inv_info; 
+            $susunDataSummary[$value->inv_number]['inv_info'] = $value->inv_info;
+            $susunDataSummary[$value->inv_number]['inv_type'] = $value->inv_info;
+            $susunDataSummary[$value->inv_number]['sp_code'] = $value->inv_info;
             $susunDataSummary[$value->inv_number]['item'][$key]['total'] = 0;
             $susunDataSummary[$value->inv_number]['item'][$key]['ii_order'] = $value->ii_order;
             $susunDataSummary[$value->inv_number]['item'][$key]['ii_type'] = $value->ii_type;
             $susunDataSummary[$value->inv_number]['item'][$key]['ii_amount'] = 'Rp. ' . SchRp($value->ii_amount);
             $susunDataSummary[$value->inv_number]['item'][$key]['ii_info'] = $value->ii_info;
             $susunDataSummary[$value->inv_number]['item'][$key]['total'] += $value->ii_amount;
-            
         }
-        
+
         //$originalCode = $susunData['inv_number'] . ';' . $susunData['inv_number'];
         //$encryptionCode = urlencode(base64_encode($originalCode));
 
-       
+
         //dd($encryptionCode); 
         $load['inv_status'] = $susunData['inv_status'];
         $load['cust_number'] = $susunData['cust_number'];
@@ -314,53 +313,53 @@ class WaitinglistController extends Controller
             $postCust['cust_number'] = $newCustNumber;
             $postCust['hp_number'] = $value->wi_home_pass;
             $postCust['cust_member_card'] = $value->wi_member_card ?? '';
-            $postCust['cust_pop'] = $value->wi_pop;
-            $postCust['cust_job'] = $value->wi_job;
-            $postCust['cust_city'] = $value->wi_city;
-            $postCust['cust_prov'] = $value->wi_prov;
-            $postCust['cust_name'] = $value->wi_name;
-            $postCust['cust_company'] = $value->wi_company;
-            $postCust['cust_business'] = $value->wi_business;
-            $postCust['cust_npwp'] = $value->wi_npwp;
-            $postCust['cust_sex'] = $value->wi_sex;
-            $postCust['cust_birth_date'] = $value->wi_birth_date;
-            $postCust['cust_ident_type'] = $value->wi_ident_type;
-            $postCust['cust_ident_number'] = $value->wi_ident_number;
-            $postCust['cust_address'] = $value->wi_address;
-            $postCust['cust_zip'] = $value->wi_zip_code;
-            $postCust['cust_phone'] = $value->wi_phone;
-            $postCust['cust_hp'] = $value->wi_telp;
-            $postCust['cust_hp_contact'] = $value->wi_phone_name;
-            $postCust['cust_email'] = $value->wi_email;
-            $postCust['created'] = date('Y-m-d');
-            $postCust['cust_kecamatan'] = $value->wi_kecamatan;
-            $postCust['cust_kelurahan'] = $value->wi_kelurahan;
-            $postCust['cust_bill_address'] = $value->wi_bill_address;
-            $postCust['cust_bill_zip'] = $value->wi_bill_zip_code;
-            $postCust['cust_bill_email'] = $value->wi_bill_email;
-            $postCust['cust_bill_phone'] = $value->wi_bill_phone;
-            $postCust['cust_bill_contact'] = $value->wi_bill_contact;
-            $postCust['cust_bill_info'] = $value->wi_bill_desc;
+            $postCust['cust_pop'] = $value->wi_pop ?? '';
+            $postCust['cust_job'] = $value->wi_job ?? '';
+            $postCust['cust_city'] = $value->wi_city ?? '';
+            $postCust['cust_prov'] = $value->wi_prov ?? '';
+            $postCust['cust_name'] = $value->wi_name ?? '';
+            $postCust['cust_company'] = $value->wi_company ?? '';
+            $postCust['cust_business'] = $value->wi_business ?? '';
+            $postCust['cust_npwp'] = $value->wi_npwp ?? '';
+            $postCust['cust_sex'] = $value->wi_sex ?? '';
+            $postCust['cust_birth_date'] = $value->wi_birth_date ?? '';
+            $postCust['cust_ident_type'] = $value->wi_ident_type ?? '';
+            $postCust['cust_ident_number'] = $value->wi_ident_number ?? '';
+            $postCust['cust_address'] = $value->wi_address ?? '';
+            $postCust['cust_zip'] = $value->wi_zip_code ?? '';
+            $postCust['cust_phone'] = $value->wi_phone ?? '';
+            $postCust['cust_hp'] = $value->wi_telp ?? '';
+            $postCust['cust_hp_contact'] = $value->wi_phone_name ?? '';
+            $postCust['cust_email'] = $value->wi_email ?? '';
+            $postCust['created'] = date('Y-m-d') ?? '';
+            $postCust['cust_kecamatan'] = $value->wi_kecamatan ?? '';
+            $postCust['cust_kelurahan'] = $value->wi_kelurahan ?? '';
+            $postCust['cust_bill_address'] = $value->wi_bill_address ?? '';
+            $postCust['cust_bill_zip'] = $value->wi_bill_zip_code ?? '';
+            $postCust['cust_bill_email'] = $value->wi_bill_email ?? '';
+            $postCust['cust_bill_phone'] = $value->wi_bill_phone ?? '';
+            $postCust['cust_bill_contact'] = $value->wi_bill_contact ?? '';
+            $postCust['cust_bill_info'] = $value->wi_bill_desc ?? '';
 
             $postCupkg['cust_number'] = $newCustNumber;
-            $postCupkg['sp_code'] = $value->sp_code;
-            $postCupkg['cupkg_svc_begin'] = $value->wi_svc_begin;
-            $postCupkg['cupkg_acc_type'] = $value->wi_type;
-            $postCupkg['cupkg_status'] = 3;
-            $postCupkg['cupkg_trial'] = $value->wi_trial;
-            $postCupkg['cupkg_bill_period'] = $value->wi_bill_period;
-            $postCupkg['cupkg_bill_type'] = $value->wi_bill_type;
-            $postCupkg['cupkg_bill_lastpaid'] = $value->inv_number;
-            $postCupkg['cupkg_bill_autogen'] = $value->wi_bill_autogen;
-            $postCupkg['cupkg_bill_ppn'] = $value->wi_bill_ppn;
-            $postCupkg['cupkg_bill_debt_accumulation'] = 1;
-            $postCupkg['cupkg_bill_installinv'] = $value->wi_bill_instalinv;
-            $postCupkg['cupkg_cont_begin'] = $value->wi_cont_begin;
-            $postCupkg['cupkg_cont_end'] = $value->wi_cont_end;
-            $postCupkg['cupkg_acct_manager'] = $value->wi_acct_manager;
-            $postCupkg['cupkg_tech_coord'] = $value->wi_tech_coord;
-            $postCupkg['cupkg_bill_ppn'] = $value->wi_bill_ppn;
-            $postCupkg['cupkg_recycle'] = 2;
+            $postCupkg['sp_code'] = $value->sp_code ;
+            $postCupkg['cupkg_svc_begin'] = $value->wi_svc_begin ?? '';
+            $postCupkg['cupkg_acc_type'] = $value->wi_type ?? '';
+            $postCupkg['cupkg_status'] = 3 ;
+            $postCupkg['cupkg_trial'] = $value->wi_trial ?? '';
+            $postCupkg['cupkg_bill_period'] = $value->wi_bill_period ?? '';
+            $postCupkg['cupkg_bill_type'] = $value->wi_bill_type ?? '';
+            $postCupkg['cupkg_bill_lastpaid'] = $value->inv_number ?? '';
+            $postCupkg['cupkg_bill_autogen'] = $value->wi_bill_autogen ?? '';
+            $postCupkg['cupkg_bill_ppn'] = $value->wi_bill_ppn ?? '';
+            $postCupkg['cupkg_bill_debt_accumulation'] = 1 ?? '';
+            $postCupkg['cupkg_bill_installinv'] = $value->wi_bill_instalinv ?? '';
+            $postCupkg['cupkg_cont_begin'] = $value->wi_cont_begin ?? '';
+            $postCupkg['cupkg_cont_end'] = $value->wi_cont_end ?? '';
+            $postCupkg['cupkg_acct_manager'] = $value->wi_acct_manager ?? '';
+            $postCupkg['cupkg_tech_coord'] = $value->wi_tech_coord ?? '';
+            $postCupkg['cupkg_bill_ppn'] = $value->wi_bill_ppn ?? '';
+            $postCupkg['cupkg_recycle'] = 2 ?? '';
 
             $postSpk[0]['ft_number'] = 'SP' . $newSpkNumber1 . "/IKR/" . date('m') . '/' . date('y');
             $postSpk[0]['ft_received'] = date('Y-m-d H:m:i');
@@ -484,7 +483,7 @@ class WaitinglistController extends Controller
     {
         $arrfield = $this->arrField();
 
-        $data = WaitingList::get();
+        $data = WaitingList::orderByDesc('wi_number')->get();
         $datatables = Datatables::of($data)
             ->addIndexColumn();
 
@@ -508,8 +507,18 @@ class WaitinglistController extends Controller
 
             $actionBtn = '<a href="#" class="btn btn-' . $warna . '  ">' . $status  . '</a>';
             return  $actionBtn;
+        })->editColumn('wi_type', function ($row) {
+            $type = [1 => 'Personal', 'Perusahaan', 'Pemkot'];
+            return $type[$row->wi_type];
+        })->editColumn('wi_pop', function ($row) {
+            return $this->arrPop[$row->wi_pop];
         })->addColumn('detail', function ($row) {
-            $actionBtn = '<a href="' . route('waitinglist-detail', $row->wi_number) . '" class="btn btn-green btn-icon btn-circle btn_konfirmasi" ><i class="fa fa-search-plus"></i></a>';
+            if ($row->wi_status == 1) {
+                $route =   route('customer-detail', $row->new_cust_number);
+            } else {
+                $route = route('waitinglist-detail', $row->wi_number);
+            }
+            $actionBtn = '<a href="' . $route  . '" class="btn btn-green btn-icon btn-circle btn_konfirmasi" ><i class="fa fa-search-plus"></i></a>';
             return $actionBtn;
         })
 
@@ -522,13 +531,16 @@ class WaitinglistController extends Controller
 
         $bussinesType = DB::table('tlkp_business')->where('bsn_recycle', 2)->get();
         $susunBusines = [];
+        $susunBusines2 = [];
         foreach ($bussinesType as $key => $value) {
+            $susunBusines2[$value->bsn_id] = $value->bsn_name;
             if ($value->bsn_level == 1) {
                 $susunBusines[$value->bsn_id]['parent'] = $value->bsn_name;
             } elseif ($value->bsn_level == 2) {
                 $susunBusines[$value->bsn_parent]['child'][$value->bsn_id] = $value->bsn_name;
             }
         }
+        //dd($susunBusines);
 
         $prov = DB::table('tlkp_prov')->where('prov_recycle', 2)->get();
         $susunProv  = [];
@@ -610,6 +622,7 @@ class WaitinglistController extends Controller
                 'searchable' => true,
                 'form_type' => 'select_bsn',
                 'keyvaldata' => $susunBusines,
+                'keyvaldata2' => $susunBusines2,
                 'visible' => true,
                 'required' => false,
             ],
@@ -638,7 +651,7 @@ class WaitinglistController extends Controller
                 'form_type' => 'text',
                 'keyvaldata' => '',
                 'visible' => true,
-                'required' => false,
+                'required' => true,
             ],
             'wi_address' => [
                 'label' => 'Alamat',
@@ -656,7 +669,7 @@ class WaitinglistController extends Controller
                 'form_type' => 'text',
                 'keyvaldata' => '',
                 'visible' => true,
-                'required' => true,
+                'required' => false,
             ],
             'wi_prov' => [
                 'label' => 'Kabupaten',
@@ -701,7 +714,7 @@ class WaitinglistController extends Controller
                 'form_type' => 'text',
                 'keyvaldata' => '',
                 'visible' => true,
-                'required' => true,
+                'required' => false,
             ],
             'wi_rt' => [
                 'label' => 'RT',
@@ -710,7 +723,7 @@ class WaitinglistController extends Controller
                 'form_type' => 'text',
                 'keyvaldata' => '',
                 'visible' => true,
-                'required' => true,
+                'required' => false,
             ],
             'wi_phone' => [
                 'label' => 'Nomor HP',
@@ -728,7 +741,7 @@ class WaitinglistController extends Controller
                 'form_type' => 'text',
                 'keyvaldata' => '',
                 'visible' => true,
-                'required' => true,
+                'required' => false,
             ],
             'wi_telp' => [
                 'label' => 'Nomor Telpon',
@@ -737,7 +750,7 @@ class WaitinglistController extends Controller
                 'form_type' => 'text',
                 'keyvaldata' => '',
                 'visible' => true,
-                'required' => true,
+                'required' => false,
             ],
             'wi_email' => [
                 'label' => 'Email',
@@ -746,7 +759,7 @@ class WaitinglistController extends Controller
                 'form_type' => 'text',
                 'keyvaldata' => '',
                 'visible' => true,
-                'required' => true,
+                'required' => false,
             ],
             'wi_birth_date' => [
                 'label' => 'Tanggal Lahir',
@@ -773,7 +786,7 @@ class WaitinglistController extends Controller
                 'form_type' => 'text',
                 'keyvaldata' => $susunJob,
                 'visible' => true,
-                'required' => true,
+                'required' => false,
             ],
             'wi_ident_type' => [
                 'label' => 'Jenis Identitas',
@@ -906,7 +919,7 @@ class WaitinglistController extends Controller
                 'form_type' => 'text',
                 'keyvaldata' => '',
                 'visible' => true,
-                'required' => true,
+                'required' => false,
             ],
             'wi_bill_address' => [
                 'label' => 'Alamat',
@@ -969,7 +982,7 @@ class WaitinglistController extends Controller
                 'form_type' => 'text',
                 'keyvaldata' => '',
                 'visible' => true,
-                'required' => true,
+                'required' => false,
             ],
             'wi_bill_type' => [
                 'label' => 'Cara Pembayaran',
@@ -1105,6 +1118,30 @@ class WaitinglistController extends Controller
                 'keyvaldata' => '',
                 'visible' => true
             ],
+            'wi_phone' => [
+                'label' => 'No Telpon',
+                'orderable' => false,
+                'searchable' => true,
+                'form_type' => 'area',
+                'keyvaldata' => '',
+                'visible' => true
+            ],
+            'wi_address' => [
+                'label' => 'Alamat',
+                'orderable' => false,
+                'searchable' => true,
+                'form_type' => 'area',
+                'keyvaldata' => '',
+                'visible' => true
+            ],
+            'sp_code' => [
+                'label' => 'Layanan',
+                'orderable' => false,
+                'searchable' => true,
+                'form_type' => 'select',
+                'keyvaldata' => $this->arrPop,
+                'visible' => true
+            ],
             'wi_pop' => [
                 'label' => 'POP',
                 'orderable' => false,
@@ -1113,7 +1150,7 @@ class WaitinglistController extends Controller
                 'keyvaldata' => $this->arrPop,
                 'visible' => true
             ],
-            'wi_member_card' => [
+            /*'wi_member_card' => [
                 'label' => 'Member Card',
                 'orderable' => false,
                 'searchable' => true,
@@ -1128,7 +1165,7 @@ class WaitinglistController extends Controller
                 'form_type' => 'date',
                 'keyvaldata' => '',
                 'visible' => true
-            ],
+            ],*/
             'wi_type' => [
                 'label' => 'Jenis Account',
                 'orderable' => false,
@@ -1146,15 +1183,8 @@ class WaitinglistController extends Controller
                 'keyvaldata' => '',
                 'visible' => true
             ],
-            'wi_address' => [
-                'label' => 'Alamat',
-                'orderable' => false,
-                'searchable' => true,
-                'form_type' => 'area',
-                'keyvaldata' => '',
-                'visible' => true
-            ],
-            'wi_city' => [
+           
+            /*  'wi_city' => [
                 'label' => 'Kota',
                 'orderable' => false,
                 'searchable' => true,
@@ -1185,7 +1215,7 @@ class WaitinglistController extends Controller
                 'form_type' => 'text',
                 'keyvaldata' => '',
                 'visible' => true
-            ],
+            ],*/
             'status' => [
                 'label' => 'Status',
                 'orderable' => false,
