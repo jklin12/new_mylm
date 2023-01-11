@@ -57,7 +57,7 @@
                         <td class="text-center">:</td>
                         <td>
 
-                            @if($vf['form_type']=='select')
+                            @if($vf['form_type']=='select' || $vf['form_type']=='select2')
                             {!! ($vf['keyvaldata'][$wiData[$kf]]) ?? $wiData[$kf] !!}
                             @elseif($vf['form_type']=='select_bsn')
                             {!! ($vf['keyvaldata2'][$wiData[$kf]]) ?? $wiData[$kf] !!}
@@ -82,35 +82,7 @@
     @endforeach
 </div>
 @endif
-@if($data_file)
-<div class="card ">
-    <div class="card-header bg-pink text-white pointer-cursor d-flex align-items-center" data-toggle="collapse" data-target="#collapse-file" aria-expanded="true">
-        <i class="fa fa-circle fa-fw text-warning mr-2 f-s-8"></i> Berkas Pelanggan
-    </div>
-    <div id="collapse-file" class="collapse show" data-parent="#accordion">
-        <div class="table-responsive">
-            <table class="table  m-b-0">
-                <thead>
-                    <tr>
-                        <th>Label</th>
-                        <th>File</th>
-                    </tr>
-                </thead>
-                <tbody>
 
-                    @foreach($data_file as $k => $v)
-                    <tr>
-                        <td><strong>{{ $v->wi_file_title }}</strong></td>
-                        <td><img src="{{url($v->wi_file_name)}}" alt="Image" width="100" /></td>
-                    </tr>
-                    @endforeach
-
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
-@endif
 @if($datas)
 <div class="card ">
     <div class="card-header bg-pink text-white pointer-cursor d-flex align-items-center" data-toggle="collapse" data-target="#collapse-0" aria-expanded="true">
@@ -235,6 +207,37 @@
     <b>Maaf </b>, Data tidak ditemukan
 </div>
 @endif
+
+@if($data_file)
+<div class="card ">
+    <div class="card-header bg-pink text-white pointer-cursor d-flex align-items-center" data-toggle="collapse" data-target="#collapse-file" aria-expanded="true">
+        <i class="fa fa-circle fa-fw text-warning mr-2 f-s-8"></i> Berkas Pelanggan
+    </div>
+    <div id="collapse-file" class="collapse show" data-parent="#accordion">
+        <div class="table-responsive">
+            <table class="table  m-b-0">
+                <thead>
+                    <tr>
+                        <th>Label</th>
+                        <th>File</th>
+                    </tr>
+                </thead>
+                <tbody>
+
+                    @foreach($data_file as $k => $v)
+                    <tr>
+                        <td><strong>{{ $v->wi_file_title }}</strong></td>
+                        <td><img src="{{url($v->wi_file_name)}}" alt="Image" width="100" /></td>
+                    </tr>
+                    @endforeach
+
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+@endif
+
 </div>
 <!-- end panel -->
 

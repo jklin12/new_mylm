@@ -39,18 +39,26 @@
                 <div class="col-md-9">
                     @if($vf['form_type'] == 'text')
                     <input type="text" name="data[{{ $kf }}]" id="input_{{ $kf }}" class="form-control m-b-5" placeholder="Masukan {{ $vf['label'] }}" {{ $vf['required'] ? 'required' : '' }}>
+                    @elseif($vf['form_type'] == 'int')
+                    <input type="text" name="data[{{ $kf }}]" id="input_{{ $kf }}" class="form-control m-b-5" placeholder="Masukan {{ $vf['label'] }}" {{ $vf['required'] ? 'required' : '' }} data-parsley-trigger="keyup" data-parsley-type="number">
                     @elseif($vf['form_type'] == 'date')
                     <input type="text" name="data[{{ $kf }}]" id="input_{{ $kf }}" class="form-control m-b-5 datetimepicker_input" placeholder="Masukan {{ $vf['label'] }}" {{ $vf['required'] ? 'required' : '' }}/>
                     @elseif($vf['form_type'] == 'area')
                     <textarea class="form-control" name="data[{{ $kf }}]" id="input_{{ $kf }}" rows="3" {{ $vf['required'] ? 'required' : '' }}></textarea>
                     @elseif($vf['form_type'] == 'select')
+                    <select class="form-control m-b-5" name="data[{{ $kf }}]" id="input_{{ $kf }}" {{ $vf['required'] ? 'required' : '' }} autocomplete="off">
+                        <option value="">Pilih {{ $vf['label'] }}</option>
+                        @foreach($vf['keyvaldata'] as $kvdata => $vdata)
+                        <option value="{{ $kvdata }}" @if(isset($vf['value']) && $vf['value'] == $kvdata) {{ 'selected' }} @endif>{{$vdata}}</option>
+                        @endforeach
+                    </select>
+                    @elseif($vf['form_type'] == 'select2')
                     <select class="default-select2 form-control m-b-5" name="data[{{ $kf }}]" id="input_{{ $kf }}" {{ $vf['required'] ? 'required' : '' }}>
                         <option value="">Pilih {{ $vf['label'] }}</option>
                         @foreach($vf['keyvaldata'] as $kvdata => $vdata)
-                        <option value="{{ $kvdata }}">{{$vdata}}</option>
+                        <option value="{{ $kvdata }}" @if(isset($vf['value']) && $vf['value'] == $kvdata) {{ 'selected' }} @endif>{{$vdata}}</option>
                         @endforeach
                     </select>
-
                     @elseif($vf['form_type'] == 'select_bsn')
                     <select class="default-select2 form-control m-b-5" name="data[{{ $kf }}]" id="input_{{ $kf }}" {{ $vf['required'] ? 'required' : '' }}>
                         <option value="">Pilih {{ $vf['label'] }}</option>
@@ -93,6 +101,7 @@
         $(".default-select2").select2();
         $('#input_wi_address').keyup(function() {
             var value = $(this).val();
+            
             $('#input_wi_bill_address').val(value);
         });
 

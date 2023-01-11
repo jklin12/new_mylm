@@ -135,24 +135,25 @@ class WaitinglistController extends Controller
             foreach ($fileKeyy as $key => $value) {
                 $file = $request->file($value);
 
+                if ($file) {
+                    $fileName = $value . '_' . rand();
+                    $extension = $file->getClientOriginalExtension();
+                    $check = in_array($extension, $allowedfileExtension);
 
-                $fileName = $value . '_' . rand() . $file->getClientOriginalName();
-                $extension = $file->getClientOriginalExtension();
-                $check = in_array($extension, $allowedfileExtension);
+                    if ($check) {
+                        $file->move($path, $fileName);
+                        $fullPath = $path . '/' . $fileName;
 
-                if ($check) {
-                    $file->move($path, $fileName);
-                    $fullPath = $path . '/' . $fileName;
-
-                    $postfile[$value]['wi_number'] = $newWiNum;
-                    $postfile[$value]['wi_file_key'] = $value;
-                    $postfile[$value]['wi_file_title'] = $arrfield[3][1][$value]['label'];
-                    $postfile[$value]['wi_file_name'] = $fullPath;
+                        $postfile[$value]['wi_number'] = $newWiNum;
+                        $postfile[$value]['wi_file_key'] = $value;
+                        $postfile[$value]['wi_file_title'] = $arrfield[3][1][$value]['label'];
+                        $postfile[$value]['wi_file_name'] = $fullPath;
+                    }
                 }
             }
             DB::table('t_waiting_list_fie')->insert($postfile);
-            $this->createInv($newWiNum, $postVal['wi_bill_instalinv']);
-
+            $this->createInv($newWiNum, $postVal['wi_bill_instalinv'], $postVal['wi_bill_regular'] ?? '', $postVal['wi_bill_period'] ?? '');
+            die;
             $request->session()->flash('success', 'Add Waitinglist Success!');
 
             return redirect(route('waitinglist-index'));
@@ -342,10 +343,10 @@ class WaitinglistController extends Controller
             $postCust['cust_bill_info'] = $value->wi_bill_desc ?? '';
 
             $postCupkg['cust_number'] = $newCustNumber;
-            $postCupkg['sp_code'] = $value->sp_code ;
+            $postCupkg['sp_code'] = $value->sp_code;
             $postCupkg['cupkg_svc_begin'] = $value->wi_svc_begin ?? '';
             $postCupkg['cupkg_acc_type'] = $value->wi_type ?? '';
-            $postCupkg['cupkg_status'] = 3 ;
+            $postCupkg['cupkg_status'] = 3;
             $postCupkg['cupkg_trial'] = $value->wi_trial ?? '';
             $postCupkg['cupkg_bill_period'] = $value->wi_bill_period ?? '';
             $postCupkg['cupkg_bill_type'] = $value->wi_bill_type ?? '';
@@ -394,7 +395,7 @@ class WaitinglistController extends Controller
         return redirect(route('customer-detail', $newCustNumber));
     }
 
-    public function createInv($wiNumber, $invInstalasi)
+    public function createInv($wiNumber, $invInstalasi, $wiBillReguler, $wiBillPeriod)
     {
         $wiData = WaitingList::where('wi_number', $wiNumber)->first();
 
@@ -429,35 +430,33 @@ class WaitinglistController extends Controller
 
         $pkg = DB::table('t_service_pkg')->where('sp_name', $wiData->sp_code)->first();
 
+        $svcAmount = '';
+        if ($wiBillPeriod == '1') {
+            $svcAmount = $pkg->sp_reguler;
+        } elseif ($wiBillPeriod == '3') {
+            $svcAmount = $pkg->sp_reguler3;
+        } elseif ($wiBillPeriod == '6') {
+            $svcAmount = $pkg->sp_reguler6;
+        } elseif ($wiBillPeriod == '12') {
+            $svcAmount = $pkg->sp_reguler12;
+        }
+        $amount = intval($wiBillReguler ? $wiBillReguler : $svcAmount);
+        //dd($amount);
         $postValItem[0]['ii_type'] = '2';
         $postValItem[0]['inv_number'] = $inv_number;
         $postValItem[0]['ii_info'] = 'Biaya Layanan ' . $wiData->sp_code . '  Periode Pertama';
-        $postValItem[0]['ii_amount'] = $pkg->sp_reguler;
+        $postValItem[0]['ii_amount'] = $amount;
         $postValItem[0]['ii_order'] = '1';
         $postValItem[0]['ii_recycle'] = '2';
 
         $postValItem[1]['ii_type'] = '7';
         $postValItem[1]['inv_number'] = $inv_number;
         $postValItem[1]['ii_info'] = 'PPN 11 %';
-        $postValItem[1]['ii_amount'] = ($pkg->sp_reguler * 11) / 100;
+        $postValItem[1]['ii_amount'] = ($amount * 11) / 100;
         $postValItem[1]['ii_order'] = '2';
         $postValItem[1]['ii_recycle'] = '2';
 
         if ($invInstalasi == 1) {
-
-            $inv_number = 'PI' . $wiData->wi_number . date('ym') . sprintf('%02d', $lastPiNum + 1);
-
-            $postPi[1]['inv_number'] = $inv_number;
-            $postPi[1]['cust_number'] = $wiNumber;
-            $postPi[1]['inv_type'] = '1';
-            $postPi[1]['inv_due'] = $invStart;
-            $postPi[1]['inv_post'] = date('Y-m-d H:m:s');
-            $postPi[1]['inv_start'] = $invStart;
-            $postPi[1]['inv_end'] = $invEnd;
-            $postPi[1]['inv_currency'] = "IDR";
-            $postPi[1]['reaktivasi_pi'] = 0;
-            $postPi[1]['sp_code'] =  $wiData->sp_code;
-
             $postValItem[2]['ii_type'] = '1';
             $postValItem[2]['inv_number'] = $inv_number;
             $postValItem[2]['ii_info'] = 'Biaya Instalasi Layanan ' . $wiData->sp_code;
@@ -465,12 +464,7 @@ class WaitinglistController extends Controller
             $postValItem[2]['ii_order'] = '1';
             $postValItem[2]['ii_recycle'] = '2';
 
-            $postValItem[3]['ii_type'] = '7';
-            $postValItem[3]['inv_number'] = $inv_number;
-            $postValItem[3]['ii_info'] = 'PPN 11 %';
-            $postValItem[3]['ii_amount'] = ($pkg->sp_setup * 11) / 100;
-            $postValItem[3]['ii_order'] = '2';
-            $postValItem[3]['ii_recycle'] = '2';
+            $postValItem[1]['ii_amount'] = (($amount + $pkg->sp_setup) * 11) / 100;
         }
 
         //dd($postPi, $postValItem);
@@ -639,7 +633,7 @@ class WaitinglistController extends Controller
                 'label' => 'POP',
                 'orderable' => false,
                 'searchable' => true,
-                'form_type' => 'select',
+                'form_type' => 'select2',
                 'keyvaldata' => $this->arrPop,
                 'visible' => true,
                 'required' => true,
@@ -675,7 +669,7 @@ class WaitinglistController extends Controller
                 'label' => 'Kabupaten',
                 'orderable' => false,
                 'searchable' => true,
-                'form_type' => 'select',
+                'form_type' => 'select2',
                 'keyvaldata' => $susunCity,
                 'visible' => true,
                 'required' => true,
@@ -684,7 +678,7 @@ class WaitinglistController extends Controller
                 'label' => 'Kota',
                 'orderable' => false,
                 'searchable' => true,
-                'form_type' => 'select',
+                'form_type' => 'select2',
                 'keyvaldata' => $susunProv,
                 'visible' => true,
                 'required' => true,
@@ -693,7 +687,7 @@ class WaitinglistController extends Controller
                 'label' => 'Kecamatan',
                 'orderable' => false,
                 'searchable' => true,
-                'form_type' => 'select',
+                'form_type' => 'select2',
                 'keyvaldata' => $susunKecamatan,
                 'visible' => true,
                 'required' => true,
@@ -702,7 +696,7 @@ class WaitinglistController extends Controller
                 'label' => 'Kelurahan',
                 'orderable' => false,
                 'searchable' => true,
-                'form_type' => 'select',
+                'form_type' => 'select2',
                 'keyvaldata' => $susunKelurahan,
                 'visible' => true,
                 'required' => true,
@@ -765,7 +759,7 @@ class WaitinglistController extends Controller
                 'label' => 'Tanggal Lahir',
                 'orderable' => false,
                 'searchable' => true,
-                'form_type' => 'date',
+                'form_type' => 'text',
                 'keyvaldata' => '',
                 'visible' => true,
                 'required' => true,
@@ -783,7 +777,7 @@ class WaitinglistController extends Controller
                 'label' => 'Pekerjaan',
                 'orderable' => false,
                 'searchable' => true,
-                'form_type' => 'text',
+                'form_type' => 'select',
                 'keyvaldata' => $susunJob,
                 'visible' => true,
                 'required' => false,
@@ -830,7 +824,7 @@ class WaitinglistController extends Controller
                 'label' => 'Layanan',
                 'orderable' => false,
                 'searchable' => true,
-                'form_type' => 'select',
+                'form_type' => 'select2',
                 'keyvaldata' => $susunPkg,
                 'visible' => true,
                 'required' => true,
@@ -908,6 +902,33 @@ class WaitinglistController extends Controller
                 'keyvaldata' => '',
                 'visible' => true,
                 'required' => true,
+            ],
+            'file_1' => [
+                'label' => 'Tambahan 1',
+                'orderable' => false,
+                'searchable' => false,
+                'form_type' => 'file',
+                'keyvaldata' => '',
+                'visible' => true,
+                'required' => false,
+            ],
+            'file_2' => [
+                'label' => 'Tambahan 2',
+                'orderable' => false,
+                'searchable' => false,
+                'form_type' => 'file',
+                'keyvaldata' => '',
+                'visible' => true,
+                'required' => false,
+            ],
+            'file_3' => [
+                'label' => 'Tambahan 3',
+                'orderable' => false,
+                'searchable' => false,
+                'form_type' => 'file',
+                'keyvaldata' => '',
+                'visible' => true,
+                'required' => false,
             ],
         ];
 
@@ -998,7 +1019,7 @@ class WaitinglistController extends Controller
                 'orderable' => false,
                 'searchable' => true,
                 'form_type' => 'select',
-                'keyvaldata' => [1 => 'Bulanan', 2 => '2 Bulan', 3 => '3 Bulan', 6 => '6 Bulan', 12 => '12 Bulan'],
+                'keyvaldata' => [1 => 'Bulanan',  3 => '3 Bulan', 6 => '6 Bulan', 12 => '12 Bulan'],
                 'visible' => true,
                 'required' => true,
             ],
@@ -1008,6 +1029,7 @@ class WaitinglistController extends Controller
                 'searchable' => true,
                 'form_type' => 'select',
                 'keyvaldata' => [1 => 'Terbit', 'Tidak Terbit'],
+                'value' => '2',
                 'visible' => true,
                 'required' => true,
             ],
@@ -1036,6 +1058,7 @@ class WaitinglistController extends Controller
                 'searchable' => true,
                 'form_type' => 'select',
                 'keyvaldata' => ['IDR' => 'IDR', 'USD' => 'USD'],
+                'value' => 'IDR',
                 'visible' => true,
                 'required' => true,
             ],
@@ -1043,10 +1066,10 @@ class WaitinglistController extends Controller
                 'label' => 'Biaya Reguler',
                 'orderable' => false,
                 'searchable' => true,
-                'form_type' => 'text',
+                'form_type' => 'int',
                 'keyvaldata' => '',
                 'visible' => true,
-                'required' => true,
+                'required' => false,
             ],
             'wi_bill_ppn' => [
                 'label' => 'PPN',
@@ -1054,6 +1077,7 @@ class WaitinglistController extends Controller
                 'searchable' => true,
                 'form_type' => 'select',
                 'keyvaldata' => ['Tidak', 'Ya'],
+                'value' => '1',
                 'visible' => true,
                 'required' => true,
             ],
@@ -1183,7 +1207,7 @@ class WaitinglistController extends Controller
                 'keyvaldata' => '',
                 'visible' => true
             ],
-           
+
             /*  'wi_city' => [
                 'label' => 'Kota',
                 'orderable' => false,
