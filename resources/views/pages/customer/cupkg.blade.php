@@ -16,13 +16,13 @@
 @include('includes.component.erorr-message')
 @include('includes.component.success-message')
 @if ($errors->any())
-    <div class="alert alert-danger">
-        <ul>
-            @foreach ($errors->all() as $error)
-                <li>{{ $error }}</li>
-            @endforeach
-        </ul>
-    </div>
+<div class="alert alert-danger">
+    <ul>
+        @foreach ($errors->all() as $error)
+        <li>{{ $error }}</li>
+        @endforeach
+    </ul>
+</div>
 @endif
 
 @if($datas)
@@ -70,7 +70,7 @@
                             @foreach($value['data'] as $keyx => $valuex)
                             <tr>
                                 <td class="col-2">
-                                    {{ $valuex['label'] }}
+                                    <strong> {{ $valuex['label'] }}</strong>
                                 </td>
                                 <td class="text-center">:</td>
                                 <td>
@@ -372,7 +372,7 @@
     $('.datetimepicker_input').datepicker({
         format: 'yyyy-mm-dd',
     });
-    
+
 
     $('#btn_olt_check').click(function() {
         var element = '';

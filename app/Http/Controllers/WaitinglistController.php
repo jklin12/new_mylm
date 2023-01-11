@@ -32,8 +32,8 @@ class WaitinglistController extends Controller
         $tableColumn[$i]['searchable'] = 'false';
         $tableColumn[$i]['visible'] = true;
         $i += 1;
-        $tableColumn[$i]['data'] = 'wi_number';
-        $tableColumn[$i]['name'] = 'wi_number';
+        $tableColumn[$i]['data'] = 'btn_detail';
+        $tableColumn[$i]['name'] = 'btn_detail';
         $tableColumn[$i]['orderable'] = 'true';
         $tableColumn[$i]['searchable'] = 'true';
         $tableColumn[$i]['visible'] = true;
@@ -171,7 +171,7 @@ class WaitinglistController extends Controller
             ->first();
 
         if (isset($lastPi->inv_number)) {
-            $lastPiNum = substr($lastPi->inv_number, -3);
+            $lastPiNum = substr($lastPi->inv_number, -2);
             $lastPiNum += 1;
             $inv_number = 'PI' . $wiData->wi_number . date('ym') . sprintf('%02d', $lastPiNum);
         } else {
@@ -254,12 +254,14 @@ class WaitinglistController extends Controller
         $invoice = DB::table('t_invoice_porfoma')->where('cust_number', $wiId)
             ->leftJoin('t_inv_item_porfoma', function ($join) {
                 $join->on('t_invoice_porfoma.inv_number', '=', 't_inv_item_porfoma.inv_number')->where('ii_recycle', '<>', 1);
-            })->get();
+            })
+            ->orderBy('ii_order')
+            ->get();
 
         $file = DB::table('t_waiting_list_fie')->where('wi_number', $wiId)
             ->get();
 
-        //dd($wiId);
+        //dd($file->toArray());
 
         $susunData = [];
         $susunDataSummary = [];
@@ -274,12 +276,12 @@ class WaitinglistController extends Controller
             $susunDataSummary[$value->inv_number]['inv_status'] = $this->arrPiStatus[$value->inv_status];
             $susunDataSummary[$value->inv_number]['inv_post'] = Carbon::parse($value->inv_post)->isoFormat('D MMMM Y');
             $susunDataSummary[$value->inv_number]['inv_due'] = Carbon::parse($value->inv_due)->isoFormat('D MMMM Y');
-            $susunDataSummary[$value->inv_number]['inv_paid'] = Carbon::parse($value->inv_paid)->isoFormat('D MMMM Y - HH:mm');
+            $susunDataSummary[$value->inv_number]['inv_paid'] = $value->inv_paid ?Carbon::parse($value->inv_paid)->isoFormat('D MMMM Y - HH:mm') : '';
             $susunDataSummary[$value->inv_number]['inv_start'] = Carbon::parse($value->inv_start)->isoFormat('D MMMM Y');
             $susunDataSummary[$value->inv_number]['inv_end'] = Carbon::parse($value->inv_end)->isoFormat('D MMMM Y');
             $susunDataSummary[$value->inv_number]['inv_info'] = $value->inv_info;
-            $susunDataSummary[$value->inv_number]['inv_type'] = $value->inv_info;
-            $susunDataSummary[$value->inv_number]['sp_code'] = $value->inv_info;
+            $susunDataSummary[$value->inv_number]['inv_type'] = $value->inv_type;
+            $susunDataSummary[$value->inv_number]['sp_code'] = $value->sp_code;
             $susunDataSummary[$value->inv_number]['item'][$key]['total'] = 0;
             $susunDataSummary[$value->inv_number]['item'][$key]['ii_order'] = $value->ii_order;
             $susunDataSummary[$value->inv_number]['item'][$key]['ii_type'] = $value->ii_type;
@@ -507,11 +509,20 @@ class WaitinglistController extends Controller
 
             $actionBtn = '<a href="#" class="btn btn-' . $warna . '  ">' . $status  . '</a>';
             return  $actionBtn;
+        
+         
         })->editColumn('wi_type', function ($row) {
             $type = [1 => 'Personal', 'Perusahaan', 'Pemkot'];
             return $type[$row->wi_type];
         })->editColumn('wi_pop', function ($row) {
             return $this->arrPop[$row->wi_pop];
+        })->addColumn('btn_detail', function ($row) {
+            if ($row->wi_status == 1) {
+                $route =   route('customer-detail', $row->new_cust_number);
+            } else {
+                $route = route('waitinglist-detail', $row->wi_number);
+            }
+            return '<a href="'.$route.'"><strong>'.$row->wi_number.'</strong></a>';
         })->addColumn('detail', function ($row) {
             if ($row->wi_status == 1) {
                 $route =   route('customer-detail', $row->new_cust_number);
@@ -522,7 +533,7 @@ class WaitinglistController extends Controller
             return $actionBtn;
         })
 
-            ->rawColumns(['detail', 'status'])
+            ->rawColumns(['btn_detail','detail', 'status'])
             ->make(true);
     }
 

@@ -215,9 +215,12 @@ class CustomerController extends Controller
 
         $datas = [];
         if ($customer) {
-
+            $bussinesType = DB::table('tlkp_business')->where('bsn_recycle', 2)->get();
             $customer = $customer->toArray();
-            //dd($customer);
+            $bsn = [];
+            foreach ($bussinesType as $key => $value) {
+                $bsn[$value->bsn_id] = $value->bsn_name;
+            }
             foreach ($customer as $key => $value) {
 
                 if ($key == 'cust_birth_date') {
@@ -226,6 +229,8 @@ class CustomerController extends Controller
                     $datas[$key] = Carbon::parse($value)->isoFormat('D MMMM Y');
                 } else if ($key == 'cust_sex') {
                     $datas[$key] = $value == 1 ? 'Laki-Laki' : 'Perempuan';
+                } else  if ($key == 'cust_business') {
+                    $datas[$key] = isset($bsn[$value]) ? $bsn[$value] : '';
                 } else  if ($key == 'cust_ident_type') {
                     $datas[$key] = isset($this->jenisIdentitas[$value]) ? $this->jenisIdentitas[$value] : '';
                 } else  if ($key == 'cupkg_status') {

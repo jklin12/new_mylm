@@ -86,7 +86,7 @@
                         @foreach($value['data'] as $keys => $values)
                         <tr>
                             <td class="col-2">
-                                {{ $values['label'] }}
+                                <strong>{{ $values['label'] }}</strong>
                             </td>
                             <td class="text-center">:</td>
                             <td>
@@ -99,6 +99,7 @@
 
                         </tr>
                         @endforeach
+                         
 
                     </tbody>
                 </table>

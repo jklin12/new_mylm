@@ -37,21 +37,14 @@
 
     <div id="collapse-wi{{$key}}" class="collapse show" data-parent="#accordion">
         <div class="table-responsive">
-            <table class="table table-striped m-b-0">
-                <thead>
-                    <tr>
-                        <th></th>
-                        <th></th>
-                        <th></th>
-                        <th width="" class="col-1"></th>
-                    </tr>
-                </thead>
+            <table class="table table-striped mx-2 my-2">
+
                 <tbody>
 
                     @foreach($value[1] as $kf => $vf)
                     @if($vf['visible'])
                     <tr>
-                        <td class="">
+                        <td class="w-25">
                             <strong> {{ $vf['label'] }}</strong>
                         </td>
                         <td class="text-center">:</td>
@@ -68,9 +61,7 @@
                             @endif
 
                         </td>
-                        <td class="with-btn">
-
-                        </td>
+                        
                     </tr>
                     @endif
                     @endforeach
@@ -187,7 +178,7 @@
                     </tr>
                     @foreach($value['item'] as $k => $v)
                     <tr>
-                        <td>{{ $v['ii_order'] }}</td>
+                        <td>{{ $loop->iteration }}</td>
                         <!--td>{{ $v['ii_type'] }}</td>-->
                         <td>{{ $v['ii_amount'] }}</td>
                         <td>{{ $v['ii_info'] }}</td>
