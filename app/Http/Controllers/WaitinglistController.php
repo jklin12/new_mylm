@@ -154,54 +154,92 @@ class WaitinglistController extends Controller
 
             DB::table('t_waiting_list_fie')->insert($postfile);
             $this->createInv($newWiNum, $postVal['wi_bill_instalinv'], $postVal['wi_bill_regular'] ?? '', $postVal['wi_bill_period'] ?? '');
-            die;
+
             $request->session()->flash('success', 'Add Waitinglist Success!');
 
             return redirect(route('waitinglist-index'));
         }
     }
 
-    public function import(Request $request)
+    public function createInv($wiNumber, $invInstalasi, $wiBillReguler, $wiBillPeriod)
     {
-        request()->validate([
-            'file' => 'required',
-        ]);
+        $wiData = WaitingList::where('wi_number', $wiNumber)->first();
 
-        $file = $request->file('file');
-        $fileName = rand() . $file->getClientOriginalName();
-        $file->move('files/waiting_list', $fileName);
+        $lastPi = DB::table('t_invoice_wi')
+            ->whereRaw("YEAR(inv_post) = '" . date('Y') . "'")
+            ->whereRaw("MONTH(inv_post) = '" . date('m') . "'")
+            ->orderByDesc('inv_post')
+            ->first();
 
-        $fullPath = 'files/waiting_list/' . $fileName;
-        $reader     = new \PhpOffice\PhpSpreadsheet\Reader\Xlsx();
-        $spreadsheet     = $reader->load($fullPath);
-        $sheet_data     = $spreadsheet->getActiveSheet()->toArray();
-
-        $arrField = $this->arrField();
-        $postVal = [];
-        foreach ($sheet_data as $key => $value) {
-            if ($key > 0) {
-
-                $postVal[$key]['wi_am'] = $value[1];
-                $postVal[$key]['sp_code'] = $value[2];
-                $postVal[$key]['wi_name'] = $value[3];
-                $postVal[$key]['wi_phone'] = $value[4];
-                $postVal[$key]['wi_email'] = $value[5];
-                $postVal[$key]['wi_address'] = $value[6];
-                $postVal[$key]['wi_note'] = $value[7];
-                $postVal[$key]['wi_file_identity'] = $value[8];
-                $postVal[$key]['wi_file_lokasi'] = $value[9];
-                $postVal[$key]['wi_file_survei'] = $value[10];
-                $latLong = explode(',', $value[11]);
-                $postVal[$key]['wi_lat'] = $latLong[0];
-                $postVal[$key]['wi_long'] = $latLong[1];
-            }
+        if (isset($lastPi->inv_number)) {
+            $lastPiNum = substr($lastPi->inv_number, -3);
+            $lastPiNum += 1;
+            $inv_number = 'PI' . $wiData->wi_number . date('ym') . sprintf('%02d', $lastPiNum);
+        } else {
+            $lastPiNum = '01';
+            $inv_number = 'PI' .  $wiData->wi_number . date('ym') . $lastPiNum;
         }
-        //dd($postVal);
-        $insert = WaitingList::insert($postVal);
-        $request->session()->flash('success', 'Import Data berhasil!');
 
-        return redirect()->back();
+        $invStart = $wiData->wi_svc_begin ?? date('Y-m-d');
+        $invEnd = date('Y-m-d', strtotime($invStart . ' +29 days'));
+
+        $postPi[0]['inv_number'] = $inv_number;
+        $postPi[0]['cust_number'] = $wiNumber;
+        $postPi[0]['sp_code'] =  $wiData->sp_code;
+        $postPi[0]['inv_type'] = '2';
+        $postPi[0]['inv_due'] = $invStart;
+        $postPi[0]['inv_post'] = date('Y-m-d H:m:s');
+        $postPi[0]['inv_start'] = $invStart;
+        $postPi[0]['inv_end'] = $invEnd;
+        $postPi[0]['inv_currency'] = "IDR";
+        $postPi[0]['reaktivasi_pi'] = 10;
+
+        $pkg = DB::table('t_service_pkg')->where('sp_name', $wiData->sp_code)->first();
+
+        $svcAmount = '';
+        if ($wiBillPeriod == '1') {
+            $svcAmount = $pkg->sp_reguler;
+        } elseif ($wiBillPeriod == '3') {
+            $svcAmount = $pkg->sp_reguler3;
+        } elseif ($wiBillPeriod == '6') {
+            $svcAmount = $pkg->sp_reguler6;
+        } elseif ($wiBillPeriod == '12') {
+            $svcAmount = $pkg->sp_reguler12;
+        }
+        $amount = intval($wiBillReguler ? $wiBillReguler : $svcAmount);
+        //dd($amount);
+        $postValItem[0]['ii_type'] = '2';
+        $postValItem[0]['inv_number'] = $inv_number;
+        $postValItem[0]['ii_info'] = 'Biaya Layanan ' . $wiData->sp_code . '  Periode Pertama';
+        $postValItem[0]['ii_amount'] = $amount;
+        $postValItem[0]['ii_order'] = '1';
+        $postValItem[0]['ii_recycle'] = '2';
+
+        $postValItem[1]['ii_type'] = '7';
+        $postValItem[1]['inv_number'] = $inv_number;
+        $postValItem[1]['ii_info'] = 'PPN 11 %';
+        $postValItem[1]['ii_amount'] = ($amount * 11) / 100;
+        $postValItem[1]['ii_order'] = '2';
+        $postValItem[1]['ii_recycle'] = '2';
+
+        if ($invInstalasi == 1) {
+            $postValItem[2]['ii_type'] = '1';
+            $postValItem[2]['inv_number'] = $inv_number;
+            $postValItem[2]['ii_info'] = 'Biaya Instalasi Layanan ' . $wiData->sp_code;
+            $postValItem[2]['ii_amount'] = $pkg->sp_setup;
+            $postValItem[2]['ii_order'] = '1';
+            $postValItem[2]['ii_recycle'] = '2';
+
+            $postValItem[1]['ii_amount'] = (($amount + $pkg->sp_setup) * 11) / 100;
+        }
+
+        //dd($postPi, $postValItem);
+
+        DB::table('t_invoice_porfoma')->insert($postPi);
+        DB::table('t_inv_item_porfoma')->insert($postValItem);
     }
+
+
 
     public function detail(Request $request, $wiId)
     {
@@ -269,7 +307,9 @@ class WaitinglistController extends Controller
         return view('pages/waitinglist/detail', $load);
     }
 
-    public function konfirmasi(Request $request)
+
+
+    /*public function konfirmasi(Request $request)
     {
 
         $wiNumber = $request->input('wi_number');
@@ -395,84 +435,50 @@ class WaitinglistController extends Controller
 
         return redirect(route('customer-detail', $newCustNumber));
     }
-
-    public function createInv($wiNumber, $invInstalasi, $wiBillReguler, $wiBillPeriod)
+    public function import(Request $request)
     {
-        $wiData = WaitingList::where('wi_number', $wiNumber)->first();
+        request()->validate([
+            'file' => 'required',
+        ]);
 
-        $lastPi = DB::table('t_invoice_wi')
-            ->whereRaw("YEAR(inv_post) = '" . date('Y') . "'")
-            ->whereRaw("MONTH(inv_post) = '" . date('m') . "'")
-            ->orderByDesc('inv_post')
-            ->first();
+        $file = $request->file('file');
+        $fileName = rand() . $file->getClientOriginalName();
+        $file->move('files/waiting_list', $fileName);
 
-        if (isset($lastPi->inv_number)) {
-            $lastPiNum = substr($lastPi->inv_number, -3);
-            $lastPiNum += 1;
-            $inv_number = 'PI' . $wiData->wi_number . date('ym') . sprintf('%02d', $lastPiNum);
-        } else {
-            $lastPiNum = '01';
-            $inv_number = 'PI' .  $wiData->wi_number . date('ym') . $lastPiNum;
+        $fullPath = 'files/waiting_list/' . $fileName;
+        $reader     = new \PhpOffice\PhpSpreadsheet\Reader\Xlsx();
+        $spreadsheet     = $reader->load($fullPath);
+        $sheet_data     = $spreadsheet->getActiveSheet()->toArray();
+
+        $arrField = $this->arrField();
+        $postVal = [];
+        foreach ($sheet_data as $key => $value) {
+            if ($key > 0) {
+
+                $postVal[$key]['wi_am'] = $value[1];
+                $postVal[$key]['sp_code'] = $value[2];
+                $postVal[$key]['wi_name'] = $value[3];
+                $postVal[$key]['wi_phone'] = $value[4];
+                $postVal[$key]['wi_email'] = $value[5];
+                $postVal[$key]['wi_address'] = $value[6];
+                $postVal[$key]['wi_note'] = $value[7];
+                $postVal[$key]['wi_file_identity'] = $value[8];
+                $postVal[$key]['wi_file_lokasi'] = $value[9];
+                $postVal[$key]['wi_file_survei'] = $value[10];
+                $latLong = explode(',', $value[11]);
+                $postVal[$key]['wi_lat'] = $latLong[0];
+                $postVal[$key]['wi_long'] = $latLong[1];
+            }
         }
+        //dd($postVal);
+        $insert = WaitingList::insert($postVal);
+        $request->session()->flash('success', 'Import Data berhasil!');
 
-        $invStart = $wiData->wi_svc_begin ?? date('Y-m-d');
-        $invEnd = date('Y-m-d', strtotime($invStart . ' +29 days'));
-
-        $postPi[0]['inv_number'] = $inv_number;
-        $postPi[0]['cust_number'] = $wiNumber;
-        $postPi[0]['sp_code'] =  $wiData->sp_code;
-        $postPi[0]['inv_type'] = '2';
-        $postPi[0]['inv_due'] = $invStart;
-        $postPi[0]['inv_post'] = date('Y-m-d H:m:s');
-        $postPi[0]['inv_start'] = $invStart;
-        $postPi[0]['inv_end'] = $invEnd;
-        $postPi[0]['inv_currency'] = "IDR";
-        $postPi[0]['reaktivasi_pi'] = 10;
-
-        $pkg = DB::table('t_service_pkg')->where('sp_name', $wiData->sp_code)->first();
-
-        $svcAmount = '';
-        if ($wiBillPeriod == '1') {
-            $svcAmount = $pkg->sp_reguler;
-        } elseif ($wiBillPeriod == '3') {
-            $svcAmount = $pkg->sp_reguler3;
-        } elseif ($wiBillPeriod == '6') {
-            $svcAmount = $pkg->sp_reguler6;
-        } elseif ($wiBillPeriod == '12') {
-            $svcAmount = $pkg->sp_reguler12;
-        }
-        $amount = intval($wiBillReguler ? $wiBillReguler : $svcAmount);
-        //dd($amount);
-        $postValItem[0]['ii_type'] = '2';
-        $postValItem[0]['inv_number'] = $inv_number;
-        $postValItem[0]['ii_info'] = 'Biaya Layanan ' . $wiData->sp_code . '  Periode Pertama';
-        $postValItem[0]['ii_amount'] = $amount;
-        $postValItem[0]['ii_order'] = '1';
-        $postValItem[0]['ii_recycle'] = '2';
-
-        $postValItem[1]['ii_type'] = '7';
-        $postValItem[1]['inv_number'] = $inv_number;
-        $postValItem[1]['ii_info'] = 'PPN 11 %';
-        $postValItem[1]['ii_amount'] = ($amount * 11) / 100;
-        $postValItem[1]['ii_order'] = '2';
-        $postValItem[1]['ii_recycle'] = '2';
-
-        if ($invInstalasi == 1) {
-            $postValItem[2]['ii_type'] = '1';
-            $postValItem[2]['inv_number'] = $inv_number;
-            $postValItem[2]['ii_info'] = 'Biaya Instalasi Layanan ' . $wiData->sp_code;
-            $postValItem[2]['ii_amount'] = $pkg->sp_setup;
-            $postValItem[2]['ii_order'] = '1';
-            $postValItem[2]['ii_recycle'] = '2';
-
-            $postValItem[1]['ii_amount'] = (($amount + $pkg->sp_setup) * 11) / 100;
-        }
-
-        //dd($postPi, $postValItem);
-
-        DB::table('t_invoice_porfoma')->insert($postPi);
-        DB::table('t_inv_item_porfoma')->insert($postValItem);
+        return redirect()->back();
     }
+    */
+
+
 
     public function list()
     {
