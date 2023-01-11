@@ -151,9 +151,10 @@ class WaitinglistController extends Controller
                     }
                 }
             }
+
             DB::table('t_waiting_list_fie')->insert($postfile);
             $this->createInv($newWiNum, $postVal['wi_bill_instalinv'], $postVal['wi_bill_regular'] ?? '', $postVal['wi_bill_period'] ?? '');
-
+	    die;
             $request->session()->flash('success', 'Add Waitinglist Success!');
 
             return redirect(route('waitinglist-index'));
