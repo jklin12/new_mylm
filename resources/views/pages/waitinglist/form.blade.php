@@ -39,6 +39,9 @@
                 <div class="col-md-9">
                     @if($vf['form_type'] == 'text')
                     <input type="text" name="data[{{ $kf }}]" id="input_{{ $kf }}" class="form-control m-b-5" placeholder="Masukan {{ $vf['label'] }}" {{ $vf['required'] ? 'required' : '' }}>
+                    @if(isset($vf['small']))
+                    <small class="f-s-12 text-red-darker">{{ $vf['small']}}</small>
+                    @endif            
                     @elseif($vf['form_type'] == 'int')
                     <input type="text" name="data[{{ $kf }}]" id="input_{{ $kf }}" class="form-control m-b-5" placeholder="Masukan {{ $vf['label'] }}" {{ $vf['required'] ? 'required' : '' }} data-parsley-trigger="keyup" data-parsley-type="number">
                     @elseif($vf['form_type'] == 'date')
