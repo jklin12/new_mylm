@@ -715,6 +715,7 @@ class WaitinglistController extends Controller
                 'keyvaldata' => '',
                 'visible' => true,
                 'required' => false,
+                'small'=>'Contoh : 04'
             ],
             'wi_rt' => [
                 'label' => 'RT',
@@ -724,6 +725,7 @@ class WaitinglistController extends Controller
                 'keyvaldata' => '',
                 'visible' => true,
                 'required' => false,
+                'small'=>'Contoh : 04'
             ],
             'wi_phone' => [
                 'label' => 'Nomor HP',
@@ -769,6 +771,7 @@ class WaitinglistController extends Controller
                 'keyvaldata' => '',
                 'visible' => true,
                 'required' => true,
+                'small'=>'Format Tahun-Bulan-Tanggal contoh : 1995-12-01'
             ],
             'wi_sex' => [
                 'label' => 'Jenis Kelamin',
